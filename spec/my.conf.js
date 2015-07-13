@@ -39,8 +39,8 @@ module.exports = function (config) {
             //require("karma-source-map-support")
         ],
 */
-        webpack: {
-            /*module: {
+       /* webpack: {
+            /!*module: {
              loaders: [
              {
              test: /\.js$/,
@@ -51,10 +51,10 @@ module.exports = function (config) {
              }
              }
              ]
-             },*/
+             },*!/
             devtool: 'inline-source-map',
             //devtool: 'source-map',
-        },
+        },*/
 
 
         // test results reporter to use

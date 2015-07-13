@@ -82,7 +82,7 @@ export function updateChildren(old, vdom) {
                 for (i = 0; i < newLen; i++) {
                     normChild(vdom, i);
                     var newChild = vdom.children[i];
-                    create(newChild, vdom);
+                    create(newChild, vdom.dom);
                     insert(parentDom, newChild, beforeChild);
                 }
                 for (i = 0; i < oldLen; i++) {
@@ -113,7 +113,6 @@ function mapChildren(old, vdom, beforeChild) {
         var newKey = newChild.key;
         if (newKey == null) {
             console.warn('map without keys', vdom);
-            debugger;
             return false;
         }
         var keyChild = old.children[keyMap[newKey]];
@@ -129,7 +128,7 @@ function mapChildren(old, vdom, beforeChild) {
             keyMap[newKey] = null;
         }
         else {
-            create(newChild, vdom);
+            create(newChild, vdom.dom);
             insert(parentDom, newChild, beforeChild);
         }
         beforeChild = newChild.dom.nextSibling;
@@ -150,7 +149,7 @@ function mapChildren(old, vdom, beforeChild) {
 
 function replaceNode(old, vdom) {
     var parentDom = old.fragment ? old.dom : old.dom.parentNode;
-    create(vdom, old.parent);
+    create(vdom, parentDom);
     insert(parentDom, vdom, old.fragment ? getFirstChild(old) : old);
     remove(old);
     return vdom;

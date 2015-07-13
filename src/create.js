@@ -1,17 +1,17 @@
 import {attrs, props, events} from './attrs';
 import {DEBUG, normChild} from './utils';
-import {VFragmentNode, VComponent, NNode} from './node';
+import {VFragmentNode, VComponent, getNNode} from './node';
 import {createComponent, mountComponent} from './component';
 
 export function render(vdom, dom) {
-    dom.appendChild(create(vdom, {dom: dom}));
+    dom.appendChild(create(vdom, dom));
     if (vdom.component) {
         mountComponent(vdom);
     }
     return vdom;
 }
 
-export function create(vdom, parent) {
+export function create(vdom, parentDom) {
     DEBUG && console.log("Create", vdom);
     //vdom.parent = parent;
     if (vdom.tag == '#') {
@@ -25,7 +25,7 @@ export function create(vdom, parent) {
             createComponent(vdom);
         }
         dom = document.createDocumentFragment();
-        vdom.dom = parent.dom;
+        vdom.dom = parentDom;
     }
     else {
         dom = document.createElement(vdom.tag);
@@ -40,7 +40,7 @@ export function create(vdom, parent) {
             if (vdom.tag === 'map' && child.attrs) {
                 vdom.keyMap[child.key] = i;
             }
-            dom.appendChild(create(child, vdom));
+            dom.appendChild(create(child, vdom.dom));
             if (child.component) {
                 mountComponent(child);
             }
@@ -111,7 +111,7 @@ export function createElementArray(tag, attrs, children) {
         }
     }
     else {
-        return new NNode(tag, attrs, children, attrs ? attrs.key : null, null);
+        return getNNode(tag, attrs, children, attrs ? attrs.key : null, null);
     }
 }
 
@@ -136,7 +136,7 @@ export function createElement(tag, attrs) {
         }
     }
     else {
-        return new NNode(tag, attrs, children, attrs ? attrs.key : null, text);
+        return getNNode(tag, attrs, children, attrs ? attrs.key : null, text);
     }
 }
 

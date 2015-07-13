@@ -66,14 +66,19 @@ export function VComponent(tag, attrs, children, key) {
     //this.parent = null;
     this.dom = null;
     this.attrs = attrs;
-    this.destroyed = null;
+    //this.destroyed = null;
     //this.destroyed = null;
 }
 classExtend(VComponent, proto, {fragment: true});
 
 
-export function NNode(tag, attrs, children, key, text) {
+window.nNodes = 0;
+var nodesCache = new Array(1000000);
+nodesCache.len = 0;
+
+function NNode(tag, attrs, children, key, text) {
     //objects.push(this);
+    window.nNodes++;
     this.id = id++;
     this.tag = tag;
     this.attrs = attrs;
@@ -87,13 +92,40 @@ export function NNode(tag, attrs, children, key, text) {
     //this.parent = null;
     //this.destroyed = null;
 }
-classExtend(NNode, proto);
+classExtend(NNode, proto, {
+    destroy: function () {
+        //this.dom = null;
+        //this.children = null;
+        //this.attrs = null;
+        nodesCache[nodesCache.len++] = this;
+
+        //this.destroyed = true;
+        //this.parent = null;
+    }
+});
+export function getNNode(tag, attrs, children, key, text) {
+    if (nodesCache.len == 0) {
+        return new NNode(tag, attrs, children, key, text);
+    }
+    var item = nodesCache[--nodesCache.len];
+    item.tag = tag;
+    item.attrs = attrs;
+    item.children = children;
+    item.key = key;
+    item.text = text;
+    return item;
+}
 
 
-export function VTextNode(text) {
+window.vTextNodes = 0;
+var textNodesCache = new Array(1000000);
+textNodesCache.len = 0;
+
+function VTextNode(text) {
     this.id = id++;
     this.dom = null;
     this.text = text;
+    window.vTextNodes++;
     //this.parent = null;
     //this.destroyed = null;
 }
@@ -101,7 +133,17 @@ classExtend(VTextNode, proto, {
     tag: '#',
     destroy: function () {
         this.dom = null;
+        textNodesCache[textNodesCache.len++] = this;
         //this.destroyed = true;
         //this.parent = null;
     }
 });
+
+export function getTextNode(text) {
+    if (textNodesCache.len == 0) {
+        return new VTextNode(text);
+    }
+    var item = textNodesCache[--textNodesCache.len];
+    item.text = text;
+    return item;
+}
