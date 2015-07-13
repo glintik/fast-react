@@ -1,0 +1,21 @@
+{
+  "name": "fast-react",
+  "version": "1.0.0",
+  "description": "",
+  "main": "fast-react.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "cevek",
+  "license": "ISC",
+  "devDependencies": {
+    "babel-loader": "^5.3.1",
+    "expose-loader": "^0.7.0",
+    "jasmine-core": "^2.3.4",
+    "karma": "^0.12.37",
+    "karma-chrome-launcher": "^0.2.0",
+    "karma-jasmine": "^0.3.6",
+    "karma-sourcemap-loader": "^0.3.5",
+    "karma-webpack": "^1.5.1"
+  }
+}
