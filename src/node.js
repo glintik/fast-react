@@ -1,4 +1,5 @@
 var id = 1;
+import {cacheChildren} from './create';
 
 var proto = {
     text: null,
@@ -97,6 +98,9 @@ classExtend(NNode, proto, {
         //this.dom = null;
         //this.children = null;
         //this.attrs = null;
+        if (this.children) {
+            cacheChildren[cacheChildren.len++] = this.children;
+        }
         nodesCache[nodesCache.len++] = this;
 
         //this.destroyed = true;

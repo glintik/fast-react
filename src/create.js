@@ -34,7 +34,7 @@ export function create(vdom, parentDom) {
     }
 
     if (vdom.children) {
-        for (var i = 0; i < vdom.children.length; i++) {
+        for (var i = 0; i < vdom.children.len; i++) {
             normChild(vdom, i);
             var child = vdom.children[i];
             if (vdom.tag === 'map' && child.attrs) {
@@ -56,12 +56,12 @@ export function create(vdom, parentDom) {
                 vdom.attrs.ref(vdom);
             }
             //todo:
-/*
-            else if (currentComponent) {
-                currentComponent.refs = currentComponent.refs || {};
-                currentComponent.refs[vdom.attrs.ref] = vdom;
-            }
-*/
+            /*
+                        else if (currentComponent) {
+                            currentComponent.refs = currentComponent.refs || {};
+                            currentComponent.refs[vdom.attrs.ref] = vdom;
+                        }
+            */
         }
 
         var attr;
@@ -115,16 +115,26 @@ export function createElementArray(tag, attrs, children) {
     }
 }
 
+export var cacheChildren = new Array(100000);
+cacheChildren.len = 0;
+
 export function createElement(tag, attrs) {
     var len = arguments.length;
     var isFragment = tag == '@' || typeof tag == 'function';
     var text = (len == 3 && !isFragment && (typeof arguments[2] == 'string' || typeof arguments[2] == 'number')) ? arguments[2] + '' : null;
     var children = null;
     if (!text && len > 2) {
-        children = Array(len - 2);
+        if (cacheChildren.len == 0) {
+            children = Array(len - 2);
+        }
+        else {
+            children = cacheChildren[--cacheChildren.len];
+        }
+
         for (var i = 2; i < len; i++) {
             children[i - 2] = arguments[i];
         }
+        children.len = len - 2;
     }
 
     if (isFragment) {

@@ -54,8 +54,8 @@ export function update(old, vdom) {
 }
 
 export function updateChildren(old, vdom) {
-    var oldLen = old.children ? old.children.length : 0;
-    var newLen = vdom.children ? vdom.children.length : 0;
+    var oldLen = old.children ? old.children.len : 0;
+    var newLen = vdom.children ? vdom.children.len : 0;
     if (oldLen) {
         var parentDom = old.dom;
         var beforeChild = getFirstChild(old);
@@ -103,8 +103,8 @@ function mapChildren(old, vdom, beforeChild) {
     var keyMap = old.keyMap;
     var newKeyMap = vdom.keyMap;
     var newChildren = vdom.children;
-    var newLen = newChildren.length;
-    var oldLen = old.children.length;
+    var newLen = newChildren.len;
+    var oldLen = old.children.len;
     var found = 0;
     for (var i = 0; i < newLen; i++) {
         normChild(vdom, i);
@@ -195,7 +195,7 @@ function forAttrs(old, vdom) {
 
 function insert(parentDom, vdom, before) {
     if (vdom.fragment) {
-        for (var i = 0; i < vdom.children.length; i++) {
+        for (var i = 0; i < vdom.children.len; i++) {
             insert(vdom.dom, vdom.children[i], before);
         }
         return;

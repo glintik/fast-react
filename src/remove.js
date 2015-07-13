@@ -8,7 +8,7 @@ export function remove(old) {
         destroyComponent(old);
     }
     if (old.children) {
-        for (var i = 0; i < old.children.length; i++) {
+        for (var i = 0; i < old.children.len; i++) {
             removeChild(old, i);
         }
     }
