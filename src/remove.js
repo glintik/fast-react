@@ -1,10 +1,7 @@
 import {destroyComponent} from './component';
 import {DEBUG} from './utils';
 
-export function remove(old, i) {
-    if (i !== void 0) {
-        old = old.children[i];
-    }
+export function remove(old) {
     DEBUG && console.log("remove", old);
 
     if (old.component) {
@@ -12,39 +9,16 @@ export function remove(old, i) {
     }
     if (old.children) {
         for (var i = 0; i < old.children.length; i++) {
-            remove(old, i);
-            //old.children[i] = null;
+            removeChild(old, i);
         }
     }
     if (!old.fragment) {
         old.dom.parentNode.removeChild(old.dom);
     }
-    //old.dom = null;
-    //old.attrs = null;
-    //old.children = null;
-    //old.parent = null;
+    old.destroy();
 }
 
-export function removeChild(){
-    if (i !== void 0) {
-        old = old.children[i];
-    }
-    DEBUG && console.log("remove", old);
-
-    if (old.component) {
-        destroyComponent(old);
-    }
-    if (old.children) {
-        for (var i = 0; i < old.children.length; i++) {
-            remove(old, i);
-            //old.children[i] = null;
-        }
-    }
-    if (!old.fragment) {
-        old.dom.parentNode.removeChild(old.dom);
-    }
-    //old.dom = null;
-    //old.attrs = null;
-    //old.children = null;
-    //old.parent = null;
+export function removeChild(old, i) {
+    remove(old.children[i]);
+    old.children[i] = null;
 }

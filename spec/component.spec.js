@@ -2,7 +2,6 @@ describe("Component", function () {
     var callstack = [];
     DEBUG = false;
     var Constructor = 'constructor', Render = 'Render', WillMount = 'WillMount', didMount = 'didMount', willReceiveProps = 'willReceiveProps', willUpdate = 'willUpdate', didUpdate = 'didUpdate', willUnmount = 'willUnmount';
-    debugger;
     Component.prototype.componentWillMount = function () {callstack.push([WillMount, this.constructor])};
     Component.prototype.componentDidMount = function () {callstack.push([didMount, this.constructor])};
 

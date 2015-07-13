@@ -2,7 +2,10 @@ var render = FastReact.render;
 var Component = FastReact.Component;
 var createElement = FastReact.createElement;
 var d = FastReact.createElement;
-var update = FastReact.update;
+var update = function (old, vdom) {
+    FastReact.update(old, vdom);
+    return vdom;
+};
 
 
 function div() {

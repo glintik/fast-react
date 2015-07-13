@@ -11,10 +11,9 @@ export function render(vdom, dom) {
     return vdom;
 }
 
-
 export function create(vdom, parent) {
     DEBUG && console.log("Create", vdom);
-    vdom.parent = parent;
+    //vdom.parent = parent;
     if (vdom.tag == '#') {
         vdom.dom = document.createTextNode(vdom.text);
         //vdom.dom.virtual = vdom;

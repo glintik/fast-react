@@ -1,6 +1,6 @@
 import {attrs, props, events} from './attrs';
 import {updateComponent} from './component';
-import {remove} from './remove';
+import {remove, removeChild} from './remove';
 import {normChild, getFirstChild, DEBUG} from './utils';
 import {create} from './create';
 
@@ -11,7 +11,7 @@ export function update(old, vdom) {
     var dom = old.dom;
     dom.updated = true;
     vdom.dom = dom;
-    vdom.parent = old.parent;
+    //vdom.parent = old.parent;
     if (old.tag !== vdom.tag) {
         return replaceNode(old, vdom);
     }
@@ -20,20 +20,16 @@ export function update(old, vdom) {
             dom.textContent = vdom.text;
         }
         old.destroy();
-        //todo:
-        //old.parent = null;
-        //old.dom = null;
-        //node.cacheTextNode.push(old);
-        return vdom;
+        return;
     }
     if (old.text !== vdom.text) {
         dom.textContent = vdom.text;
-        //dom.firstChild.updated = true;
     }
 
     if (vdom.fragment) {
         if (vdom.key !== old.key) {
-            return replaceNode(old, vdom);
+            replaceNode(old, vdom);
+            return;
         }
     }
     else {
@@ -42,21 +38,19 @@ export function update(old, vdom) {
             forAttrs(old, vdom);
         }
         if ((old.attrs && !vdom.attrs) || (!old.attrs && vdom.attrs) || old.allAttrs !== vdom.allAttrs) {
-            return replaceNode(old, vdom);
+            replaceNode(old, vdom);
+            return;
         }
     }
     if (old.component) {
         updateComponent(old, vdom);
+        return;
     }
-    else if (!vdom.text) {
+
+    if (!vdom.text) {
         updateChildren(old, vdom);
     }
-    //old.attrs = null;
-    //todo:broke tests
-    //old.children = null;
-    //old.dom = null;
-    //old.parent = null;
-    return vdom;
+    old.destroy();
 }
 
 export function updateChildren(old, vdom) {
@@ -66,12 +60,14 @@ export function updateChildren(old, vdom) {
         var parentDom = old.dom;
         var beforeChild = getFirstChild(old);
         if ((vdom.tag == 'map' && old.tag != 'map') || (vdom.tag != 'map' && old.tag == 'map')) {
-            return replaceNode(old, vdom);
+            replaceNode(old, vdom);
+            return;
         }
         else if (vdom.tag == 'map' && old.tag == 'map') {
             var res = mapChildren(old, vdom, beforeChild);
             if (res == false) {
-                return replaceNode(old, vdom);
+                replaceNode(old, vdom);
+                return;
             }
         }
         else {
@@ -79,7 +75,7 @@ export function updateChildren(old, vdom) {
                 for (var i = 0; i < newLen; i++) {
                     normChild(vdom, i);
                     update(old.children[i], vdom.children[i]);
-                    //old.children[i] = null;
+                    old.children[i] = null;
                 }
             }
             else {
@@ -90,17 +86,15 @@ export function updateChildren(old, vdom) {
                     insert(parentDom, newChild, beforeChild);
                 }
                 for (i = 0; i < oldLen; i++) {
-                    remove(old, i);
-                    //todo:
-                    //old.children[i] = null;
+                    removeChild(old, i);
                 }
             }
         }
     }
     else if (oldLen !== newLen) {
-        return replaceNode(old, vdom);
+        replaceNode(old, vdom);
+        return;
     }
-    //old.children = null;
 }
 
 
@@ -130,7 +124,7 @@ function mapChildren(old, vdom, beforeChild) {
             }
             update(keyChild, newChild);
             if (keyChild == oldChild) {
-                //old.children[i] = null;
+                old.children[i] = null;
             }
             keyMap[newKey] = null;
         }
@@ -147,8 +141,7 @@ function mapChildren(old, vdom, beforeChild) {
         for (i = 0; i < oldLen; i++) {
             var child = old.children[i];
             if (child && newKeyMap[child.key] == null) {
-                remove(old, i);
-                //old.children[i] = null;
+                removeChild(old, i);
             }
         }
     }

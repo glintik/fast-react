@@ -65,7 +65,7 @@ describe("Map", function () {
         compare(node.dom, udiv(div(text(1)), udiv(text(2)), div(text(3))));
     });
 
-    it('map without keys', function () {
+   /* it('map without keys', function () {
         var node = render(
             d('div', null, [0, 1, 2, 3]), document.body);
 
@@ -73,5 +73,5 @@ describe("Map", function () {
             d('div', null, [0, 1, 2, 3]));
 
         compare(node.dom, udiv(text(0), text(1), text(2), text(3)));
-    });
+    });*/
 });

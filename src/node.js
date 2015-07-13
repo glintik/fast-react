@@ -1,14 +1,35 @@
-function VNode() {};
+var id = 1;
 
-VNode.prototype.text = null;
-VNode.prototype.dom = null;
-VNode.prototype.tag = '#';
-VNode.prototype.attrs = null;
-VNode.prototype.children = null;
-VNode.prototype.allAttrs = null;
-VNode.prototype.fragment = false;
-VNode.prototype.key = null;
-VNode.prototype.vnode = true;
+var proto = {
+    text: null,
+    dom: null,
+    tag: null,
+    attrs: null,
+    children: null,
+    allAttrs: null,
+    fragment: false,
+    component: null,
+    key: null,
+    keyMap: null,
+    vnode: true,
+    destroyed: null,
+    destroy: function () {
+        this.dom = null;
+        this.children = null;
+        this.attrs = null;
+        //this.destroyed = true;
+        //this.parent = null;
+    }
+};
+
+function classExtend(Class, proto, overrides) {
+    for (var prop in proto) {
+        Class.prototype[prop] = proto[prop];
+    }
+    for (prop in overrides) {
+        Class.prototype[prop] = overrides[prop];
+    }
+}
 
 //var cacheFraments = [];
 //var cacheComponent = [];
@@ -23,16 +44,15 @@ export function VFragmentNode(tag, attrs, children, key) {
         this.keyMap = {};
     }
     this.children = children;
-    this.fragment = true;
     if (key) {
         this.key = key;
     }
-    this.parent = null;
+    //this.parent = null;
     this.dom = null;
     this.attrs = attrs;
 }
+classExtend(VFragmentNode, proto, {fragment: true});
 
-VFragmentNode.prototype = VNode.prototype;
 
 export function VComponent(tag, attrs, children, key) {
     //objects.push(this);
@@ -43,15 +63,14 @@ export function VComponent(tag, attrs, children, key) {
     if (key) {
         this.key = key;
     }
-    this.parent = null;
+    //this.parent = null;
     this.dom = null;
     this.attrs = attrs;
+    this.destroyed = null;
     //this.destroyed = null;
 }
+classExtend(VComponent, proto, {fragment: true});
 
-VComponent.prototype = VNode.prototype;
-
-var id = 1;
 
 export function NNode(tag, attrs, children, key, text) {
     //objects.push(this);
@@ -65,44 +84,24 @@ export function NNode(tag, attrs, children, key, text) {
     this.allAttrs = '';
     this.key = key;
     this.dom = null;
-    this.parent = null;
-};
-
-function getNNode(tag, attrs, children, key, text) {
-    if (cacheNode.length > 0) {
-        var item = cacheNode.pop();
-        item.tag = tag;
-        item.attrs = attrs;
-        item.children = children;
-        item.key = key;
-        item.text = text;
-        item.allAttrs = '';
-        return item;
-    }
-    else {
-        return new NNode(tag, attrs, children, key, text);
-    }
+    //this.parent = null;
+    //this.destroyed = null;
 }
+classExtend(NNode, proto);
 
-NNode.prototype = VNode.prototype;
 
 export function VTextNode(text) {
-//        this.id = id++;
+    this.id = id++;
     this.dom = null;
     this.text = text;
     //this.parent = null;
+    //this.destroyed = null;
 }
-
-function getVTextNode(text) {
-    if (cacheTextNode.length > 0) {
-        var item = cacheTextNode.pop();
-        item.text = text;
-        return item;
+classExtend(VTextNode, proto, {
+    tag: '#',
+    destroy: function () {
+        this.dom = null;
+        //this.destroyed = true;
+        //this.parent = null;
     }
-    else {
-        return new VTextNode(text);
-    }
-}
-
-
-VTextNode.prototype = VNode.prototype;
+});
