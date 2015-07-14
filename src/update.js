@@ -73,14 +73,18 @@ export function updateChildren(old, vdom) {
         else {
             if (oldLen === newLen) {
                 for (var i = 0; i < newLen; i++) {
-                    normChild(vdom, i);
+                    if (!vdom.children[i] || !vdom.children[i].tag){
+                        normChild(vdom, i);
+                    }
                     update(old.children[i], vdom.children[i]);
                     old.children[i] = null;
                 }
             }
             else {
                 for (i = 0; i < newLen; i++) {
-                    normChild(vdom, i);
+                    if (!vdom.children[i] || !vdom.children[i].tag){
+                        normChild(vdom, i);
+                    }
                     var newChild = vdom.children[i];
                     create(newChild, vdom.dom);
                     insert(parentDom, newChild, beforeChild);
@@ -107,7 +111,9 @@ function mapChildren(old, vdom, beforeChild) {
     var oldLen = old.children.length;
     var found = 0;
     for (var i = 0; i < newLen; i++) {
-        normChild(vdom, i);
+        if (!vdom.children[i] || !vdom.children[i].tag){
+            normChild(vdom, i);
+        }
         var newChild = newChildren[i];
         var oldChild = old.children[i];
         var newKey = newChild.key;

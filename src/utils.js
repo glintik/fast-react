@@ -2,28 +2,26 @@ import {getTextNode, VFragmentNode} from './node';
 
 export let DEBUG = false;
 export function normChild(vdom, i) {
-    if (!vdom.children[i] || !vdom.children[i].tag) {
-        var child = vdom.children[i];
-        if (typeof child == 'string' || typeof child == 'number') {
-            vdom.children[i] = getTextNode(child);
-        }
-        else if (child == null) {
-            vdom.children[i] = getTextNode('');
-        }
-        else if (typeof child === 'object') {
-            if (child instanceof Array) {
-                vdom.children[i] = new VFragmentNode('map', null, child, null);
-            }
-            else {
-                vdom.children[i] = getTextNode(JSON.stringify(child));
-            }
-        }
-        else if (typeof child === 'function') {
-            vdom.children[i] = getTextNode('Function');
+    var child = vdom.children[i];
+    if (typeof child == 'string' || typeof child == 'number') {
+        vdom.children[i] = getTextNode(child);
+    }
+    else if (child == null) {
+        vdom.children[i] = getTextNode('');
+    }
+    else if (typeof child === 'object') {
+        if (child instanceof Array) {
+            vdom.children[i] = new VFragmentNode('map', null, child, null);
         }
         else {
-            vdom.children[i] = getTextNode('');
+            vdom.children[i] = getTextNode(JSON.stringify(child));
         }
+    }
+    else if (typeof child === 'function') {
+        vdom.children[i] = getTextNode('Function');
+    }
+    else {
+        vdom.children[i] = getTextNode('');
     }
     //return vdom.children[i];
 }

@@ -35,7 +35,9 @@ export function create(vdom, parentDom) {
 
     if (vdom.children) {
         for (var i = 0; i < vdom.children.length; i++) {
-            normChild(vdom, i);
+            if (!vdom.children[i] || !vdom.children[i].tag){
+                normChild(vdom, i);
+            }
             var child = vdom.children[i];
             if (vdom.tag === 'map' && child.attrs) {
                 vdom.keyMap[child.key] = i;
