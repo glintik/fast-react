@@ -203,6 +203,10 @@ function forAttrs(old, vdom) {
                 dom.setAttribute(attrName, attrVal);
             }
         }
+        else if (attrName === 'ref' && typeof attrVal == 'function') {
+            //debugger;
+            attrVal(vdom);
+        }
     }
 }
 
