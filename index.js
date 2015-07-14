@@ -1,1 +1,1 @@
-require("expose?FastReact!./src/fast-react.js");
+module.exports = require("expose?FastReact!./src/fast-react.js");

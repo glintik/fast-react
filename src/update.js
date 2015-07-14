@@ -1,6 +1,5 @@
 import {attrs, props, events} from './attrs';
-import {updateComponent} from './component';
-import {remove, removeChild} from './remove';
+import {updateComponent, destroyComponent} from './component';
 import {normChild, getFirstChild, DEBUG} from './utils';
 import {create} from './create';
 
@@ -13,7 +12,8 @@ export function update(old, vdom) {
     vdom.dom = dom;
     //vdom.parent = old.parent;
     if (old.tag !== vdom.tag) {
-        return replaceNode(old, vdom);
+        replaceNode(old, vdom);
+        return;
     }
     if (old.tag == '#') {
         if (old.text !== vdom.text) {
@@ -48,7 +48,11 @@ export function update(old, vdom) {
     }
 
     if (!vdom.text) {
-        updateChildren(old, vdom);
+        var res = updateChildren(old, vdom);
+        if (res){
+            old.destroy();
+        }
+        return;
     }
     old.destroy();
 }
@@ -77,7 +81,7 @@ export function updateChildren(old, vdom) {
                         normChild(vdom, i);
                     }
                     update(old.children[i], vdom.children[i]);
-                    old.children[i] = null;
+                    clearChild(old, i);
                 }
             }
             else {
@@ -90,7 +94,8 @@ export function updateChildren(old, vdom) {
                     insert(parentDom, newChild, beforeChild);
                 }
                 for (i = 0; i < oldLen; i++) {
-                    removeChild(old, i);
+                    remove(old.children[i]);
+                    clearChild(old, i)
                 }
             }
         }
@@ -99,6 +104,7 @@ export function updateChildren(old, vdom) {
         replaceNode(old, vdom);
         return;
     }
+    return true;
 }
 
 
@@ -129,7 +135,7 @@ function mapChildren(old, vdom, beforeChild) {
             }
             update(keyChild, newChild);
             if (keyChild == oldChild) {
-                old.children[i] = null;
+                clearChild(old, i);
             }
             keyMap[newKey] = null;
         }
@@ -146,7 +152,8 @@ function mapChildren(old, vdom, beforeChild) {
         for (i = 0; i < oldLen; i++) {
             var child = old.children[i];
             if (child && newKeyMap[child.key] == null) {
-                removeChild(old, i);
+                remove(child);
+                clearChild(old, i);
             }
         }
     }
@@ -210,3 +217,25 @@ function insert(parentDom, vdom, before) {
     parentDom.insertBefore(vdom.dom, before && before.dom);
 }
 
+
+function clearChild(old, i){
+    old.children[i] = null;
+}
+
+export function remove(old) {
+    DEBUG && console.log("remove", old);
+
+    if (old.component) {
+        destroyComponent(old);
+    }
+    if (old.children) {
+        for (var i = 0; i < old.children.length; i++) {
+            remove(old.children[i]);
+            clearChild(old, i);
+        }
+    }
+    if (!old.fragment) {
+        old.dom.parentNode.removeChild(old.dom);
+    }
+    old.destroy();
+}

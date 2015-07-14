@@ -72,13 +72,11 @@ export function VComponent(tag, attrs, children, key) {
 classExtend(VComponent, proto, {fragment: true});
 
 
-window.nNodes = 0;
 var nodesCache = new Array(1000000);
 nodesCache.len = 0;
 
 function NNode(tag, attrs, children, key, text) {
     //objects.push(this);
-    window.nNodes++;
     this.id = id++;
     this.tag = tag;
     this.attrs = attrs;
@@ -117,7 +115,6 @@ export function getNNode(tag, attrs, children, key, text) {
 }
 
 
-window.vTextNodes = 0;
 var textNodesCache = new Array(1000000);
 textNodesCache.len = 0;
 
@@ -125,7 +122,6 @@ function VTextNode(text) {
     this.id = id++;
     this.dom = null;
     this.text = text;
-    window.vTextNodes++;
     //this.parent = null;
     //this.destroyed = null;
 }
