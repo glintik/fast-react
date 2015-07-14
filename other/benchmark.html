@@ -105,9 +105,15 @@
     var fn = function fn(item) {
         return createElement('div', {className: 'item', key: item}, item);
     };
+
+    var attrCache = new Array(100000);
+    for (var i = 0; i < attrCache.length; i++) {
+        attrCache[i] = {className: 'item', key: i};
+
+    }
     if (twoChilds) {
         fn = function fn(item) {
-            return createElement('div', {className: 'item', key: item}, item, 2);
+            return createElement('div', attrCache[item], item, 2);
         };
     }
     Cmp.prototype.render = function () {
@@ -116,7 +122,7 @@
         if (renderK % 2 && isCreate) {
             return createElement('div');
         }
-        return createElement('div', {className: 'items'}, this.items.map(fn));
+        return createElement('div', {className: 'items'}, 1, this.items.map(fn));
     };
 
     render(createElement(Cmp), document.getElementById('test'));

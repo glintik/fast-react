@@ -79,7 +79,7 @@ nodesCache.len = 0;
 
 function NNode(tag, attrs, children, key, text) {
     //objects.push(this);
-    window.nNodes++;
+    //window.nNodes++;
     this.id = id++;
     this.tag = tag;
     this.attrs = attrs;
@@ -129,7 +129,7 @@ function VTextNode(text) {
     this.id = id++;
     this.dom = null;
     this.text = text;
-    window.vTextNodes++;
+    //window.vTextNodes++;
     //this.parent = null;
     //this.destroyed = null;
 }
