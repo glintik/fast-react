@@ -32,11 +32,6 @@ function classExtend(Class, proto, overrides) {
     }
 }
 
-//var cacheFraments = [];
-//var cacheComponent = [];
-var cacheNode = [];
-var cacheTextNode = [];
-
 
 export function VFragmentNode(tag, attrs, children, key) {
     this.id = id++;
@@ -99,7 +94,7 @@ classExtend(NNode, proto, {
         //this.children = null;
         //this.attrs = null;
         if (this.children) {
-            cacheChildren[cacheChildren.len++] = this.children;
+            //cacheChildren[cacheChildren.len++] = this.children;
         }
         nodesCache[nodesCache.len++] = this;
 

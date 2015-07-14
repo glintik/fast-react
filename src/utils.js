@@ -12,6 +12,7 @@ export function normChild(vdom, i) {
         }
         else if (typeof child === 'object') {
             if (child instanceof Array) {
+                child.len = child.length;
                 vdom.children[i] = new VFragmentNode('map', null, child, null);
             }
             else {
@@ -34,4 +35,19 @@ export function getFirstChild(old) {
         beforeChild = beforeChild.children[0];
     }
     return beforeChild;
+}
+
+var cacheArray = new Array(100000);
+cacheArray.len = 0;
+export function getCacheArray(size) {
+    if (cacheArray.len == 0) {
+        var item = new Array(size);
+        item.len = size;
+        return item;
+    }
+    else {
+        var item = cacheArray[--cacheArray.len];
+        item.len = size;
+        return item;
+    }
 }

@@ -42,7 +42,6 @@
      console.timeEnd('perf');*/
 
 
-
     var isCreate = location.hash.indexOf('create') > -1;
     console.log(isCreate ? "Create test" : "Update test");
 
@@ -113,7 +112,7 @@
     }
     if (twoChilds) {
         fn = function fn(item) {
-            return createElement('div', attrCache[item], item, 2);
+            return createElement('div', {className: 'item', key: item}, item, 2);
         };
     }
     Cmp.prototype.render = function () {
@@ -122,12 +121,22 @@
         if (renderK % 2 && isCreate) {
             return createElement('div');
         }
-        return createElement('div', {className: 'items'}, 1, this.items.map(fn));
+//        this.items = [1];
+        return createElement('div', {className: 'items'}, this.items.map(fn));
     };
 
     render(createElement(Cmp), document.getElementById('test'));
 
 
+    /*var a = [];
+    function setSize(len) {
+        a.len = len;
+    }
+    console.time('perf');
+    for (var i = 0; i < 1000000; i++) {
+        setSize(i % 2 ? 100000 : 1);
+    }
+    console.timeEnd('perf');*/
 
     function profile() {
         console.profile('perf');

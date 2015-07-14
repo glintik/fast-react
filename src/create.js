@@ -1,5 +1,5 @@
 import {attrs, props, events} from './attrs';
-import {DEBUG, normChild} from './utils';
+import {DEBUG, getCacheArray, normChild} from './utils';
 import {VFragmentNode, VComponent, getNNode} from './node';
 import {createComponent, mountComponent} from './component';
 
@@ -124,17 +124,10 @@ export function createElement(tag, attrs) {
     var text = (len == 3 && !isFragment && (typeof arguments[2] == 'string' || typeof arguments[2] == 'number')) ? arguments[2] + '' : null;
     var children = null;
     if (!text && len > 2) {
-        if (cacheChildren.len == 0) {
-            children = Array(len - 2);
-        }
-        else {
-            children = cacheChildren[--cacheChildren.len];
-        }
-
+        children = getCacheArray(len - 2);
         for (var i = 2; i < len; i++) {
             children[i - 2] = arguments[i];
         }
-        children.len = len - 2;
     }
 
     if (isFragment) {

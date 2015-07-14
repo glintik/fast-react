@@ -26,7 +26,7 @@
  */
 import {updateChildren} from './update';
 import {VComponent} from './node';
-import {DEBUG} from './utils';
+import {DEBUG,getCacheArray} from './utils';
 
 
 export function findDOMNode(vdom) {
@@ -51,7 +51,9 @@ Component.prototype.updateProps = function (props) {
     this.componentWillUpdate(props);
     //var oldProps = this.props;
     this.props = props;
-    var newNode = new VComponent(this.constructor, null, [this.render()], null);
+    var children = getCacheArray(1);
+    children[0] = this.render();
+    var newNode = new VComponent(this.constructor, null, children, null);
     updateChildren(this.node, newNode);
     this.node.children = newNode.children;
     //todo:componentDidUpdate(object prevProps, object prevState)
@@ -75,7 +77,9 @@ export function createComponent(vdom) {
     props.children = vdom.children;
     vdom.component = new vdom.tag(props);
     vdom.component.componentWillMount();
-    vdom.children = [vdom.component.render()];
+    var children = getCacheArray(1);
+    children[0] = vdom.component.render();
+    vdom.children = children;
     vdom.component.node = vdom;
     DEBUG && console.log(vdom);
 }
