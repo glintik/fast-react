@@ -66,6 +66,7 @@ export function updateComponent(old, vdom) {
     vdom.component = old.component;
     var props = vdom.attrs || {};
     props.children = vdom.children;
+    vdom.children = null;
     vdom.component.componentWillReceiveProps(props);
     vdom.component.updateProps(props);
 }

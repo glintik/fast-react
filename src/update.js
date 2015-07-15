@@ -9,6 +9,7 @@ export function update(old, vdom) {
     var dom = old.dom;
     dom.updated = true;
     vdom.dom = dom;
+
     //vdom.parent = old.parent;
     if (old.tag !== vdom.tag) {
         replaceNode(old, vdom);
@@ -42,6 +43,9 @@ export function update(old, vdom) {
         }
     }
     if (old.component) {
+        if (vdom.id === 1096){
+            debugger;
+        }
         updateComponent(old, vdom);
         return;
     }
@@ -185,12 +189,9 @@ function forAttrs(old, vdom) {
                 dom.setAttribute(attrName, attrVal);
             }
         }
-        /*
-         else if (attrName === 'ref' && typeof attrVal == 'function') {
-         //debugger;
-         attrVal(vdom);
-         }
-         */
+        else if (attrName === 'ref' && typeof attrVal == 'function') {
+            attrVal(vdom);
+        }
     }
 }
 
