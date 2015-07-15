@@ -48,8 +48,7 @@ export function update(old, vdom) {
     }
 
     if (!vdom.text) {
-        var res = updateChildren(old, vdom);
-        if (res){
+        if (updateChildren(old, vdom)) {
             old.destroy();
         }
         return;
@@ -60,47 +59,33 @@ export function update(old, vdom) {
 export function updateChildren(old, vdom) {
     var oldLen = old.children ? old.children.length : 0;
     var newLen = vdom.children ? vdom.children.length : 0;
-    if (oldLen) {
-        var parentDom = old.dom;
-        var beforeChild = getFirstChild(old);
-        if ((vdom.tag == 'map' && old.tag != 'map') || (vdom.tag != 'map' && old.tag == 'map')) {
-            replaceNode(old, vdom);
-            return;
-        }
-        else if (vdom.tag == 'map' && old.tag == 'map') {
-            var res = mapChildren(old, vdom, beforeChild);
-            if (res == false) {
-                replaceNode(old, vdom);
-                return;
+    if (oldLen && newLen && vdom.isMap && old.isMap) {
+        mapChildren(old, vdom, getFirstChild(old));
+        return;
+    }
+
+    if (oldLen > 0) {
+        if (oldLen === newLen) {
+            for (var i = 0; i < newLen; i++) {
+                normChild(vdom, i);
+                update(old.children[i], vdom.children[i]);
+                //clearChild(old, i);
             }
         }
         else {
-            if (oldLen === newLen) {
-                for (var i = 0; i < newLen; i++) {
-                    if (!vdom.children[i] || !vdom.children[i].tag){
-                        normChild(vdom, i);
-                    }
-                    update(old.children[i], vdom.children[i]);
-                    clearChild(old, i);
-                }
+            for (i = 0; i < newLen; i++) {
+                normChild(vdom, i);
+                var newChild = vdom.children[i];
+                create(newChild, vdom.dom);
+                insert(old.dom, newChild, getFirstChild(old));
             }
-            else {
-                for (i = 0; i < newLen; i++) {
-                    if (!vdom.children[i] || !vdom.children[i].tag){
-                        normChild(vdom, i);
-                    }
-                    var newChild = vdom.children[i];
-                    create(newChild, vdom.dom);
-                    insert(parentDom, newChild, beforeChild);
-                }
-                for (i = 0; i < oldLen; i++) {
-                    remove(old.children[i]);
-                    clearChild(old, i)
-                }
+            for (i = 0; i < oldLen; i++) {
+                remove(old.children[i]);
+                //clearChild(old, i)
             }
         }
     }
-    else if (oldLen !== newLen) {
+    else if (newLen > 0) {
         replaceNode(old, vdom);
         return;
     }
@@ -117,15 +102,14 @@ function mapChildren(old, vdom, beforeChild) {
     var oldLen = old.children.length;
     var found = 0;
     for (var i = 0; i < newLen; i++) {
-        if (!vdom.children[i] || !vdom.children[i].tag){
-            normChild(vdom, i);
-        }
+        normChild(vdom, i);
         var newChild = newChildren[i];
         var oldChild = old.children[i];
         var newKey = newChild.key;
         if (newKey == null) {
             console.warn('map without keys', vdom);
-            return false;
+            replaceNode(old, vdom);
+            return;
         }
         var keyChild = old.children[keyMap[newKey]];
         if (keyChild) {
@@ -157,7 +141,6 @@ function mapChildren(old, vdom, beforeChild) {
             }
         }
     }
-    return true;
 }
 
 function replaceNode(old, vdom) {
@@ -177,7 +160,7 @@ function forAttrs(old, vdom) {
         vdom.allAttrs += attrName;
         var attrVal = vdom.attrs[attrName];
         if (attrName == 'key') {}
-        else if ((isNotSame = attrVal !== old.attrs[attrName]) && (attr = props[attrName])) {
+        else if ((isNotSame = vdom.attrs[attrName] !== old.attrs[attrName]) && (attr = props[attrName])) {
             dom[attr] = attrVal;
         }
         else if ((attr = attrs[attrName]) && isNotSame) {
@@ -203,10 +186,12 @@ function forAttrs(old, vdom) {
                 dom.setAttribute(attrName, attrVal);
             }
         }
-        else if (attrName === 'ref' && typeof attrVal == 'function') {
-            //debugger;
-            attrVal(vdom);
-        }
+        /*
+         else if (attrName === 'ref' && typeof attrVal == 'function') {
+         //debugger;
+         attrVal(vdom);
+         }
+         */
     }
 }
 
@@ -222,8 +207,8 @@ function insert(parentDom, vdom, before) {
 }
 
 
-function clearChild(old, i){
-    old.children[i] = null;
+function clearChild(old, i) {
+    //old.children[i] = null;
 }
 
 export function remove(old) {

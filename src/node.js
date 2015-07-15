@@ -12,6 +12,7 @@ var proto = {
     key: null,
     keyMap: null,
     vnode: true,
+    isMap: false,
     destroyed: null,
     destroy: function () {
         this.dom = null;
@@ -42,6 +43,7 @@ export function VFragmentNode(tag, attrs, children, key) {
     this.tag = tag;
     if (tag == 'map') {
         this.keyMap = {};
+        this.isMap = true;
     }
     this.children = children;
     if (key) {
@@ -51,7 +53,17 @@ export function VFragmentNode(tag, attrs, children, key) {
     this.dom = null;
     this.attrs = attrs;
 }
-classExtend(VFragmentNode, proto, {fragment: true});
+classExtend(VFragmentNode, proto, {
+    fragment: true,
+    destroy: function () {
+        this.dom = null;
+        this.children = null;
+        //this.attrs = null;
+        this.keyMap = null;
+        //this.destroyed = true;
+        //this.parent = null;
+    }
+});
 
 
 export function VComponent(tag, attrs, children, key) {
@@ -92,11 +104,10 @@ function NNode(tag, attrs, children, key, text) {
 }
 classExtend(NNode, proto, {
     destroy: function () {
-        //this.dom = null;
-        //this.children = null;
-        //this.attrs = null;
-        nodesCache[nodesCache.len++] = this;
-
+        this.dom = null;
+        this.children = null;
+        this.attrs = null;
+        //nodesCache[nodesCache.len++] = this;
         //this.destroyed = true;
         //this.parent = null;
     }
@@ -110,7 +121,7 @@ export function getNNode(tag, attrs, children, key, text) {
     item.attrs = attrs;
     item.children = children;
     item.key = key;
-    item.text = text;
+    //item.text = text;
     return item;
 }
 

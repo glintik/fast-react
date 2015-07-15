@@ -35,9 +35,7 @@ export function create(vdom, parentDom) {
 
     if (vdom.children) {
         for (var i = 0; i < vdom.children.length; i++) {
-            if (!vdom.children[i] || !vdom.children[i].tag){
-                normChild(vdom, i);
-            }
+            normChild(vdom, i);
             var child = vdom.children[i];
             if (vdom.tag === 'map' && child.attrs) {
                 vdom.keyMap[child.key] = i;
@@ -58,12 +56,12 @@ export function create(vdom, parentDom) {
                 vdom.attrs.ref(vdom);
             }
             //todo:
-/*
-            else if (currentComponent) {
-                currentComponent.refs = currentComponent.refs || {};
-                currentComponent.refs[vdom.attrs.ref] = vdom;
-            }
-*/
+            /*
+             else if (currentComponent) {
+             currentComponent.refs = currentComponent.refs || {};
+             currentComponent.refs[vdom.attrs.ref] = vdom;
+             }
+             */
         }
 
         var attr;

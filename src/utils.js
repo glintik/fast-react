@@ -2,6 +2,9 @@ import {getTextNode, VFragmentNode} from './node';
 
 export let DEBUG = false;
 export function normChild(vdom, i) {
+    if (vdom.children[i] && typeof vdom.children[i] == 'object' && vdom.children[i].tag) {
+        return;
+    }
     var child = vdom.children[i];
     if (typeof child == 'string' || typeof child == 'number') {
         vdom.children[i] = getTextNode(child);

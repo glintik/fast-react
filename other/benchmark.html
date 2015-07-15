@@ -59,10 +59,12 @@
 
     }
 
+
+
     var fps = document.getElementById('fps');
     var lastDate = Date.now();
     var fpsItems = [];
-    var size = 50;
+    var size = 100;
     var k = 0;
     function tick() {
         var now = Date.now();
@@ -119,7 +121,7 @@
         return createElement('div', {className: 'items'}, this.items.map(fn));
     };
 
-    render(createElement(Cmp), document.getElementById('test'));
+    var node = render(createElement(Cmp), document.getElementById('test'));
 
 
 
