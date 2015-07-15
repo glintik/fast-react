@@ -3,7 +3,6 @@ import {updateComponent, destroyComponent} from './component';
 import {normChild, getFirstChild, DEBUG} from './utils';
 import {create} from './create';
 
-
 export function update(old, vdom) {
     DEBUG && console.log("update", vdom);
 
