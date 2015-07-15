@@ -111,6 +111,7 @@ function mapChildren(old, vdom, beforeChild) {
         var newKey = newChild.key;
         if (newKey == null) {
             console.warn('map without keys', vdom);
+            debugger;
             replaceNode(old, vdom);
             return;
         }

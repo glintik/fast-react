@@ -25,7 +25,7 @@
  * -----------------------------------------------------------------------------
  */
 import {updateChildren} from './update';
-import {VComponent} from './node';
+import {VComponent, VFragmentNode} from './node';
 import {DEBUG} from './utils';
 
 
@@ -65,7 +65,7 @@ Component.prototype.forceUpdate = function () {
 export function updateComponent(old, vdom) {
     vdom.component = old.component;
     var props = vdom.attrs || {};
-    props.children = vdom.children;
+    props.children = vdom.children ? new VFragmentNode('@', null, vdom.children) : null;
     vdom.children = null;
     vdom.component.componentWillReceiveProps(props);
     vdom.component.updateProps(props);

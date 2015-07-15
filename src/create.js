@@ -30,8 +30,10 @@ export function create(vdom, parentDom) {
     else {
         dom = document.createElement(vdom.tag);
         vdom.dom = dom;
+        dom.vdom = vdom;
         //dom.virtual = vdom;
     }
+
 
     if (vdom.children) {
         for (var i = 0; i < vdom.children.length; i++) {
