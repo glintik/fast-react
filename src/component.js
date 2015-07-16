@@ -24,7 +24,7 @@
  *
  * -----------------------------------------------------------------------------
  */
-import {updateChildren} from './update';
+import {updateChildren, updateDom} from './update';
 import {VComponent, VFragmentNode} from './node';
 import {DEBUG} from './utils';
 
@@ -46,29 +46,30 @@ Component.prototype.componentDidUpdate = function () {};
 
 Component.prototype.componentWillUnmount = function () {};
 
+Component.prototype.forceUpdate = function () {
+    this.updateProps(this.props);
+};
 
 Component.prototype.updateProps = function (props) {
     this.componentWillUpdate(props);
     //var oldProps = this.props;
     this.props = props;
     var newNode = new VComponent(this.constructor, null, [this.render()], null);
+    updateDom(this.node, newNode);
     updateChildren(this.node, newNode);
     this.node.children = newNode.children;
     //todo:componentDidUpdate(object prevProps, object prevState)
     this.componentDidUpdate(this.props);
 };
 
-Component.prototype.forceUpdate = function () {
-    this.updateProps(this.props);
-};
 
 export function updateComponent(old, vdom) {
     vdom.component = old.component;
     var props = vdom.attrs || {};
     props.children = vdom.children ? new VFragmentNode('@', null, vdom.children) : null;
-    vdom.children = null;
     vdom.component.componentWillReceiveProps(props);
     vdom.component.updateProps(props);
+    //vdom.children = vdom.component.node.children;
 }
 
 export function createComponent(vdom) {

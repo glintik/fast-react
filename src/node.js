@@ -15,6 +15,10 @@ var proto = {
     isMap: false,
     destroyed: null,
     destroy: function () {
+        if (this.dom == null){
+            debugger;
+        }
+
         this.dom = null;
         this.children = null;
         this.attrs = null;
@@ -44,6 +48,8 @@ export function VFragmentNode(tag, attrs, children, key) {
     if (tag == 'map') {
         this.keyMap = {};
         this.isMap = true;
+        //todo:
+        //this.key = Math.random();
     }
     this.children = children;
     if (key) {
@@ -56,6 +62,9 @@ export function VFragmentNode(tag, attrs, children, key) {
 classExtend(VFragmentNode, proto, {
     fragment: true,
     destroy: function () {
+        if (this.dom == null){
+            debugger;
+        }
         this.dom = null;
         this.children = null;
         //this.attrs = null;
@@ -104,6 +113,9 @@ function NNode(tag, attrs, children, key, text) {
 }
 classExtend(NNode, proto, {
     destroy: function () {
+        if (this.dom == null){
+            debugger;
+        }
         this.dom = null;
         this.children = null;
         this.attrs = null;
@@ -139,6 +151,9 @@ function VTextNode(text) {
 classExtend(VTextNode, proto, {
     tag: '#',
     destroy: function () {
+        if (this.dom == null){
+            debugger;
+        }
         this.dom = null;
         textNodesCache[textNodesCache.len++] = this;
         //this.destroyed = true;

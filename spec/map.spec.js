@@ -36,7 +36,6 @@ describe("Map", function () {
                 })
             ), document.body);
         compare(node.dom, div(div(text(1)), div(text(2)), div(text(3))));
-
         items = [5, 3, 1, 4];
         node = update(node,
             d('div', null,
@@ -46,14 +45,24 @@ describe("Map", function () {
             ));
         compare(node.dom, udiv(div(text(5)), udiv(utext(3)), udiv(utext(1)), div(text(4))));
 
+
         items = [5, 2];
-        node = update(node,
-            d('div', null,
-                items.map(function (item) {
-                    return d('div', {key: item}, 'b', d('@', null, item), 'a')
-                })
-            ));
-        compare(node.dom, udiv(div(text('b'), text(5), text('a')), div(text('b'), text(2), text('a'))));
+        var pp= d('div', null,
+            items.map(function (item) {
+                return d('div', {key: item}, 'b', d('@', null, item), 'a')
+            })
+        );
+        node = update(node, pp);
+        compare(node.dom,
+            udiv(
+                udiv(
+                    text('b'), text(5), text('a')
+                ),
+                div(
+                    text('b'), text(2), text('a')
+                )
+            )
+        );
 
         items = [1, 2, 3];
         node = update(node,

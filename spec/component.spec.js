@@ -27,6 +27,7 @@ describe("Component", function () {
             callstack.push([Render, fn]);
             return render();
         };
+        fn.displayName = name;
         return fn;
     }
 

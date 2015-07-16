@@ -3,24 +3,25 @@ import {updateComponent, destroyComponent} from './component';
 import {normChild, getFirstChild, DEBUG} from './utils';
 import {create} from './create';
 
+export function updateDom(old, vdom) {
+    old.dom.updated = true;
+    vdom.dom = old.dom;
+}
 export function update(old, vdom) {
     DEBUG && console.log("update", vdom);
-
+    updateDom(old, vdom);
     var dom = old.dom;
-    dom.updated = true;
-    vdom.dom = dom;
 
     //vdom.parent = old.parent;
     if (old.tag !== vdom.tag) {
-        replaceNode(old, vdom);
-        return;
+        return replaceNode(old, vdom);
     }
     if (old.tag == '#') {
         if (old.text !== vdom.text) {
             dom.textContent = vdom.text;
         }
         old.destroy();
-        return;
+        return vdom;
     }
     if (old.text !== vdom.text) {
         dom.textContent = vdom.text;
@@ -28,8 +29,7 @@ export function update(old, vdom) {
 
     if (vdom.fragment) {
         if (vdom.key !== old.key) {
-            replaceNode(old, vdom);
-            return;
+            return replaceNode(old, vdom);
         }
     }
     else {
@@ -38,25 +38,19 @@ export function update(old, vdom) {
             forAttrs(old, vdom);
         }
         if ((old.attrs && !vdom.attrs) || (!old.attrs && vdom.attrs) || old.allAttrs !== vdom.allAttrs) {
-            replaceNode(old, vdom);
-            return;
+            return replaceNode(old, vdom);
         }
     }
     if (old.component) {
-        if (vdom.id === 1096){
-            debugger;
-        }
         updateComponent(old, vdom);
-        return;
+        return vdom;
     }
 
     if (!vdom.text) {
-        if (updateChildren(old, vdom)) {
-            old.destroy();
-        }
-        return;
+        updateChildren(old, vdom);
     }
     old.destroy();
+    return vdom;
 }
 
 export function updateChildren(old, vdom) {
@@ -71,7 +65,7 @@ export function updateChildren(old, vdom) {
         if (oldLen === newLen) {
             for (var i = 0; i < newLen; i++) {
                 normChild(vdom, i);
-                update(old.children[i], vdom.children[i]);
+                vdom.children[i] = update(old.children[i], vdom.children[i]);
                 //clearChild(old, i);
             }
         }
@@ -89,10 +83,8 @@ export function updateChildren(old, vdom) {
         }
     }
     else if (newLen > 0) {
-        replaceNode(old, vdom);
-        return;
+        return replaceChildren(old, vdom);
     }
-    return true;
 }
 
 
@@ -112,8 +104,7 @@ function mapChildren(old, vdom, beforeChild) {
         if (newKey == null) {
             console.warn('map without keys', vdom);
             debugger;
-            replaceNode(old, vdom);
-            return;
+            return replaceChildren(old, vdom);
         }
         var keyChild = old.children[keyMap[newKey]];
         if (keyChild) {
@@ -121,7 +112,7 @@ function mapChildren(old, vdom, beforeChild) {
             if (keyChild !== oldChild) {
                 insert(parentDom, keyChild, beforeChild);
             }
-            update(keyChild, newChild);
+            newChildren[i] = update(keyChild, newChild);
             if (keyChild == oldChild) {
                 clearChild(old, i);
             }
@@ -153,7 +144,26 @@ function replaceNode(old, vdom) {
     insert(parentDom, vdom, old.fragment ? getFirstChild(old) : old);
     remove(old);
     return vdom;
+}
 
+function replaceChildren(old, vdom) {
+    if (vdom.children){
+        for (var i = 0; i < vdom.children.length; i++) {
+            normChild(vdom, i);
+            var child = vdom.children[i];
+            create(child, vdom.dom);
+            insert(vdom.dom, child, vdom.fragment ? vdom.firstNode : null);
+        }
+    }
+
+    if (old.children) {
+        for (var i = 0; i < old.children.length; i++) {
+            var child = old.children[i];
+            remove(child);
+            child.destroy();
+        }
+    }
+    return vdom;
 }
 
 function forAttrs(old, vdom) {

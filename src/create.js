@@ -21,11 +21,14 @@ export function create(vdom, parentDom) {
     }
     var dom;
     if (vdom.fragment) {
+        dom = document.createDocumentFragment();
+        vdom.firstNode = document.createTextNode('');
+        vdom.firstNode.skip = true;
+        dom.appendChild(vdom.firstNode);
+        vdom.dom = parentDom;
         if (typeof vdom.tag === 'function') {
             createComponent(vdom);
         }
-        dom = document.createDocumentFragment();
-        vdom.dom = parentDom;
     }
     else {
         dom = document.createElement(vdom.tag);
@@ -39,8 +42,12 @@ export function create(vdom, parentDom) {
         for (var i = 0; i < vdom.children.length; i++) {
             normChild(vdom, i);
             var child = vdom.children[i];
-            if (vdom.tag === 'map' && child.attrs) {
+            if (vdom.isMap) {
                 vdom.keyMap[child.key] = i;
+                if (child.key == null) {
+                    console.warn('map without keys', vdom);
+                    debugger;
+                }
             }
             dom.appendChild(create(child, vdom.dom));
             if (child.component) {

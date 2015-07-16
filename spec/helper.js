@@ -3,8 +3,7 @@ var Component = FastReact.Component;
 var createElement = FastReact.createElement;
 var d = FastReact.createElement;
 var update = function (old, vdom) {
-    FastReact.update(old, vdom);
-    return vdom;
+    return FastReact.update(old, vdom);
 };
 
 
@@ -51,9 +50,14 @@ function compare(dom, d) {
         expect(d.tag).toBe(dom.tagName.toLowerCase());
     }
     if (dom.childNodes) {
+        var skipped = 0;
         for (var i = 0; i < dom.childNodes.length; i++) {
             var child = dom.childNodes[i];
-            compare(child, d.children[i]);
+            if (child.skip) {
+                skipped++;
+                continue;
+            }
+            compare(child, d.children[i - skipped]);
         }
     }
 }
