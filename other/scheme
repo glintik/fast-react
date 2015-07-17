@@ -12,7 +12,7 @@
 		if textNode
 			node.dom = createTextNode()
 
-		else
+		if tagNode
 			node.dom = createElement()
 
 		parent.dom.insertBefore(node.dom, parent.fragment ? parent.lastNode : null) 
@@ -26,34 +26,33 @@
 			append(node, i)
 
 	if node is Component
-		mountComponent()
+		node.component.didMount()
 
 
 
 - update(old, parent, i)
 	node = parent[i]
-	updateNewDom(old, parent, i)
+	node.dom = old.dom;
 
-	if fragment
-		if fragmentType is not same
-			replaceNode(old, parent, i) 
+	if old.constructor != node.constructor
+		replaceNode(old, parent, i)
+		return
+
+
+	if fragmentType is component
+		if constructor is not same
+			replaceNode(old, parent, i)
 			return
 
-
-		if fragmentType is component
-			if constructor is not same
-				replaceNode(old, parent, i) 
-				return
-
-			updateComponent(old, parent, i) // swap old and new nodes
-			return
+		updateComponent(old, parent, i) // swap old and new nodes
+		return
 	
-	else 
-		if textNode
-			updateText()
-			destroy()
-			return
+	if textNode
+		node.dom.textContent = node.text
+		destroy()
+		return
 
+	if tagNode
 		if tag is not same
 			replaceNode(old, parent, i)
 			return
@@ -61,8 +60,14 @@
 		if attrs
 			updateAttrs()
 
+		isSuccess = updateAttrs(old, parent, i)
+		if not isSuccess
+			replaceNode(old, parent, childPos)
+			return
+
 		if newAttrs != oldAttrs
 			replaceNode(old, parent, i)
+			return
 
 
 	updateChildren(old, parent.children[i])
@@ -76,7 +81,7 @@
 			normChild(node, i)
 			if keyMap
 				if newChild.key
-					fitPos = keyMap(newChild.key)
+					fitPos = old.keyMap[newChild.key]
 					
 				else
 					if oldChild && not oldChild.key
@@ -91,18 +96,18 @@
 				if fitPos != i
 					moveToEnd(newChild, node)
 			else 
-				create(newNode, node)
+				append(node, i);
 
 
 	if oldChildren and oldChildren.length != fitCount
 		for oldChildren
 			if child
-				remove(child, oldChildren, i)
+				remove(child, old, i)
 
 
 - remove(node, parent, i)
 	if node is component
-		destroyComponent()
+		component.willUnmount();
 
 	if children
 		for children
@@ -126,21 +131,23 @@
 	append(parent, i)
 
 
-- createComponent(node)	
-	component = contructor(node.attrs)
+- createComponent(node)
+	props = node.attrs
+	props.children = node.children
+	component = new node.ctor(props)
 	component.node = node
-	willMount()
-	node.children = render()
+	component.willMount()
+	node.children = [render()]
 
 
-- mountComponent(node)
-	didMount()
-
+- constructor(props)
+    this.props = props
 
 - forceUpdate()
 	this.willUpdate()
-	children = component.render()
-	temp = VComponent(children)
+	children = [this.render()]
+	temp = new VComponent()
+	temp.children = children
 	updateChildren(this.node, temp) // clear this.node.children
 	this.node.children = children
 	this.didUpdate()
@@ -151,16 +158,12 @@
 	newNode = parent.children[i] 
 	props = newNode.attrs
 	props.children = newNode.children
-	old.component.setProps(props)
+	old.component.willReceiveProps(props)
 	old.component.props = props
 	old.component.forceUpdate()	 // affect node children
 	parent.children[i] = old
 	newNode.destroy()
 	//no destroy old
-
-
-- destroyComponent(node)
-	willUnmount()
 
 
 - render(node, dom)
@@ -174,6 +177,10 @@
 	normChild(root, 0)
 	update(old, root, 0)
 	return node
+
+//todo:normChild
+//todo:createAttrs, updateAttrs
+//todo:fill keyMap
 
 
 
