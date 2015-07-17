@@ -1,0 +1,171 @@
+- append(node, parent)
+	if node is fragment 
+		node.dom = parent.dom
+		node.lastNode = createTextNode()
+		parent.dom.insertBefore(node.lastNode, parent.fragment ? parent.lastNode : null) 
+
+		if node is Component
+			createComponent() //children created
+
+	else 
+		if textNode
+			node.dom = createTextNode()
+
+		else
+			node.dom = createElement()
+
+		parent.dom.insertBefore(node.dom, parent.fragment ? parent.lastNode : null) 
+
+		if attrs
+			createAttrs()
+	
+	if children
+		for children
+			append(child, node)
+
+	if node is Component
+		mountComponent()
+
+
+
+- update(old, parent, i)
+	updateNewDom(old, parent, i)
+
+	if fragment
+		if fragmentType is not same
+			replaceNode(old, parent, i) 
+			return
+
+
+		if fragmentType is component
+			if constructor is not same
+				replaceNode(old, parent, i) 
+				return
+
+			updateComponent(old, parent, i) // swap old and new nodes
+			return
+	
+	else 
+		if textNode
+			updateText()
+			destroy()
+			return
+
+		if tag is not same
+			replaceNode(old, parent, i)
+			return
+
+		if attrs 
+			updateAttrs()
+
+
+	updateChildren(old, parent.children[i])
+	destroy()
+
+
+- updateChildren(old, node)
+
+	if newChildren
+		for newChildren
+			normChild(node, i)
+			if keyMap
+				if newChild.key
+					fitPos = keyMap(newChild.key)
+					
+				else
+					if oldChild && not oldChild.key
+						fitPos = i
+
+			else 
+				fitPos = i
+
+			if fitPos is not null
+				fitCount++
+				update(old.children[fitPos], node, i)
+				if fitPos != i
+					moveToEnd(newChild, node)
+			else 
+				create(newNode, node)
+
+
+	if oldChildren and oldChildren.length != fitCount
+		for oldChildren
+			if child
+				remove(child, oldChildren, i)
+
+
+- remove(node, parent, i)
+	if node is component
+		destroyComponent()
+
+	if children
+		for children
+			remove(node.children[i], node, i)
+
+	if node is fragment
+		node.dom.removeChild(node.lastNode)
+
+	parent.dom.removeChild(node.dom)
+	node.destroy()
+	if i
+		parent.children[i] = null
+
+
+- moveToEnd(node, parent)
+	node.dom.parentNode.insertBefore(node.dom, parent.fragment ? parent.lastNode : null)
+
+
+- replaceNode(old, parent, i)
+	remove(old, parent)
+	append(parent.children[i], parent)
+
+
+- createComponent(node)	
+	component = contructor(node.attrs)
+	component.node = node
+	willMount()
+	node.children = render()
+
+
+- mountComponent(node)
+	didMount()
+
+
+- forceUpdate()
+	this.willUpdate()
+	children = component.render()
+	temp = VComponent(children)
+	updateChildren(this.node, temp) // clear this.node.children
+	this.node.children = children
+	this.didUpdate()
+	temp.destroy()
+
+
+- updateComponent(old, parent, i)
+	newNode = parent.children[i] 
+	props = newNode.attrs
+	props.children = newNode.children
+	old.component.setProps(props)
+	old.component.props = props
+	old.component.forceUpdate()	 // affect node children
+	parent.children[i] = old
+	newNode.destroy()
+	//no destroy old
+
+
+- destroyComponent(node)
+	willUnmount()
+
+
+- render(node, dom)
+	append(node, new VNode(dom))
+	return node
+
+- updater(old, node)
+	update(old, new VNode(node), 0)
+	return node
+
+
+
+
+
