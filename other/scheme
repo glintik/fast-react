@@ -1,4 +1,5 @@
-- append(node, parent)
+- append(parent, i)
+	node = parent.children[i]
 	if node is fragment 
 		node.dom = parent.dom
 		node.lastNode = createTextNode()
@@ -7,7 +8,7 @@
 		if node is Component
 			createComponent() //children created
 
-	else 
+	else
 		if textNode
 			node.dom = createTextNode()
 
@@ -18,10 +19,11 @@
 
 		if attrs
 			createAttrs()
-	
+
 	if children
 		for children
-			append(child, node)
+			normChild(node, i)
+			append(node, i)
 
 	if node is Component
 		mountComponent()
@@ -29,6 +31,7 @@
 
 
 - update(old, parent, i)
+	node = parent[i]
 	updateNewDom(old, parent, i)
 
 	if fragment
@@ -55,8 +58,11 @@
 			replaceNode(old, parent, i)
 			return
 
-		if attrs 
+		if attrs
 			updateAttrs()
+
+		if newAttrs != oldAttrs
+			replaceNode(old, parent, i)
 
 
 	updateChildren(old, parent.children[i])
@@ -117,7 +123,7 @@
 
 - replaceNode(old, parent, i)
 	remove(old, parent)
-	append(parent.children[i], parent)
+	append(parent, i)
 
 
 - createComponent(node)	
@@ -158,11 +164,15 @@
 
 
 - render(node, dom)
-	append(node, new VNode(dom))
+	root = new VNode(node, dom)
+	normChild(root, 0)
+	append(root, 0)
 	return node
 
 - updater(old, node)
-	update(old, new VNode(node), 0)
+	root = new VNode(node)
+	normChild(root, 0)
+	update(old, root, 0)
 	return node
 
 
