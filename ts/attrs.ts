@@ -39,10 +39,14 @@ function _updateAttrs(node:VTagNode, oldAttrs?:any) {
 
         }
         else if (prop = props[attrName]) {
-            (<any>dom)[prop] = attrVal;
+            if (attrVal == null) {
+                (<any>dom)[prop] = '';
+            }
+            else {
+                (<any>dom)[prop] = attrVal;
+            }
         }
         else if (attr = attrs[attrName]) {
-
             if (attrVal == null){
                 dom.removeAttribute(attr);
             }

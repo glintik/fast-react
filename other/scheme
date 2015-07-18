@@ -269,5 +269,36 @@
 
 
 
+//cloneElement
+//createFactory
+//unmountComponentAtNode
+//renderToString
+//renderToStaticMarkup
+//isValidElement
+//DOM
+//PropTypes
+//initializeTouchEvents
+//Children
+
+//setState
+//boolean shouldComponentUpdate(object nextProps, object nextState)
+//componentWillUpdate(object nextProps, object nextState)
+//componentDidUpdate(object prevProps, object prevState)
 
 
+//getInitialState
+//getDefaultProps
+//propTypes
+//mixins
+//statics
+//displayName
+
+
+//depricated
+//replaceState
+//getDOMNode
+//setProps
+//replaceProps
+
+
+//render from real dom
