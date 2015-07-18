@@ -72,5 +72,13 @@ function _updateAttrs(node:VTagNode, oldAttrs?:any) {
         else if (attrName === 'style') {
             //todo:
         }
+        else if (attrName == 'ref'){
+            if (typeof attrVal == 'function'){
+                attrVal(node);
+            }
+            else {
+
+            }
+        }
     }
 }
