@@ -26,6 +26,7 @@ export function append(parent:VNode, childPos:number, beforeChild?:Node) {
 
         if (node instanceof VComponent) {
             createComponent(node);
+            return;
         }
     }
     else {
@@ -47,9 +48,5 @@ export function append(parent:VNode, childPos:number, beforeChild?:Node) {
             normChild(node, i);
             append(node, i);
         }
-    }
-
-    if (node instanceof VComponent) {
-        node.component.componentDidMount();
     }
 }

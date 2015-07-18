@@ -3,6 +3,7 @@ import {append} from './append';
 import {update, replaceNode} from './update';
 import {normChild} from './utils';
 import {attrs, props, events} from './const-attrs';
+import {globs} from './component';
 
 export function createAttrs(node:VTagNode) {
     _updateAttrs(node);
@@ -76,8 +77,11 @@ function _updateAttrs(node:VTagNode, oldAttrs?:any) {
             if (typeof attrVal == 'function'){
                 attrVal(node);
             }
-            else {
-
+            else if (globs.component) {
+                if (typeof globs.component.refs == 'undefined'){
+                    globs.component.refs = {};
+                }
+                globs.component.refs[attrVal] = node;
             }
         }
     }

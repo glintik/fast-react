@@ -3,6 +3,7 @@ import {append} from './append';
 import {update} from './update';
 import {updateChildren} from './update-children';
 import {normChild} from './utils';
+export let globs:{component: Component} = {component: null};
 
 export interface IComponent {
     new(props:any): Component;
@@ -15,8 +16,9 @@ export interface Props {
 export class Component {
     node:VComponent;
     props:Props;
+    refs:{[index: string]: VNode};
 
-    constructor(props: Props){
+    constructor(props:Props) {
         this.props = props;
     }
 
@@ -51,19 +53,23 @@ export class Component {
 
     forceUpdate() {
         this.componentWillUpdate();
+
         var children = [this.render()];
         var temp = new VComponent(null, null, children, null);
         temp.firstNode = this.node.firstNode;
         temp.lastNode = this.node.lastNode;
         temp.dom = this.node.dom;
+        let prevComponent = globs.component;
+        globs.component = this;
         updateChildren(this.node, temp); // clear this.node.children
+        globs.component = prevComponent;
         this.node.children = children;
         this.componentDidUpdate();
         temp.destroy()
     }
 }
 
-export function findDOMNode(node: VTagNode | VText) {
+export function findDOMNode(node:VTagNode | VText) {
     return node.dom;
 }
 
@@ -75,6 +81,16 @@ export function createComponent(node:VComponent) {
     node.component = component;
     component.componentWillMount();
     node.children = [component.render()];
+    let prevComponent = globs.component;
+    globs.component = component;
+    if (node.children) {
+        for (var i = 0; i < node.children.length; i++) {
+            normChild(node, i);
+            append(node, i);
+        }
+    }
+    globs.component = prevComponent;
+    node.component.componentDidMount();
 }
 
 export function updateComponent(old:VComponent, parent:VNode, childPos:number) {
