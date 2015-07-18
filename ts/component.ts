@@ -55,7 +55,7 @@ export class Component {
         var temp = new VComponent(null, null, children, null);
         temp.firstNode = this.node.firstNode;
         temp.lastNode = this.node.lastNode;
-        temp.parentDom = this.node.parentDom;
+        temp.dom = this.node.dom;
         updateChildren(this.node, temp); // clear this.node.children
         this.node.children = children;
         this.componentDidUpdate();

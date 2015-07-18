@@ -30,7 +30,7 @@ export function update(old:VNode, parent:VNode, childPos:number) {
     if (node instanceof VFragment) {
         node.lastNode = (<VFragment>old).lastNode;
         node.firstNode = (<VFragment>old).firstNode;
-        node.parentDom = (<VFragment>old).parentDom;
+        node.dom = (<VFragment>old).dom;
     }
     if (node instanceof VText) {
         node.dom = (<VText>old).dom;

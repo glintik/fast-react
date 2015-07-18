@@ -34,12 +34,12 @@ export function updateChildren(old:VNode, node:VNode) {
                 if (prevChild) {
                     beforeChild = prevChild instanceof VFragment
                         ? prevChild.lastNode.nextSibling
-                        : (<VTagNode>prevChild).dom.nextSibling;
+                        : prevChild.dom.nextSibling;
                 }
                 else {
                     beforeChild = node instanceof VFragment
                         ? node.firstNode.nextSibling
-                        : (<VTagNode>node).dom.firstChild;
+                        : node.dom.firstChild;
                 }
             }
 
@@ -70,14 +70,13 @@ export function updateChildren(old:VNode, node:VNode) {
 }
 
 function move(node:VNode, parent:VNode, beforeChild:Node) {
-    let parentDom = parent instanceof VFragment ? parent.parentDom : (<VTagNode>parent).dom;
     if (node instanceof VFragment) {
         var nextDom:Node;
         var dom = node.firstNode;
         var endNode = node.lastNode;
         while(true){
             nextDom = dom.nextSibling;
-            parentDom.insertBefore(dom, beforeChild);
+            parent.dom.insertBefore(dom, beforeChild);
             if (dom == endNode){
                 break;
             }
@@ -85,6 +84,6 @@ function move(node:VNode, parent:VNode, beforeChild:Node) {
         }
     }
     else {
-        parentDom.insertBefore((<VTagNode>node).dom, beforeChild);
+        parent.dom.insertBefore(node.dom, beforeChild);
     }
 }

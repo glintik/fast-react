@@ -14,12 +14,11 @@ export function remove(node:VNode, parent:VNode, childPos?:number) {
     }
 
     if (node instanceof VFragment) {
-        node.parentDom.removeChild(node.firstNode);
-        node.parentDom.removeChild(node.lastNode);
+        parent.dom.removeChild(node.firstNode);
+        parent.dom.removeChild(node.lastNode);
     }
     else {
-        let parentDom = parent instanceof VFragment ? parent.parentDom : (<VTagNode>parent).dom;
-        parentDom.removeChild((<VTagNode>node).dom);
+        parent.dom.removeChild(node.dom);
     }
     node.destroy();
     if (childPos != null) {

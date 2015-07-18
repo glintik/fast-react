@@ -6,7 +6,7 @@ export function append(parent:VNode, childPos:number, beforeChild?:Node) {
     if (beforeChild == null && parent instanceof VFragment) {
         beforeChild = parent.lastNode;
     }
-    let parentDom = parent instanceof VFragment ? parent.parentDom : (<VTagNode>parent).dom;
+    let parentDom = parent.dom;
     let node = parent.children[childPos];
     if (node.key != null) {
         if (typeof parent.keyMap == 'undefined') {
@@ -15,9 +15,10 @@ export function append(parent:VNode, childPos:number, beforeChild?:Node) {
         parent.keyMap[node.key] = childPos;
     }
     if (node instanceof VFragment) {
-        node.parentDom = parentDom;
-        node.firstNode = document.createComment('fragment:' + node.id);
-        node.lastNode = document.createComment('/fragment:' + node.id);
+        node.dom = parentDom;
+        let txt = node instanceof VComponent ? (<any>node.ctor).name : 'f';
+        node.firstNode = document.createComment(' '+txt + ':' + node.id + ' ');
+        node.lastNode = document.createComment(' :'+txt + ':' + node.id+' ');
         (<any>node.firstNode).skip = true;
         (<any>node.lastNode).skip = true;
         parentDom.insertBefore(node.firstNode, beforeChild);

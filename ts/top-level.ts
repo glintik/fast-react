@@ -16,7 +16,7 @@ export function render(node:VNode, dom:Node) {
 
 export function updater(old:VNode, node:VNode) {
     var root = new VTagNode(null, null, [node], null);
-    root.dom = old instanceof VFragment ? old.parentDom : (<VTagNode>old).dom.parentNode;
+    root.dom = old.dom.parentNode;
     normChild(root, 0);
     update(old, root, 0);
     return root.children[0];

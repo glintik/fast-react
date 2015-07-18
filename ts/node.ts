@@ -8,6 +8,7 @@ export class VNode {
     keyMap:{[index: string]:number};
     key:string;
     destroyed:boolean;
+    dom:Node;
 
     destroy() {
         if (this.destroyed) {
@@ -20,14 +21,13 @@ export class VNode {
 export class VFragment extends VNode {
     lastNode:Node;
     firstNode:Node;
-    parentDom:Node;
 
     constructor(children:VNode[], key:string) {
         if (false) {
             super();
         }
         this.id = id++;
-        this.parentDom = null;
+        this.dom = null;
         this.lastNode = null;
         this.firstNode = null;
         this.children = children;
@@ -46,7 +46,7 @@ export class VComponent extends VFragment {
             super(null, null);
         }
         this.id = id++;
-        this.parentDom = null;
+        this.dom = null;
         this.lastNode = null;
         this.firstNode = null;
         this.ctor = ctor;
@@ -60,7 +60,6 @@ export class VTagNode extends VNode {
     attrs:any;
     attrsCode:string;
     tag:string;
-    dom:Node;
 
     constructor(tag:string, attrs:any, children:VNode[], key:string) {
         if (false) {
@@ -77,7 +76,6 @@ export class VTagNode extends VNode {
 
 export class VText extends VNode {
     text:string;
-    dom:Node;
 
     constructor(text:string) {
         if (false) {
