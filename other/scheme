@@ -1,9 +1,14 @@
-- append(parent, i)
+- append(parent, i, beforeChild?)
+    if beforeChild == null && parent is fragment
+        beforeChild = parent.lastNode;
+
 	node = parent.children[i]
 	if node is fragment 
 		node.dom = parent.dom
+		node.firstNode = createTextNode()
 		node.lastNode = createTextNode()
-		parent.dom.insertBefore(node.lastNode, parent.fragment ? parent.lastNode : null) 
+		parent.dom.insertBefore(node.firstNode, beforeChild)
+		parent.dom.insertBefore(node.lastNode, beforeChild)
 
 		if node is Component
 			createComponent() //children created
@@ -15,7 +20,7 @@
 		if tagNode
 			node.dom = createElement()
 
-		parent.dom.insertBefore(node.dom, parent.fragment ? parent.lastNode : null) 
+		parent.dom.insertBefore(node.dom, beforeChild)
 
 		if attrs
 			createAttrs()
@@ -48,6 +53,7 @@
 		return
 
 	if node is fragment
+    	node.firstNode = old.firstNode;
     	node.lastNode = old.lastNode;
 
 	if textNode
@@ -81,6 +87,7 @@
 
 	if newChildren
 		for newChildren
+			fitPos = null
 			normChild(node, i)
 			if keyMap
 				if newChild.key
@@ -90,14 +97,18 @@
 					if oldChild && not oldChild.key
 						fitPos = i
 
-			else 
-				fitPos = i
+			else
+				if oldChild
+					fitPos = i
 
 			if fitPos is not null
 				fitCount++
 				update(old.children[fitPos], node, i)
 				if fitPos != i
 					moveToEnd(newChild, node)
+
+				oldChildren[fitPos] = null;
+
 			else 
 				append(node, i);
 
@@ -117,6 +128,7 @@
 			remove(node.children[i], node, i)
 
 	if node is fragment
+		node.dom.removeChild(node.firstNode)
 		node.dom.removeChild(node.lastNode)
 	else
 		parent.dom.removeChild(node.dom)
@@ -131,8 +143,8 @@
 
 
 - replaceNode(old, parent, i)
+    append(parent, i, old instanceof VFragment ? old.firstNode : old.dom)
 	remove(old, parent)
-	append(parent, i)
 
 
 - createComponent(node)

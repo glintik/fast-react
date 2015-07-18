@@ -16,6 +16,7 @@ export function render(node:VNode, dom:Node) {
 
 export function updater(old:VNode, node:VNode) {
     var root = new VTagNode(null, null, [node], null);
+    root.dom = old.dom.parentNode;
     normChild(root, 0);
     update(old, root, 0);
     return node;
@@ -26,13 +27,13 @@ export function createElement(tag:string | IComponent, attrs?:any, ...children:a
     if (children.length == 0) {
         children = null;
     }
+    if (tag == '@') {
+        return new VFragment(children, key);
+    }
     if (typeof tag == 'string') {
         return new VTagNode(<string>tag, attrs, children, key);
     }
     if (typeof tag == 'function') {
         return new VComponent(<IComponent>tag, attrs, children, key);
-    }
-    if (tag == '@') {
-        return new VFragment(children, key);
     }
 }

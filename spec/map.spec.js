@@ -27,7 +27,7 @@ describe("Map", function () {
         compare(node.dom, udiv(udiv(utext(1)), udiv(utext(2)), udiv(utext(3))));
     });
 
-    it('changed map', function () {
+    iit('changed map', function () {
         var items = [1, 2, 3];
         var node = render(
             d('div', null,
@@ -36,6 +36,7 @@ describe("Map", function () {
                 })
             ), document.body);
         compare(node.dom, div(div(text(1)), div(text(2)), div(text(3))));
+
         items = [5, 3, 1, 4];
         node = update(node,
             d('div', null,
@@ -64,6 +65,7 @@ describe("Map", function () {
             )
         );
 
+        debugger;
         items = [1, 2, 3];
         node = update(node,
             d('div', null,
@@ -72,6 +74,7 @@ describe("Map", function () {
                 })
             ));
         compare(node.dom, udiv(div(text(1)), udiv(text(2)), div(text(3))));
+        debugger;
     });
 
    /* it('map without keys', function () {

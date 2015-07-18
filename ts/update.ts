@@ -27,8 +27,9 @@ export function update(old:VNode, parent:VNode, childPos:number) {
         updateComponent(<VComponent>old, parent, childPos);
         return;
     }
-    if (node instanceof VFragment){
+    if (node instanceof VFragment) {
         node.lastNode = (<VFragment>old).lastNode;
+        node.firstNode = (<VFragment>old).firstNode;
     }
     if (node instanceof VText) {
         node.dom.textContent = node.text;
@@ -42,7 +43,7 @@ export function update(old:VNode, parent:VNode, childPos:number) {
         }
 
         let successAttrs = updateAttrs(<VTagNode>old, parent, childPos);
-        if (!successAttrs){
+        if (!successAttrs) {
             replaceNode(old, parent, childPos);
             return;
         }
@@ -52,6 +53,6 @@ export function update(old:VNode, parent:VNode, childPos:number) {
 }
 
 export function replaceNode(old:VNode, parent:VNode, childPos:number) {
+    append(parent, childPos, old instanceof VFragment ? old.firstNode : old.dom);
     remove(old, parent);
-    append(parent, childPos);
 }

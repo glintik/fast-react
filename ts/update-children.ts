@@ -7,43 +7,46 @@ import {normChild} from './utils';
 export function updateChildren(old:VNode, node:VNode) {
     var oldChildren = old.children;
     var newChildren = node.children;
-    if (newChildren){
+    if (newChildren) {
         var fitCount = 0;
+        var prevNode:Node;
         for (var i = 0; i < newChildren.length; i++) {
             normChild(node, i);
-            var fitPos: number;
+            var fitPos:number = null;
             var newChild = newChildren[i];
-            var oldChild = oldChildren[i];
-            if (old.keyMap){
-                if (newChild.key != null){
+            var oldChild = oldChildren && oldChildren[i];
+            if (typeof old.keyMap == 'object') {
+                if (newChild.key != null) {
                     fitPos = old.keyMap[newChild.key];
                 }
                 else {
-                    if (oldChild && oldChild.key == null){
+                    if (oldChild && oldChild.key == null) {
                         fitPos = i;
                     }
                 }
             }
-            else {
+            else if (oldChild) {
                 fitPos = i;
             }
-            if (fitPos != null){
+            if (fitPos != null) {
                 fitCount++;
                 update(oldChildren[fitPos], node, i);
-                if (fitPos !== i){
+                if (fitPos !== i) {
                     moveToEnd(newChild, node);
                 }
+                oldChildren[fitPos] = null;
             }
             else {
                 append(node, i);
             }
+
         }
     }
 
-    if (oldChildren && oldChildren.length !== fitCount){
+    if (oldChildren && oldChildren.length !== fitCount) {
         for (var i = 0; i < oldChildren.length; i++) {
             var oldChild = oldChildren[i];
-            if (oldChild){
+            if (oldChild) {
                 remove(oldChild, old, i)
             }
         }
