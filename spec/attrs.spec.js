@@ -325,7 +325,7 @@ describe("Attrs", function () {
         compare(node.dom, div(text(1)));
     });
 
-    /*it('emptify attrs', function () {
+    it('emptify attrs', function () {
         var node = render(
             d('div', {
                 title: 'wtf',
@@ -334,14 +334,14 @@ describe("Attrs", function () {
 
         node = update(node,
             d('div', {
-                title: false,
-                'data-name': false
+                title: null,
+                'data-name': null
             }, 1));
 
         expect(node.dom.title).toBeFalsy();
         expect(node.dom.dataset.name).toBeFalsy();
         compare(node.dom, udiv(utext(1)));
-    });*/
+    });
 
 
 

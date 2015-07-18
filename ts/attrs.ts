@@ -42,7 +42,13 @@ function _updateAttrs(node:VTagNode, oldAttrs?:any) {
             (<any>dom)[prop] = attrVal;
         }
         else if (attr = attrs[attrName]) {
-            dom.setAttribute(attr, attrVal);
+
+            if (attrVal == null){
+                dom.removeAttribute(attr);
+            }
+            else {
+                dom.setAttribute(attr, attrVal);
+            }
         }
         else if (event = events[attrName]) {
             (<any>dom)['on' + event] = attrVal;
@@ -52,7 +58,12 @@ function _updateAttrs(node:VTagNode, oldAttrs?:any) {
             (<any>dom)['on' + event] = attrVal;
         }
         else if (attrName[0] === 'd' && attrName[1] === 'a' && attrName[2] === 't' && attrName[3] === 'a') {
-            dom.setAttribute(attrName, attrVal);
+            if (attrVal == null){
+                dom.removeAttribute(attrName);
+            }
+            else {
+                dom.setAttribute(attrName, attrVal);
+            }
         }
         else if (attrName === 'style') {
             //todo:

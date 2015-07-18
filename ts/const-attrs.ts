@@ -126,11 +126,10 @@ export let props:{[index:string]:string} = {
     value: 'value'
 };
 
-export let notPx:{[index:string]:boolean} = {
+export let isUnitlessNumber:{[index:string]:boolean} = {
     boxFlex: true,
     boxFlexGroup: true,
     columnCount: true,
-    fillOpacity: true,
     flex: true,
     flexGrow: true,
     flexPositive: true,
@@ -142,10 +141,15 @@ export let notPx:{[index:string]:boolean} = {
     opacity: true,
     order: true,
     orphans: true,
-    strokeOpacity: true,
     widows: true,
     zIndex: true,
-    zoom: true
+    zoom: true,
+
+    // SVG-related properties
+    fillOpacity: true,
+    strokeDashoffset: true,
+    strokeOpacity: true,
+    strokeWidth: true
 };
 
 export let events:{[index:string]:string} = {
