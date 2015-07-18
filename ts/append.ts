@@ -6,6 +6,7 @@ export function append(parent:VNode, childPos:number, beforeChild?:Node) {
     if (beforeChild == null && parent instanceof VFragment) {
         beforeChild = parent.lastNode;
     }
+    let parentDom = parent instanceof VFragment ? parent.parentDom : (<VTagNode>parent).dom;
     let node = parent.children[childPos];
     if (node.key != null) {
         if (typeof parent.keyMap == 'undefined') {
@@ -14,13 +15,13 @@ export function append(parent:VNode, childPos:number, beforeChild?:Node) {
         parent.keyMap[node.key] = childPos;
     }
     if (node instanceof VFragment) {
-        node.dom = parent.dom;
-        node.firstNode = document.createComment('start fragment ' + node.id);
-        node.lastNode = document.createComment('end fragment ' + node.id);
-        node.firstNode.skip = true;
-        node.lastNode.skip = true;
-        parent.dom.insertBefore(node.firstNode, beforeChild);
-        parent.dom.insertBefore(node.lastNode, beforeChild);
+        node.parentDom = parentDom;
+        node.firstNode = document.createComment('fragment:' + node.id);
+        node.lastNode = document.createComment('/fragment:' + node.id);
+        (<any>node.firstNode).skip = true;
+        (<any>node.lastNode).skip = true;
+        parentDom.insertBefore(node.firstNode, beforeChild);
+        parentDom.insertBefore(node.lastNode, beforeChild);
 
         if (node instanceof VComponent) {
             createComponent(node);
@@ -29,14 +30,15 @@ export function append(parent:VNode, childPos:number, beforeChild?:Node) {
     else {
         if (node instanceof VText) {
             node.dom = document.createTextNode(node.text);
+            parentDom.insertBefore(node.dom, beforeChild);
         }
         if (node instanceof VTagNode) {
             node.dom = document.createElement(node.tag);
             if (node.attrs) {
                 createAttrs(node);
             }
+            parentDom.insertBefore(node.dom, beforeChild);
         }
-        parent.dom.insertBefore(node.dom, beforeChild);
     }
 
     if (node.children) {

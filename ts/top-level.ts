@@ -16,10 +16,10 @@ export function render(node:VNode, dom:Node) {
 
 export function updater(old:VNode, node:VNode) {
     var root = new VTagNode(null, null, [node], null);
-    root.dom = old.dom.parentNode;
+    root.dom = old instanceof VFragment ? old.parentDom : (<VTagNode>old).dom.parentNode;
     normChild(root, 0);
     update(old, root, 0);
-    return node;
+    return root.children[0];
 }
 
 export function createElement(tag:string | IComponent, attrs?:any, ...children:any[]):VNode {

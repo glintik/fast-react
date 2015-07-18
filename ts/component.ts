@@ -13,7 +13,7 @@ export interface Props {
 }
 
 export class Component {
-    node:VNode;
+    node:VComponent;
     props:Props;
 
     constructor(props: Props){
@@ -53,6 +53,9 @@ export class Component {
         this.componentWillUpdate();
         var children = [this.render()];
         var temp = new VComponent(null, null, children, null);
+        temp.firstNode = this.node.firstNode;
+        temp.lastNode = this.node.lastNode;
+        temp.parentDom = this.node.parentDom;
         updateChildren(this.node, temp); // clear this.node.children
         this.node.children = children;
         this.componentDidUpdate();
@@ -60,7 +63,7 @@ export class Component {
     }
 }
 
-export function findDOMNode(node: VNode) {
+export function findDOMNode(node: VTagNode | VText) {
     return node.dom;
 }
 

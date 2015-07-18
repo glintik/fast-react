@@ -2,13 +2,19 @@
     if beforeChild == null && parent is fragment
         beforeChild = parent.lastNode;
 
+	if parent if fragment
+		parentDom = parent.parentDom
+	else 
+		parentDom = parent.dom
+
+
 	node = parent.children[i]
 	if node is fragment 
-		node.dom = parent.dom
-		node.firstNode = createTextNode()
-		node.lastNode = createTextNode()
-		parent.dom.insertBefore(node.firstNode, beforeChild)
-		parent.dom.insertBefore(node.lastNode, beforeChild)
+        node.parentDom = parentDom
+        node.firstNode = document.createComment()
+        node.lastNode = document.createComment()
+        parentDom.insertBefore(node.firstNode, beforeChild)
+        parentDom.insertBefore(node.lastNode, beforeChild)
 
 		if node is Component
 			createComponent() //children created
@@ -16,11 +22,12 @@
 	else
 		if textNode
 			node.dom = createTextNode()
+            parentDom.insertBefore(node.dom, beforeChild)
+
 
 		if tagNode
 			node.dom = createElement()
-
-		parent.dom.insertBefore(node.dom, beforeChild)
+			parent.dom.insertBefore(node.dom, beforeChild)
 
 		if attrs
 			createAttrs()
@@ -37,7 +44,7 @@
 
 - update(old, parent, i)
 	node = parent[i]
-	node.dom = old.dom;
+	node.dom = old.dom
 
 	if old.constructor != node.constructor
 		replaceNode(old, parent, i)
@@ -53,8 +60,8 @@
 		return
 
 	if node is fragment
-    	node.firstNode = old.firstNode;
-    	node.lastNode = old.lastNode;
+    	node.firstNode = old.firstNode
+    	node.lastNode = old.lastNode
 
 	if textNode
 		node.dom.textContent = node.text
@@ -86,6 +93,7 @@
 - updateChildren(old, node)
 
 	if newChildren
+
 		for newChildren
 			fitPos = null
 			normChild(node, i)
@@ -101,16 +109,34 @@
 				if oldChild
 					fitPos = i
 
+
+            if fitPos != null || fitPos !== i
+                
+                if prevChild
+                    if prevChild is fragment
+                    	beforeChild = prevChild.lastNode.nextSibling
+                    else 
+                        beforeChild = prevChild.dom.nextSibling
+
+                else 
+                	node is fragment
+                		beforeChild = node.firstNode.nextSibling
+                	else 
+                		beforeChild = node.dom.firstChild
+
+
 			if fitPos is not null
 				fitCount++
 				update(old.children[fitPos], node, i)
 				if fitPos != i
-					moveToEnd(newChild, node)
+					move(node.children[i], node, beforeChild)
 
-				oldChildren[fitPos] = null;
+				oldChildren[fitPos] = null
 
 			else 
-				append(node, i);
+				append(node, i, beforeChild)
+
+            prevChild = node.children[i]
 
 
 	if oldChildren and oldChildren.length != fitCount
@@ -118,32 +144,65 @@
 			if child
 				remove(child, old, i)
 
+			oldChildren[i] = null
+
+
+
+
+
+- move(node, parent, beforeChild) {
+	if parent if fragment
+		parentDom = parent.parentDom
+	else 
+		parentDom = parent.dom
+
+    if node is fragment
+        nextDom
+        dom = node.firstNode
+        endNode = node.lastNode
+        while true 
+            nextDom = dom.nextSibling
+            parentDom.insertBefore(dom, beforeChild)
+            if dom == endNode
+                break
+            dom = nextDom
+
+    else
+        parentDom.insertBefore(node.dom, beforeChild)
+
+
 
 - remove(node, parent, i)
 	if node is component
-		component.willUnmount();
+		component.willUnmount()
 
 	if children
 		for children
 			remove(node.children[i], node, i)
 
-	if node is fragment
-		node.dom.removeChild(node.firstNode)
-		node.dom.removeChild(node.lastNode)
-	else
-		parent.dom.removeChild(node.dom)
+    if node is fragment
+        node.parentDom.removeChild(node.firstNode)
+        node.parentDom.removeChild(node.lastNode)
+    else 
+    	if parent is fragment
+    		parentDom = parent.parentDom
+    	else 
+    		parentDom = parent.dom
+
+        parentDom.removeChild(node.dom)
+    }
 
 	node.destroy()
 	if i
 		parent.children[i] = null
 
 
-- moveToEnd(node, parent)
-	node.dom.parentNode.insertBefore(node.dom, parent.fragment ? parent.lastNode : null)
-
-
 - replaceNode(old, parent, i)
-    append(parent, i, old instanceof VFragment ? old.firstNode : old.dom)
+	if old is fragment
+		beforeChild = old.firstNode
+	else 
+		beforeChild = old.dom
+    append(parent, i, beforeChild)
 	remove(old, parent)
 
 
@@ -165,6 +224,10 @@
 	children = [this.render()]
 	temp = new VComponent()
 	temp.children = children
+	temp.firstNode = this.node.firstNode
+	temp.lastNode = this.node.lastNode
+	temp.parentDom = this.node.parentDom
+
 	updateChildren(this.node, temp) // clear this.node.children
 	this.node.children = children
 	this.didUpdate()
@@ -191,13 +254,17 @@
 
 - updater(old, node)
 	root = new VNode(node)
-	normChild(root, 0)
-	update(old, root, 0)
-	return node
+	if old is fragment
+		root.dom = old.parentDom
+	else 
+		root.dom = old.dom.parentNode
+
+    normChild(root, 0)
+    update(old, root, 0)
+    return root.children[0]
 
 //todo:normChild
 //todo:createAttrs, updateAttrs
-//todo:fill keyMap
 //todo:ref
 
 

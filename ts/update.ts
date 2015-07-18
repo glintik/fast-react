@@ -8,7 +8,7 @@ import {updateComponent} from './component';
 
 export function update(old:VNode, parent:VNode, childPos:number) {
     var node = parent.children[childPos];
-    node.dom = old.dom;
+
     if (node.key != null) {
         if (typeof parent.keyMap == 'undefined') {
             parent.keyMap = {}
@@ -30,8 +30,10 @@ export function update(old:VNode, parent:VNode, childPos:number) {
     if (node instanceof VFragment) {
         node.lastNode = (<VFragment>old).lastNode;
         node.firstNode = (<VFragment>old).firstNode;
+        node.parentDom = (<VFragment>old).parentDom;
     }
     if (node instanceof VText) {
+        node.dom = (<VText>old).dom;
         node.dom.textContent = node.text;
         old.destroy();
         return;
@@ -41,6 +43,7 @@ export function update(old:VNode, parent:VNode, childPos:number) {
             replaceNode(old, parent, childPos);
             return;
         }
+        node.dom = (<VTagNode>old).dom;
 
         let successAttrs = updateAttrs(<VTagNode>old, parent, childPos);
         if (!successAttrs) {
@@ -53,6 +56,6 @@ export function update(old:VNode, parent:VNode, childPos:number) {
 }
 
 export function replaceNode(old:VNode, parent:VNode, childPos:number) {
-    append(parent, childPos, old instanceof VFragment ? old.firstNode : old.dom);
+    append(parent, childPos, old instanceof VFragment ? old.firstNode : (<VTagNode>old).dom);
     remove(old, parent);
 }
