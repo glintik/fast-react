@@ -60,18 +60,23 @@ export class Component {
     }
 }
 
+export function findDOMNode(node: VNode) {
+    return node.dom;
+}
+
 export function createComponent(node:VComponent) {
-    var props = node.attrs;
+    var props = node.attrs || {};
     props.children = node.children;
     var component = new node.ctor(props);
     component.node = node;
+    node.component = component;
     component.componentWillMount();
     node.children = [component.render()];
 }
 
 export function updateComponent(old:VComponent, parent:VNode, childPos:number) {
     var newNode = <VComponent>parent.children[childPos];
-    var props = newNode.attrs;
+    var props = newNode.attrs || {};
     props.children = newNode.children;
     old.component.componentWillReceiveProps(props);
     old.component.props = props;

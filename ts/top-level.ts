@@ -4,6 +4,8 @@ import {append} from './append';
 import {update} from './update';
 import {normChild} from './utils';
 
+export {Component, findDOMNode} from './component';
+
 export function render(node:VNode, dom:Node) {
     var root = new VTagNode(null, null, [node], null);
     root.dom = dom;
@@ -19,17 +21,11 @@ export function updater(old:VNode, node:VNode) {
     return node;
 }
 
-export function createElement(tag:string | IComponent, attrs:any):VNode {
-    var children:any[] = null;
+export function createElement(tag:string | IComponent, attrs?:any, ...children:any[]):VNode {
     var key = attrs ? attrs.key : null;
-    var len = arguments.length;
-    if (len > 2) {
-        children = Array(len - 2);
-        for (var i = 2; i < len; i++) {
-            children[i - 2] = arguments[i];
-        }
+    if (children.length == 0) {
+        children = null;
     }
-
     if (typeof tag == 'string') {
         return new VTagNode(<string>tag, attrs, children, key);
     }

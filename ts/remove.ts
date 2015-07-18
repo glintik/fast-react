@@ -16,6 +16,9 @@ export function remove(node:VNode, parent:VNode, childPos?:number) {
     if (node instanceof VFragment) {
         node.dom.removeChild(node.lastNode);
     }
+    else {
+        parent.dom.removeChild(node.dom);
+    }
     node.destroy();
     if (childPos != null) {
         parent.children[childPos] = null;

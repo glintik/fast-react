@@ -5,7 +5,7 @@ import {normChild} from './utils';
 import {attrs, props, events} from './const-attrs';
 
 export function createAttrs(node:VTagNode) {
-    _updateAttrs(null, node);
+    _updateAttrs(node);
 }
 export function updateAttrs(old:VTagNode, parent:VNode, childPos:number):boolean {
     var node = <VTagNode>parent.children[childPos];
@@ -24,7 +24,7 @@ export function updateAttrs(old:VTagNode, parent:VNode, childPos:number):boolean
     return true;
 }
 
-function _updateAttrs(node:VTagNode, oldAttrs:any) {
+function _updateAttrs(node:VTagNode, oldAttrs?:any) {
     var dom = <HTMLElement>node.dom;
     var attr:string;
     var prop:string;

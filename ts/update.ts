@@ -27,6 +27,9 @@ export function update(old:VNode, parent:VNode, childPos:number) {
         updateComponent(<VComponent>old, parent, childPos);
         return;
     }
+    if (node instanceof VFragment){
+        node.lastNode = (<VFragment>old).lastNode;
+    }
     if (node instanceof VText) {
         node.dom.textContent = node.text;
         old.destroy();

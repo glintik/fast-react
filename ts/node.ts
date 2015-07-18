@@ -1,6 +1,9 @@
 import {IComponent, Component} from './component';
 
+var id = 1;
+
 export class BaseNode {
+    id:number;
     dom:Node;
     children:VNode[];
     keyMap:{[index: string]:number};
@@ -13,11 +16,14 @@ export class BaseNode {
 
 export class VFragment extends BaseNode {
     lastNode:Node;
+
     constructor(children:VNode[], key:string) {
         if (false) {
             super();
         }
+        this.id = id++;
         this.dom = null;
+        this.lastNode = null;
         this.children = children;
         this.key = key;
     }
@@ -33,7 +39,9 @@ export class VComponent extends VFragment {
         if (false) {
             super(null, null);
         }
+        this.id = id++;
         this.dom = null;
+        this.lastNode = null;
         this.ctor = ctor;
         this.attrs = attrs;
         this.children = children;
@@ -50,6 +58,7 @@ export class VTagNode extends BaseNode {
         if (false) {
             super();
         }
+        this.id = id++;
         this.dom = null;
         this.tag = tag;
         this.attrs = attrs;
@@ -65,6 +74,7 @@ export class VText extends BaseNode {
         if (false) {
             super();
         }
+        this.id = id++;
         this.dom = null;
         this.text = text;
     }

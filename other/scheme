@@ -46,7 +46,10 @@
 
 		updateComponent(old, parent, i) // swap old and new nodes
 		return
-	
+
+	if node is fragment
+    	node.lastNode = old.lastNode;
+
 	if textNode
 		node.dom.textContent = node.text
 		destroy()
@@ -115,8 +118,9 @@
 
 	if node is fragment
 		node.dom.removeChild(node.lastNode)
+	else
+		parent.dom.removeChild(node.dom)
 
-	parent.dom.removeChild(node.dom)
 	node.destroy()
 	if i
 		parent.children[i] = null
@@ -132,10 +136,11 @@
 
 
 - createComponent(node)
-	props = node.attrs
+	props = node.attrs || {}
 	props.children = node.children
 	component = new node.ctor(props)
 	component.node = node
+	node.component = component
 	component.willMount()
 	node.children = [render()]
 
@@ -156,7 +161,7 @@
 
 - updateComponent(old, parent, i)
 	newNode = parent.children[i] 
-	props = newNode.attrs
+	props = newNode.attrs || {}
 	props.children = newNode.children
 	old.component.willReceiveProps(props)
 	old.component.props = props
@@ -181,6 +186,7 @@
 //todo:normChild
 //todo:createAttrs, updateAttrs
 //todo:fill keyMap
+//todo:ref
 
 
 
