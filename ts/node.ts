@@ -11,12 +11,12 @@ export class VNode {
     dom:Node;
 
     destroy() {
-/*
-        if (this.destroyed) {
-            throw "Node yet destroyed";
-        }
-        this.destroyed = true;
-*/
+        /*
+                if (this.destroyed) {
+                    throw "Node yet destroyed";
+                }
+                this.destroyed = true;
+        */
     }
 }
 
@@ -75,11 +75,24 @@ export class VTagNode extends VNode {
         this.children = children;
         this.key = key;
     }
-    destroy(){
+
+    destroy() {
         this.dom = null;
         this.attrs = null;
         this.children = null;
     }
+}
+
+var textCache = <any>new Array(100000);
+textCache.len = 0;
+
+export function getVText(text:string) {
+    if (textCache.len > 0) {
+        var item = textCache[--textCache.len];
+        item.text = text;
+        return item;
+    }
+    return new VText(text);
 }
 
 export class VText extends VNode {
@@ -93,7 +106,9 @@ export class VText extends VNode {
         this.dom = null;
         this.text = text;
     }
-    destroy(){
-        this.dom = null;
+
+    destroy() {
+        //this.dom = null;
+        textCache[textCache.len++] = this;
     }
 }

@@ -1,15 +1,15 @@
-import {VText, VTagNode, VNode, VComponent, VFragment} from './node';
+import {VText, VTagNode, VNode, VComponent, VFragment, getVText} from './node';
 export function normChild(parent:VNode, childPos:number) {
     var node = <any>parent.children[childPos];
-    if (node && typeof node == 'object' && node instanceof VNode) {
+    if (typeof node == 'object' && node && node instanceof VNode) {
         return;
     }
     if (typeof node == 'string' || typeof node == 'number') {
-        parent.children[childPos] = new VText(node + '');
+        parent.children[childPos] = getVText(node + '');
         return;
     }
     if (node == null) {
-        parent.children[childPos] = new VText('');
+        parent.children[childPos] = getVText('');
         return;
     }
     if (typeof node === 'object') {
@@ -17,13 +17,13 @@ export function normChild(parent:VNode, childPos:number) {
             parent.children[childPos] = new VFragment(node, null);
         }
         else {
-            parent.children[childPos] = new VText(JSON.stringify(node));
+            parent.children[childPos] = getVText(JSON.stringify(node));
         }
         return;
     }
     if (typeof node === 'function') {
-        parent.children[childPos] = new VText('Function');
+        parent.children[childPos] = getVText('Function');
         return;
     }
-    parent.children[childPos] = new VText('');
+    parent.children[childPos] = getVText('');
 }
