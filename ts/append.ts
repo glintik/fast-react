@@ -14,11 +14,25 @@ export function append(parent:VNode, childPos:number, beforeChild?:Node) {
         }
         parent.keyMap[node.key] = childPos;
     }
-    if (node instanceof VFragment) {
+
+    if (node instanceof VText) {
+        node.dom = document.createTextNode(node.text);
+        parentDom.insertBefore(node.dom, beforeChild);
+        return;
+    }
+
+    if (node instanceof VTagNode) {
+        node.dom = document.createElement(node.tag);
+        if (node.attrs) {
+            createAttrs(node);
+        }
+        parentDom.insertBefore(node.dom, beforeChild);
+    }
+    else if (node instanceof VFragment) {
         node.dom = parentDom;
         let txt = node instanceof VComponent ? (<any>node.ctor).name : 'f';
-        node.firstNode = document.createComment(' '+txt + ':' + node.id + ' ');
-        node.lastNode = document.createComment(' :'+txt + ':' + node.id+' ');
+        node.firstNode = document.createComment(' ' + txt + ':' + node.id + ' ');
+        node.lastNode = document.createComment(' :' + txt + ':' + node.id + ' ');
         (<any>node.firstNode).skip = true;
         (<any>node.lastNode).skip = true;
         parentDom.insertBefore(node.firstNode, beforeChild);
@@ -27,19 +41,6 @@ export function append(parent:VNode, childPos:number, beforeChild?:Node) {
         if (node instanceof VComponent) {
             createComponent(node);
             return;
-        }
-    }
-    else {
-        if (node instanceof VText) {
-            node.dom = document.createTextNode(node.text);
-            parentDom.insertBefore(node.dom, beforeChild);
-        }
-        if (node instanceof VTagNode) {
-            node.dom = document.createElement(node.tag);
-            if (node.attrs) {
-                createAttrs(node);
-            }
-            parentDom.insertBefore(node.dom, beforeChild);
         }
     }
 
