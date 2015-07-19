@@ -22,10 +22,16 @@ export function updater(old:VNode, node:VNode) {
     return root.children[0];
 }
 
-export function createElement(tag:string | IComponent, attrs?:any, ...children:any[]):VNode {
-    var key = attrs ? attrs.key : null;
-    if (children.length == 0) {
-        children = null;
+export function createElement(tag:string | IComponent, attrs?:any, ...children:any[]):VNode;
+export function createElement(tag:string | IComponent, attrs?:any):VNode {
+    var key = attrs ? attrs.key : undefined;
+    var len = arguments.length;
+    var children:any[] = null;
+    if (len > 2) {
+        children = Array(len - 2);
+        for (var i = 2; i < len; i++) {
+            children[i - 2] = arguments[i];
+        }
     }
     if (tag == '@') {
         return new VFragment(children, key);
@@ -33,7 +39,7 @@ export function createElement(tag:string | IComponent, attrs?:any, ...children:a
     if (typeof tag == 'string') {
         return new VTagNode(<string>tag, attrs, children, key);
     }
-    if (typeof tag == 'function') {
+    else if (typeof tag == 'function') {
         return new VComponent(<IComponent>tag, attrs, children, key);
     }
 }

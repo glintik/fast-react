@@ -5,14 +5,11 @@ import {normChild} from './utils';
 import {attrs, props, events} from './const-attrs';
 import {globs} from './component';
 
-export function createAttrs(node:VTagNode) {
-    _updateAttrs(node);
-}
 export function updateAttrs(old:VTagNode, parent:VNode, childPos:number):boolean {
     var node = <VTagNode>parent.children[childPos];
     if (node.attrs) {
         if (old.attrs) {
-            _updateAttrs(node, old.attrs); // affect node.attrsCode
+            createAttrs(node, old.attrs); // affect node.attrsCode
             return old.attrsCode === node.attrsCode;
         }
         else {
@@ -25,7 +22,7 @@ export function updateAttrs(old:VTagNode, parent:VNode, childPos:number):boolean
     return true;
 }
 
-function _updateAttrs(node:VTagNode, oldAttrs?:any) {
+export function createAttrs(node:VTagNode, oldAttrs?:any) {
     var dom = <HTMLElement>node.dom;
     var attr:string;
     var prop:string;
@@ -33,13 +30,10 @@ function _updateAttrs(node:VTagNode, oldAttrs?:any) {
     for (var attrName in node.attrs) {
         node.attrsCode += attrName;
         var attrVal = node.attrs[attrName];
-        if (oldAttrs && oldAttrs[attrName] === attrVal) {
+        if (attrName == 'key' || (oldAttrs && oldAttrs[attrName] === attrVal)) {
             continue;
         }
-        if (attrName == 'key') {
-
-        }
-        else if (prop = props[attrName]) {
+        if (prop = props[attrName]) {
             if (attrVal == null) {
                 (<any>dom)[prop] = '';
             }
@@ -48,7 +42,7 @@ function _updateAttrs(node:VTagNode, oldAttrs?:any) {
             }
         }
         else if (attr = attrs[attrName]) {
-            if (attrVal == null){
+            if (attrVal == null) {
                 dom.removeAttribute(attr);
             }
             else {
@@ -63,7 +57,7 @@ function _updateAttrs(node:VTagNode, oldAttrs?:any) {
             (<any>dom)['on' + event] = attrVal;
         }
         else if (attrName[0] === 'd' && attrName[1] === 'a' && attrName[2] === 't' && attrName[3] === 'a') {
-            if (attrVal == null){
+            if (attrVal == null) {
                 dom.removeAttribute(attrName);
             }
             else {
@@ -73,12 +67,12 @@ function _updateAttrs(node:VTagNode, oldAttrs?:any) {
         else if (attrName === 'style') {
             //todo:
         }
-        else if (attrName == 'ref'){
-            if (typeof attrVal == 'function'){
+        else if (attrName == 'ref') {
+            if (typeof attrVal == 'function') {
                 attrVal(node);
             }
             else if (globs.component) {
-                if (typeof globs.component.refs == 'undefined'){
+                if (typeof globs.component.refs == 'undefined') {
                     globs.component.refs = {};
                 }
                 globs.component.refs[attrVal] = node;

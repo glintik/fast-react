@@ -9,18 +9,17 @@ export function updateChildren(old:VNode, node:VNode) {
     var newChildren = node.children;
     if (newChildren) {
         var fitCount = 0;
-        var prevChild:VNode;
         for (var i = 0; i < newChildren.length; i++) {
             normChild(node, i);
             var fitPos:number = null;
             var newChild = newChildren[i]; // only use before update
             var oldChild = oldChildren && oldChildren[i];
             if (typeof old.keyMap == 'object') {
-                if (newChild.key != null) {
+                if (typeof newChild.key != 'undefined') {
                     fitPos = old.keyMap[newChild.key];
                 }
                 else {
-                    if (oldChild && oldChild.key == null) {
+                    if (oldChild && typeof oldChild.key == 'undefined') {
                         fitPos = i;
                     }
                 }
@@ -29,17 +28,16 @@ export function updateChildren(old:VNode, node:VNode) {
                 fitPos = i;
             }
 
-            if (fitPos != null || fitPos !== i) {
-                var beforeChild:Node;
-                if (prevChild) {
-                    beforeChild = prevChild instanceof VFragment
-                        ? prevChild.lastNode.nextSibling
-                        : prevChild.dom.nextSibling;
-                }
-                else {
-                    beforeChild = node instanceof VFragment
+            if (fitPos == null || fitPos !== i) {
+                if (i == 0) {
+                    var beforeChild = node instanceof VFragment
                         ? node.firstNode.nextSibling
                         : node.dom.firstChild;
+                }
+                else {
+                    beforeChild = newChildren[i - 1] instanceof VFragment
+                        ? (<VFragment>newChildren[i - 1]).lastNode.nextSibling
+                        : newChildren[i - 1].dom.nextSibling;
                 }
             }
 
@@ -54,7 +52,6 @@ export function updateChildren(old:VNode, node:VNode) {
             else {
                 append(node, i, beforeChild);
             }
-            prevChild = node.children[i];
         }
     }
 
@@ -74,10 +71,10 @@ function move(node:VNode, parent:VNode, beforeChild:Node) {
         var nextDom:Node;
         var dom = node.firstNode;
         var endNode = node.lastNode;
-        while(true){
+        while (true) {
             nextDom = dom.nextSibling;
             parent.dom.insertBefore(dom, beforeChild);
-            if (dom == endNode){
+            if (dom == endNode) {
                 break;
             }
             dom = nextDom;

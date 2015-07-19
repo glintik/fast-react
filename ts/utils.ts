@@ -1,7 +1,7 @@
 import {VText, VTagNode, VNode, VComponent, VFragment} from './node';
 export function normChild(parent:VNode, childPos:number) {
     var node = <any>parent.children[childPos];
-    if (node instanceof VNode) {
+    if (node && typeof node == 'object' && node instanceof VNode) {
         return;
     }
     if (typeof node == 'string' || typeof node == 'number') {

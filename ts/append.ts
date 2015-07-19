@@ -8,7 +8,7 @@ export function append(parent:VNode, childPos:number, beforeChild?:Node) {
     }
     let parentDom = parent.dom;
     let node = parent.children[childPos];
-    if (node.key != null) {
+    if (typeof node.key !== 'undefined') {
         if (typeof parent.keyMap == 'undefined') {
             parent.keyMap = {}
         }

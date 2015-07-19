@@ -9,35 +9,26 @@ import {updateComponent} from './component';
 export function update(old:VNode, parent:VNode, childPos:number) {
     var node = parent.children[childPos];
 
-    if (node.key != null) {
+    if (old.constructor !== node.constructor) {
+        replaceNode(old, parent, childPos);
+        return;
+    }
+    if (node instanceof VText) {
+        node.dom = (<VText>old).dom;
+        if ((<VText>old).text !== node.text) {
+            node.dom.textContent = node.text;
+        }
+        old.destroy();
+        return;
+    }
+
+    if (typeof node.key !== 'undefined') {
         if (typeof parent.keyMap == 'undefined') {
             parent.keyMap = {}
         }
         parent.keyMap[node.key] = childPos;
     }
-    if (old.constructor !== node.constructor) {
-        replaceNode(old, parent, childPos);
-        return;
-    }
-    if (node instanceof VComponent) {
-        if ((<VComponent>old).ctor !== node.ctor) {
-            replaceNode(old, parent, childPos);
-            return;
-        }
-        updateComponent(<VComponent>old, parent, childPos);
-        return;
-    }
-    if (node instanceof VFragment) {
-        node.lastNode = (<VFragment>old).lastNode;
-        node.firstNode = (<VFragment>old).firstNode;
-        node.dom = (<VFragment>old).dom;
-    }
-    if (node instanceof VText) {
-        node.dom = (<VText>old).dom;
-        node.dom.textContent = node.text;
-        old.destroy();
-        return;
-    }
+
     if (node instanceof VTagNode) {
         if ((<VTagNode>old).tag !== node.tag) {
             replaceNode(old, parent, childPos);
@@ -51,6 +42,20 @@ export function update(old:VNode, parent:VNode, childPos:number) {
             return;
         }
     }
+    else if (node instanceof VFragment) {
+        if (node instanceof VComponent) {
+            if ((<VComponent>old).ctor !== node.ctor) {
+                replaceNode(old, parent, childPos);
+                return;
+            }
+            updateComponent(<VComponent>old, parent, childPos);
+            return;
+        }
+        node.lastNode = (<VFragment>old).lastNode;
+        node.firstNode = (<VFragment>old).firstNode;
+        node.dom = (<VFragment>old).dom;
+    }
+
     updateChildren(old, node);
     old.destroy();
 }

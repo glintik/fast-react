@@ -126,7 +126,7 @@ describe("Component", function () {
         expect(cmp.props.children).not.toBeFalsy();
     });
 
-    iit('component refs', function () {
+    it('component refs', function () {
 
         var node = render(
             d('div', null, d(Cmp)), document.body);

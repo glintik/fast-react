@@ -11,10 +11,12 @@ export class VNode {
     dom:Node;
 
     destroy() {
+/*
         if (this.destroyed) {
             throw "Node yet destroyed";
         }
         this.destroyed = true;
+*/
     }
 }
 
@@ -65,12 +67,18 @@ export class VTagNode extends VNode {
         if (false) {
             super();
         }
-        this.id = id++;
+        //this.id = id++;
         this.dom = null;
         this.tag = tag;
         this.attrs = attrs;
+        this.attrsCode = '';
         this.children = children;
         this.key = key;
+    }
+    destroy(){
+        this.dom = null;
+        this.attrs = null;
+        this.children = null;
     }
 }
 
@@ -81,8 +89,11 @@ export class VText extends VNode {
         if (false) {
             super();
         }
-        this.id = id++;
+        //this.id = id++;
         this.dom = null;
         this.text = text;
+    }
+    destroy(){
+        this.dom = null;
     }
 }
