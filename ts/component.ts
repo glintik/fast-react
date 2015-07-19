@@ -65,7 +65,7 @@ export class Component {
         globs.component = prevComponent;
         this.node.children = children;
         this.componentDidUpdate();
-        temp.destroy()
+        temp.destroy();
     }
 }
 

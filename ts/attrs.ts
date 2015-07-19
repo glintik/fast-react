@@ -30,7 +30,7 @@ export function createAttrs(node:VTagNode, oldAttrs?:any) {
     for (var attrName in node.attrs) {
         node.attrsCode += attrName;
         var attrVal = node.attrs[attrName];
-        if (attrName == 'key' || (oldAttrs && oldAttrs[attrName] === attrVal)) {
+        if (attrName == 'key' || (oldAttrs && oldAttrs[attrName] === attrVal && attrName !== 'ref')) {
             continue;
         }
         if (prop = props[attrName]) {
