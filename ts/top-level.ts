@@ -24,7 +24,10 @@ export function updater(old:VNode, node:VNode) {
 
 export function createElement(tag:string | IComponent, attrs?:any, ...children:any[]):VNode;
 export function createElement(tag:string | IComponent, attrs?:any):VNode {
-    var key = attrs ? attrs.key : undefined;
+    if (attrs) {
+        var key = typeof attrs.key == 'undefined' ? undefined : attrs.key;
+        //var ref = typeof attrs.ref == 'undefined' ? undefined : attrs.ref;
+    }
     var len = arguments.length;
     var children:any[] = null;
     if (len > 2) {

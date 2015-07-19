@@ -9,6 +9,7 @@ export class VNode {
     key:string;
     destroyed:boolean;
     dom:Node;
+    ref:string;
 
     destroy() {
         /*
@@ -67,7 +68,7 @@ export class VTagNode extends VNode {
         if (false) {
             super();
         }
-        this.id = id++;
+        //this.id = id++;
         this.dom = null;
         this.tag = tag;
         this.attrs = attrs;
