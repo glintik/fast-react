@@ -1,6 +1,14 @@
 import {data} from './webstorm-issues';
 import {Issue} from './models';
 
+function setImmidiate(callback) {
+    var _callback = ()=>{
+        callback();
+        window.removeEventListener("message", _callback, false);
+    };
+    window.postMessage('hello', '*');
+    window.addEventListener("message", _callback, false);
+}
 
 function wrapText(text, len) {
     return text && text.length > len ? text.substr(0, len) + '...' : text;
@@ -57,36 +65,42 @@ class TestApp extends React.Component {
         }
     ];
 
-    state = {shown: true};
+    state = {shown: true, render: false};
 
     toggle(state, substate) {
         var start = Date.now();
         this.state.shown = state;
         this.state.subshown = substate;
         this.forceUpdate();
-        console.profile('perf');
-        setTimeout(()=> {
-            console.profileEnd('perf');
+        //console.profile('perf');
+        setImmidiate(()=> {
+            //console.profileEnd('perf');
             var dur = Date.now() - start;
             React.findDOMNode(this.refs.toogleTime).textContent = dur + 'ms';
         });
     }
 
+    toggleRender() {
+        this.state.render = !this.state.render;
+        this.forceUpdate();
+    }
 
     render() {
-        console.log("Render", this.state.shown);
-
         return <div>
             <button onClick={()=>this.toggle(!this.state.shown, true)}>Toggle</button>
             <button onClick={()=>this.toggle(true, !this.state.subshown)}>SubShown</button>
             <button onClick={()=>this.toggle(true, true)}>Empty Update</button>
+            <button onClick={()=>this.toggleRender()}>With/without render</button>
             <span ref="toogleTime"></span>
             {this.state.shown ?
-                <div className="issues">
+                <div className={'issues '+(this.state.render ? '' : 'hidden')}>
                     {this.props.issues.map(issue =>
                         <div key={issue.id} className="issue">
                             {this.fields.map(field =>
-                                <Line shown={this.state.subshown} field={field} issue={issue}/>)}
+                                <div className="line">
+                                    <span className="field">{field.name}:</span>
+                                    <span className="value">{field.value(issue)}</span>
+                                </div>)}
                         </div>)
                     }
                 </div> : null}
@@ -94,6 +108,7 @@ class TestApp extends React.Component {
 
     }
 }
+
 
 class Line extends React.Component {
     render() {
@@ -111,5 +126,10 @@ class Line extends React.Component {
     }
 }
 
-var issues = data.map(json => new Issue(json));
+var issues1 = data.map(json => new Issue(json, '1_'));
+var issues2 = data.map(json => new Issue(json, '2_'));
+var issues3 = data.map(json => new Issue(json, '3_'));
+var issues4 = data.map(json => new Issue(json, '4_'));
+var issues5 = data.map(json => new Issue(json, '5_'));
+var issues = issues1.concat(issues2).concat(issues3).concat(issues4).concat(issues5);
 React.render(<TestApp issues={issues}/>, document.body.appendChild(document.createElement('div')));

@@ -80,12 +80,12 @@ export class Issue {
     links = [];
     attachments = [];
 
-    constructor(obj) {
+    constructor(obj, idPrefix) {
         var fields = {};
         obj.field.forEach(function (field) {
             fields[field.name] = field.value;
         });
-        this.id = obj.id;
+        this.id = idPrefix + obj.id;
         this.summary = fields.summary;
         this.description = fields.description || '';
         this.created = fields.created;
