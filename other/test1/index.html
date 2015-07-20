@@ -14,10 +14,19 @@
         .comment:last-child { border-bottom: none }
         .comment .author { color: gray; }
         .comment .text { padding: 0 0 0 0px; }
+        .issues{display: none}
     </style>
 </head>
 <body>
 <script src="../../node_modules/react/dist/react.min.js" type="text/javascript"></script>
+<script src="../../dist/index.js" type="text/javascript"></script>
+<script type="text/javascript">
+    if (location.hash.indexOf('fast') > -1){
+        React = FastReact;
+        console.log("Used Fast React");
+
+    }
+</script>
 <script src="./dist/index.js" type="text/javascript"></script>
 </body>
 </html>

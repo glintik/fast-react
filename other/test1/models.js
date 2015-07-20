@@ -1,4 +1,3 @@
-
 var defaultFields = ["projectShortName", "numberInProject", "summary", "description", "created", "updated", "resolved",
     "updaterName", "updaterFullName", "reporterName", "reporterFullName", "commentsCount", "votes", "attachments", "links"];
 
@@ -82,7 +81,10 @@ export class Issue {
     attachments = [];
 
     constructor(obj) {
-        var fields = obj.fields;
+        var fields = {};
+        obj.field.forEach(function (field) {
+            fields[field.name] = field.value;
+        });
         this.id = obj.id;
         this.summary = fields.summary;
         this.description = fields.description || '';
@@ -106,19 +108,21 @@ export class Issue {
         this.affectedVersion = fields['Affected versions'] && fields['Affected versions'][0];
         this.severity = fields.Severity;
 
-        for (var i = 0; i < obj.comment.length; i++) {
-            this.comments.push(new UserComment(obj.comment[i]));
-        }
-
-        if (obj.fields.attachments) {
-            for (var i = 0; i < obj.fields.attachments.length; i++) {
-                this.attachments.push(new IssueAttachment(obj.fields.attachments[i]));
+        if (obj.comment) {
+            for (var i = 0; i < obj.comment.length; i++) {
+                this.comments.push(new UserComment(obj.comment[i]));
             }
         }
 
-        if (obj.fields.links) {
-            for (var i = 0; i < obj.fields.links.length; i++) {
-                this.links.push(new IssueLink(obj.fields.links[i]));
+        if (fields.attachments) {
+            for (var i = 0; i < fields.attachments.length; i++) {
+                this.attachments.push(new IssueAttachment(fields.attachments[i]));
+            }
+        }
+
+        if (fields.links) {
+            for (var i = 0; i < fields.links.length; i++) {
+                this.links.push(new IssueLink(fields.links[i]));
             }
         }
 
