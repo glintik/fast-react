@@ -35,16 +35,13 @@ function utext(text) {
 
 function compare(dom, d) {
     expect(d).toBeDefined();
-    if (!d){
-        return;
-    }
 
     //console.error(d);
     if (d.tag !== '#') {
         if (d.updated !== dom.updated) {
-            //console.log(d.updated, dom.updated, d);
+            console.log(d.updated, dom.updated, d);
         }
-        //expect(d.updated).toBe(dom.updated);
+        expect(d.updated).toBe(dom.updated);
     }
     if (dom instanceof Text) {
         expect(d.text).toBe(dom.textContent);

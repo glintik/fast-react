@@ -36,11 +36,7 @@ export function update(old:VNode, parent:VNode, childPos:number) {
         }
         node.dom = (<VTagNode>old).dom;
 
-        let successAttrs = updateAttrs(<VTagNode>old, parent, childPos);
-        if (!successAttrs) {
-            replaceNode(old, parent, childPos);
-            return;
-        }
+        updateAttrs(<VTagNode>old, parent, childPos);
     }
     else if (node instanceof VFragment) {
         if (node instanceof VComponent) {

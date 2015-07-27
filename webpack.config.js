@@ -4,18 +4,12 @@ module.exports = {
     //context: path.join(__dirname, './'),
     entry: './index',
     output: {
-        path: './',
-        filename: './dist/index.js'
+        path: './dist/',
+        filename: 'fast-react.js'
     },
 
     module: {
-
         loaders: [
-            {
-                test: /\.ts$/,
-                loader: 'awesome-typescript-loader?module=commonjs&tsconfig=./ts/tsconfig.json',
-            },
-/*
             {
                 test: /\.js$/,
                 loader: 'babel',
@@ -24,11 +18,10 @@ module.exports = {
                     loose: ["es6.classes"]
                 }
             }
-*/
         ]
     },
     resolve: {
-        extensions: ['', '.js', '.jsx', '.ts']
+        extensions: ['', '.js', '.jsx']
     },
     devtool: 'inline-source-map',
 };

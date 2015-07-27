@@ -48,7 +48,7 @@ describe("Component", function () {
         },
         render: function () {
             this.counter++;
-            return d('div', {className: 'cmp', ref: 'cmp'}, 'cmp', 1, d(SubCmp, {subprop: this.counter}), 3);
+            return d('div', null, 'cmp', 1, d(SubCmp, {subprop: this.counter}), 3);
         }
     }, 'Cmp');
 
@@ -57,7 +57,7 @@ describe("Component", function () {
             subcmp = this;
         },
         render: function () {
-            return d('div', {className: 'subcmp', ref: 'subcmp'}, 'subcmp', 4, 5, 6);
+            return d('div', null, 'subcmp', 4, 5, 6);
         }
     }, 'SubCmp');
 
@@ -124,30 +124,6 @@ describe("Component", function () {
 
         expect(cmp.props.hello).toBe(true);
         expect(cmp.props.children).not.toBeFalsy();
-    });
-
-    it('component refs', function () {
-
-        var node = render(
-            d('div', null, d(Cmp)), document.body);
-
-        expect(cmp.refs).toBeDefined();
-        expect(cmp.refs.cmp.dom.className).toBe('cmp');
-        expect(cmp.refs.subcmp).toBeFalsy();
-
-        expect(subcmp.refs).toBeDefined();
-        expect(subcmp.refs.cmp).toBeFalsy();
-        expect(subcmp.refs.subcmp.dom.className).toBe('subcmp');
-        cmp.forceUpdate();
-
-        expect(cmp.refs).toBeDefined();
-        expect(cmp.refs.cmp.dom.className).toBe('cmp');
-        expect(cmp.refs.subcmp).toBeFalsy();
-
-        expect(subcmp.refs).toBeDefined();
-        expect(subcmp.refs.cmp).toBeFalsy();
-        expect(subcmp.refs.subcmp.dom.className).toBe('subcmp');
-
     });
 
 

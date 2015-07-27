@@ -9,7 +9,6 @@
   "author": "cevek",
   "license": "ISC",
   "devDependencies": {
-    "awesome-typescript-loader": "^0.7.1",
     "babel-loader": "^5.3.1",
     "expose-loader": "^0.7.0",
     "jasmine-core": "^2.3.4",

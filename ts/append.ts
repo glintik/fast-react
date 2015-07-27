@@ -30,9 +30,9 @@ export function append(parent:VNode, childPos:number, beforeChild?:Node) {
     }
     else if (node instanceof VFragment) {
         node.dom = parentDom;
-        let txt = node instanceof VComponent ? (<any>node.ctor).name : 'f';
-        node.firstNode = document.createComment(' ' + txt + ':' + node.id + ' ');
-        node.lastNode = document.createComment(' :' + txt + ':' + node.id + ' ');
+        let txt = node instanceof VComponent ? (<any>node.ctor).name + ':' + node.id : '#';
+        node.firstNode = document.createComment(' ' + txt + ' ');
+        node.lastNode = document.createComment(' :' + txt + ' ');
         (<any>node.firstNode).skip = true;
         (<any>node.lastNode).skip = true;
         parentDom.insertBefore(node.firstNode, beforeChild);

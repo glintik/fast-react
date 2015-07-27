@@ -63,9 +63,9 @@ export class Component {
         globs.component = this;
         updateChildren(this.node, temp); // clear this.node.children
         globs.component = prevComponent;
-        this.node.children = children;
+        this.node.children = temp.children;
         this.componentDidUpdate();
-        temp.destroy();
+        //temp.destroy();
     }
 }
 

@@ -46,13 +46,13 @@ describe("Simple", function () {
         var divRef;
         var origDiv;
         var node = render(
-            origDiv = d('div', {className: 'wow1', ref: function(d){divRef = d}}, 0), document.body);
-        expect(divRef.dom.className).toBe('wow1');
+            origDiv = d('div', {ref: function(d){divRef = d}}, 0), document.body);
+        expect(divRef).toBe(origDiv);
 
         node = update(node,
-            d('div', {className: 'wow2', ref: function(d){divRef = d}}, 0));
+            d('div', {ref: function(d){divRef = d}}, 0));
 
-        expect(divRef.dom.className).toBe('wow2');
+        expect(divRef).toBe(origDiv);
     });
 
     it('replace children with empty', function () {
