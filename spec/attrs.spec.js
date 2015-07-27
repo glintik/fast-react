@@ -328,16 +328,19 @@ describe("Attrs", function () {
     it('emptify attrs', function () {
         var node = render(
             d('div', {
+                className: 'cls',
                 title: 'wtf',
                 'data-name': 'my'
             }, 0), document.body);
 
         node = update(node,
             d('div', {
-                title: false,
-                'data-name': false
+                className: false,
+                title: null,
+                'data-name': null
             }, 1));
 
+        expect(node.dom.className).toBe('');
         expect(node.dom.title).toBeFalsy();
         expect(node.dom.dataset.name).toBeFalsy();
         compare(node.dom, udiv(utext(1)));
