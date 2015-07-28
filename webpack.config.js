@@ -2,7 +2,7 @@
 var webpack = require('webpack');
 module.exports = {
     //context: path.join(__dirname, './'),
-    entry: './index',
+    entry: './index.ts',
     output: {
         path: './dist/',
         filename: 'index.js'

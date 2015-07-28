@@ -80,16 +80,19 @@ export function updateChildren(old:VNode, node:VNode) {
 
 function move(node:VNode, parent:VNode, beforeChild:Node) {
     if (node instanceof VFragment) {
-        var nextDom:Node;
-        var dom = node.firstNode;
-        var endNode = node.lastNode;
+        var prevDom:Node;
+        var dom = node.lastNode;
+        var endNode = node.firstNode;
         while (true) {
-            nextDom = dom.nextSibling;
-            parent.dom.insertBefore(dom, beforeChild);
+            prevDom = dom.previousSibling;
+            if (dom.previousSibling !== beforeChild) {
+                parent.dom.insertBefore(dom, beforeChild);
+            }
+            beforeChild = dom;
             if (dom == endNode) {
                 break;
             }
-            dom = nextDom;
+            dom = prevDom;
         }
     }
     else {
