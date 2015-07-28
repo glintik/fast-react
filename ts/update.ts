@@ -37,6 +37,23 @@ export function update(old:VNode, parent:VNode, childPos:number) {
         node.dom = (<VTagNode>old).dom;
 
         updateAttrs(<VTagNode>old, parent, childPos);
+
+        if (node.children && node.children.length == 1) {
+            normChild(node, 0);
+            var child = node.children[0];
+            if (child instanceof VText) {
+                node.text = child.text;
+                if (node.text !== (<VTagNode>old).text) {
+                    node.dom.textContent = child.text;
+                }
+                node.children = null;
+                old.destroy();
+                return;
+            }
+        }
+        else if ((<VTagNode>old).text != null) {
+            old.dom.removeChild(old.dom.firstChild);
+        }
     }
     else if (node instanceof VFragment) {
         if (node instanceof VComponent) {

@@ -3,7 +3,7 @@
   <component name="TypeScriptCompiler">
     <option name="isCompilerEnabled" value="true" />
     <option name="typeScriptServiceDirectory" value="$PROJECT_DIR$/../../../TypeScript/built/local" />
-    <option name="typeScriptCompilerParams" value="--module commonjs --target es6 --outDir js --noImplicitAny" />
+    <option name="typeScriptCompilerParams" value="--module commonjs --target es5 --outDir js --noImplicitAny" />
     <option name="generateSourceMap" value="false" />
     <option name="versionType" value="SERVICE_DIRECTORY" />
   </component>

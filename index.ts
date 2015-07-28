@@ -1,4 +1,4 @@
-import {render, createElement, Component} from './ts/index';
+import {render, updater, createElement, Component} from './ts/index';
 
 class App extends Component {
     counter = 0;
