@@ -5,7 +5,7 @@ import {normChild} from './utils';
 import {attrs, props, events} from './const-attrs';
 import {globs} from './component';
 
-export function updateAttrs(old:VTagNode, parent:VNode, childPos:number):boolean {
+export function updateAttrs(old:VTagNode, parent:VNode, childPos:number) {
     var node = <VTagNode>parent.children[childPos];
     var res = true;
     if (node.attrs) {
@@ -25,6 +25,7 @@ export function updateAttrs(old:VTagNode, parent:VNode, childPos:number):boolean
         createAttrs(node, old);
     }
 }
+
 
 export function createAttrs(node:VTagNode, oldAttrs?:any) {
     var dom:any = node.dom;
@@ -62,6 +63,7 @@ export function createAttrs(node:VTagNode, oldAttrs?:any) {
             dom['on' + event] = attrVal;
         }
         else if (attrName[0] === 'd' && attrName[1] === 'a' && attrName[2] === 't' && attrName[3] === 'a') {
+
             if (attrVal == null || attrVal === false) {
                 dom.removeAttribute(attrName);
             }

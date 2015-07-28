@@ -335,14 +335,18 @@ describe("Attrs", function () {
 
         node = update(node,
             d('div', {
-                className: false,
+                className: null,
                 title: null,
-                'data-name': null
+                rel: false,
+                'data-name': null,
+                'data-rel': false
             }, 1));
 
         expect(node.dom.className).toBe('');
         expect(node.dom.title).toBeFalsy();
+        expect(node.dom.rel).toBeFalsy();
         expect(node.dom.dataset.name).toBeFalsy();
+        expect(node.dom.dataset.rel).toBeFalsy();
         compare(node.dom, udiv(utext(1)));
     });
 

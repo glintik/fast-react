@@ -7,6 +7,7 @@ import {normChild} from './utils';
 export function updateChildren(old:VNode, node:VNode) {
     var oldChildren = old.children;
     var newChildren = node.children;
+    var inserts:any[] = [];
     if (newChildren) {
         var fitCount = 0;
         for (var i = 0; i < newChildren.length; i++) {
@@ -28,29 +29,18 @@ export function updateChildren(old:VNode, node:VNode) {
                 fitPos = i;
             }
 
-            if (fitPos == null || fitPos !== i) {
-                if (i == 0) {
-                    var beforeChild = node instanceof VFragment
-                        ? node.firstNode.nextSibling
-                        : node.dom.firstChild;
-                }
-                else {
-                    beforeChild = newChildren[i - 1] instanceof VFragment
-                        ? (<VFragment>newChildren[i - 1]).lastNode.nextSibling
-                        : newChildren[i - 1].dom.nextSibling;
-                }
-            }
-
             if (fitPos != null) {
                 fitCount++;
                 update(oldChildren[fitPos], node, i);
                 if (fitPos !== i) {
-                    move(node.children[i], node, beforeChild);
+                    inserts.push(i);
+                    //move(node.children[i], node, beforeChild);
                 }
                 oldChildren[fitPos] = null;
             }
             else {
-                append(node, i, beforeChild);
+                inserts.push(i);
+                //append(node, i, beforeChild);
             }
         }
     }
@@ -62,6 +52,28 @@ export function updateChildren(old:VNode, node:VNode) {
                 remove(oldChild, old, i)
             }
             oldChildren[i] = null;
+        }
+    }
+
+    for (var i = inserts.length - 1; i >= 0; i--) {
+        var pos:number = inserts[i];
+
+        if (i == inserts.length - 1) {
+            var beforeChild = node instanceof VFragment
+                ? node.lastNode
+                : null;
+        }
+        else {
+            beforeChild = newChildren[i + 1] instanceof VFragment
+                ? (<VFragment>newChildren[i + 1]).firstNode
+                : newChildren[i + 1].dom;
+        }
+
+        if (newChildren[pos].dom) {
+            move(newChildren[pos], node, beforeChild);
+        }
+        else {
+            append(node, pos, beforeChild);
         }
     }
 }
