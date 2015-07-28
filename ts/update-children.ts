@@ -7,7 +7,8 @@ import {normChild} from './utils';
 export function updateChildren(old:VNode, node:VNode) {
     var oldChildren = old.children;
     var newChildren = node.children;
-    var inserts:any[] = [];
+    var inserts:any = new Array(100000);
+    inserts.len = 0;
     if (newChildren) {
         var fitCount = 0;
         for (var i = 0; i < newChildren.length; i++) {
@@ -33,13 +34,13 @@ export function updateChildren(old:VNode, node:VNode) {
                 fitCount++;
                 update(oldChildren[fitPos], node, i);
                 if (fitPos !== i) {
-                    inserts.push(i);
+                    inserts[inserts.len++] = i;
                     //move(node.children[i], node, beforeChild);
                 }
                 oldChildren[fitPos] = null;
             }
             else {
-                inserts.push(i);
+                inserts[inserts.len++] = i;
                 //append(node, i, beforeChild);
             }
         }
@@ -55,10 +56,10 @@ export function updateChildren(old:VNode, node:VNode) {
         }
     }
 
-    for (var i = inserts.length - 1; i >= 0; i--) {
+    for (var i = inserts.len - 1; i >= 0; i--) {
         var pos:number = inserts[i];
 
-        if (i == inserts.length - 1) {
+        if (i == inserts.len - 1) {
             var beforeChild = node instanceof VFragment
                 ? node.lastNode
                 : null;
