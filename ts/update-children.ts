@@ -4,11 +4,26 @@ import {update} from './update';
 import {remove} from './remove';
 import {normChild} from './utils';
 
+
 export function updateChildren(old:VNode, node:VNode) {
     var oldChildren = old.children;
     var newChildren = node.children;
-    var inserts:any = new Array(100000);
-    inserts.len = 0;
+    var inserts:number[] = [];
+    if (!oldChildren && newChildren) {
+        var beforeChild = node instanceof VFragment ? node.lastNode : null;
+        for (var i = 0; i < newChildren.length; i++) {
+            normChild(node, i);
+            append(node, i, beforeChild);
+        }
+        return;
+    }
+    if (oldChildren && !newChildren) {
+        for (var i = 0; i < oldChildren.length; i++) {
+            remove(oldChildren[i], old, i)
+        }
+        return;
+    }
+
     if (newChildren) {
         var fitCount = 0;
         for (var i = 0; i < newChildren.length; i++) {
@@ -34,17 +49,18 @@ export function updateChildren(old:VNode, node:VNode) {
                 fitCount++;
                 update(oldChildren[fitPos], node, i);
                 if (fitPos !== i) {
-                    inserts[inserts.len++] = i;
+                    inserts.push(i);
                     //move(node.children[i], node, beforeChild);
                 }
                 oldChildren[fitPos] = null;
             }
             else {
-                inserts[inserts.len++] = i;
+                inserts.push(i);
                 //append(node, i, beforeChild);
             }
         }
     }
+
 
     if (oldChildren && oldChildren.length !== fitCount) {
         for (var i = 0; i < oldChildren.length; i++) {
@@ -56,25 +72,27 @@ export function updateChildren(old:VNode, node:VNode) {
         }
     }
 
-    for (var i = inserts.len - 1; i >= 0; i--) {
-        var pos:number = inserts[i];
+    if (inserts.length) {
+        for (var i = inserts.length - 1; i >= 0; i--) {
+            var pos:number = inserts[i];
 
-        if (i == inserts.len - 1) {
-            var beforeChild = node instanceof VFragment
-                ? node.lastNode
-                : null;
-        }
-        else {
-            beforeChild = newChildren[i + 1] instanceof VFragment
-                ? (<VFragment>newChildren[i + 1]).firstNode
-                : newChildren[i + 1].dom;
-        }
+            if (i == inserts.length - 1) {
+                var beforeChild = node instanceof VFragment
+                    ? node.lastNode
+                    : null;
+            }
+            else {
+                beforeChild = newChildren[i + 1] instanceof VFragment
+                    ? (<VFragment>newChildren[i + 1]).firstNode
+                    : newChildren[i + 1].dom;
+            }
 
-        if (newChildren[pos].dom) {
-            move(newChildren[pos], node, beforeChild);
-        }
-        else {
-            append(node, pos, beforeChild);
+            if (newChildren[pos].dom) {
+                move(newChildren[pos], node, beforeChild);
+            }
+            else {
+                append(node, pos, beforeChild);
+            }
         }
     }
 }

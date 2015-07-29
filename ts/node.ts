@@ -13,10 +13,10 @@ export class VNode {
 
     destroy() {
         /*
-                if (this.destroyed) {
-                    throw "Node yet destroyed";
-                }
-                this.destroyed = true;
+        if (this.destroyed) {
+            throw "Node yet destroyed";
+        }
+        this.destroyed = true;
         */
     }
 }
@@ -69,14 +69,20 @@ export class VTagNode extends VNode {
         if (false) {
             super();
         }
-        //this.id = id++;
+        this.id = id++;
         this.dom = null;
         this.tag = tag;
-        this.text = null;
         this.attrs = attrs;
         this.attrsCode = '';
-        this.children = children;
         this.key = key;
+        /*if (children && children.length == 1) {
+            var child = children[0];
+            if (typeof child == 'string' || typeof child == 'number') {
+                this.text = child + '';
+                children = null;
+            }
+        }*/
+        this.children = children;
     }
 
     destroy() {
@@ -85,6 +91,7 @@ export class VTagNode extends VNode {
         this.children = null;
     }
 }
+VTagNode.prototype.text = null;
 
 var textCache = <any>new Array(100000);
 textCache.len = 0;

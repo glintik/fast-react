@@ -21,14 +21,9 @@ export function append(parent:VNode, childPos:number, beforeChild?:Node) {
             createAttrs(node);
         }
         parentDom.insertBefore(node.dom, beforeChild);
-        if (node.children && node.children.length == 1) {
-            normChild(node, 0);
-            var child = node.children[0];
-            if (child instanceof VText){
-                node.text = node.dom.textContent = child.text;
-                node.children = null;
-                return;
-            }
+        if (node.text != null) {
+            node.dom.textContent = node.text;
+            return;
         }
     }
     else if (node instanceof VText) {

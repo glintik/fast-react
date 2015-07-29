@@ -5,6 +5,7 @@ import {update} from './update';
 import {normChild} from './utils';
 
 export {Component, findDOMNode} from './component';
+export {VTagNode} from './node';
 
 export function render(node:VNode, dom:Node) {
     var root = new VTagNode(null, null, [node], null);
