@@ -22,6 +22,7 @@ export function updater(old:VNode, node:VNode) {
     return root.children[0];
 }
 
+var id = 1;
 export function createElement(tag:string | IComponent, attrs?:any, ...children:any[]):VNode;
 export function createElement(tag:string | IComponent, attrs?:any):VNode {
     if (attrs) {

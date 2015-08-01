@@ -59,6 +59,6 @@ export function update(old:VNode, parent:VNode, childPos:number) {
 }
 
 export function replaceNode(old:VNode, parent:VNode, childPos:number) {
-    append(parent, childPos, old instanceof VFragment ? old.firstNode : (<VTagNode>old).dom);
+    append(parent, childPos, (old.type == NodeType.FRAGMENT || old.type == NodeType.COMPONENT) ? (<VFragment>old).firstNode : (<VTagNode>old).dom);
     remove(old, parent);
 }

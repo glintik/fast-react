@@ -9,6 +9,7 @@
   "author": "cevek",
   "license": "ISC",
   "devDependencies": {
+    "awesome-typescript-loader": "^0.11.0-rc.0",
     "babel-loader": "^5.3.1",
     "expose-loader": "^0.7.0",
     "jasmine-core": "^2.3.4",
@@ -16,6 +17,7 @@
     "karma-chrome-launcher": "^0.2.0",
     "karma-jasmine": "^0.3.6",
     "karma-sourcemap-loader": "^0.3.5",
-    "karma-webpack": "^1.5.1"
+    "karma-webpack": "^1.5.1",
+    "typescript": "^1.5.3"
   }
 }

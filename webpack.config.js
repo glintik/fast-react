@@ -1,7 +1,7 @@
-//var path = require('path');
+var path = require('path');
 var webpack = require('webpack');
 module.exports = {
-    //context: path.join(__dirname, './'),
+    context: path.join(__dirname, './'),
     entry: './index.ts',
     output: {
         path: './dist/',
@@ -12,15 +12,7 @@ module.exports = {
         loaders: [
             {
                 test: /\.ts$/,
-                loader: 'awesome-typescript-loader?module=commonjs&tsconfig=./ts/tsconfig.json',
-            },
-            {
-                test: /\.js$/,
-                loader: 'babel',
-                query: {
-                    stage: 0,
-                    loose: ["es6.classes"]
-                }
+                loader: 'awesome-typescript-loader?module=common',
             }
         ]
     },
