@@ -27,3 +27,7 @@ export function normChild(parent:VNode, childPos:number) {
     }
     parent.children[childPos] = getVText('');
 }
+
+export function destroy(node: VNode){
+    //node.dom = null;
+}

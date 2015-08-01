@@ -109,7 +109,7 @@
     };
     if (twoChilds) {
         fn = function fn(item) {
-            return {type: 10, tag: 'div', key: item, attrs: {className: 'item'}, children: [item, 2]};
+            return {type: 10, dom: null, tag: 'div', attrsCode: '', key: item, attrs: {className: 'item'}, children: [item, 2]};
         };
     }
     Cmp.prototype.render = function () {
@@ -118,7 +118,7 @@
         if (renderK % 2 && isCreate) {
             return createElement('div');
         }
-        return {type: 10, tag: 'div', attrs: {className: 'items'}, children: this.items.map(fn)};
+        return {type: 10, dom: null, tag: 'div', attrsCode: '', attrs: {className: 'items'}, key: null, children: this.items.map(fn)};
     };
 
     var node = render(createElement(Cmp), document.getElementById('test'));

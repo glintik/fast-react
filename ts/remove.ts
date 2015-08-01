@@ -1,7 +1,7 @@
 import {NodeType, VText, VTagNode, VNode, VComponent, VFragment} from './node';
 import {append} from './append';
 import {update} from './update';
-import {normChild} from './utils';
+import {normChild, destroy} from './utils';
 
 export function remove(node:VNode, parent:VNode, childPos?:number, skipRemove?:boolean) {
     if (node.type == NodeType.COMPONENT) {
@@ -23,7 +23,7 @@ export function remove(node:VNode, parent:VNode, childPos?:number, skipRemove?:b
             parent.dom.removeChild(node.dom);
         }
     }
-    //node.destroy();
+    destroy(node);
     if (childPos != null) {
         parent.children[childPos] = null;
     }

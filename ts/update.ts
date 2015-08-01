@@ -1,5 +1,5 @@
 import {NodeType, VText, VTagNode, VNode, VComponent, VFragment} from './node';
-import {normChild} from './utils';
+import {normChild, destroy} from './utils';
 import {remove} from './remove';
 import {append} from './append';
 import {updateChildren} from './update-children';
@@ -18,6 +18,7 @@ export function update(old:VNode, parent:VNode, childPos:number) {
         if ((<VText>old).text !== (<VText>node).text) {
             node.dom.textContent = (<VText>node).text;
         }
+        destroy(old);
         //old.destroy();
         return;
     }
@@ -53,6 +54,7 @@ export function update(old:VNode, parent:VNode, childPos:number) {
     }
 
     updateChildren(old, node);
+    destroy(old);
     //old.destroy();
 }
 
