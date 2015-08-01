@@ -46,3 +46,12 @@ export function createElement(tag:string | IComponent, attrs?:any):VNode {
         return new VComponent(<IComponent>tag, attrs, children, key);
     }
 }
+
+export function createElementFast(tag:string | IComponent, key: string, attrs:any, children: any[]):VNode {
+    if (typeof tag == 'string') {
+        return new VTagNode(<string>tag, attrs, children, key);
+    }
+    else if (typeof tag == 'function') {
+        return new VComponent(<IComponent>tag, attrs, children, key);
+    }
+}
