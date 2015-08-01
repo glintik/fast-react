@@ -1,15 +1,15 @@
 import {NodeType, VText, VTagNode, VNode, VComponent, VFragment, getVText} from './node';
 export function normChild(parent:VNode, childPos:number) {
     var node = <any>parent.children[childPos];
-    if (typeof node == 'object' && node && node.type > 0) {
+    if (node && typeof node == 'object' && node.type > 0) {
         return;
     }
     if (typeof node == 'string' || typeof node == 'number') {
-        parent.children[childPos] = <any>{type: NodeType.TEXT, dom: null, text: node + ''};
+        parent.children[childPos] = <any>{type: NodeType.TEXT, dom: null, text: node};
         return;
     }
     if (node == null) {
-        parent.children[childPos] = <any>{type: NodeType.TEXT, dom: null, text: ''};
+        parent.children[childPos] = getVText('');
         return;
     }
     if (typeof node === 'object') {

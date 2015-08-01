@@ -93,14 +93,13 @@ var textCache = <any>new Array(100000);
 textCache.len = 0;
 
 export function getVText(text:string) {
-    return <VText><any>{type: NodeType.TEXT, dom: null, text: text};
-
+    return {type: NodeType.TEXT, dom: null, text: text};
     if (textCache.len > 0) {
         var item = textCache[--textCache.len];
         item.text = text;
         return item;
     }
-    return new VText(text);
+    return {type: NodeType.TEXT, dom: null, text: text};
 }
 
 export class VText extends VNode {
