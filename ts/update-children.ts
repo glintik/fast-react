@@ -1,4 +1,4 @@
-import {VText, VTagNode, VNode, VComponent, VFragment} from './node';
+import {NodeType, VText, VTagNode, VNode, VComponent, VFragment} from './node';
 import {append} from './append';
 import {update} from './update';
 import {remove} from './remove';
@@ -59,12 +59,12 @@ export function updateChildren(old:VNode, node:VNode) {
         var pos:number = inserts[i];
 
         if (i == inserts.length - 1) {
-            var beforeChild = node instanceof VFragment
-                ? node.lastNode
+            var beforeChild = (node.type == NodeType.FRAGMENT || node.type == NodeType.COMPONENT)
+                ? (<VFragment>node).lastNode
                 : null;
         }
         else {
-            beforeChild = newChildren[i + 1] instanceof VFragment
+            beforeChild =  (newChildren[i + 1].type == NodeType.FRAGMENT || newChildren[i + 1].type == NodeType.COMPONENT)
                 ? (<VFragment>newChildren[i + 1]).firstNode
                 : newChildren[i + 1].dom;
         }

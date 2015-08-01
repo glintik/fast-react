@@ -2,12 +2,17 @@ import {IComponent, Component} from './component';
 
 var id = 1;
 
+export const enum NodeType{
+    TAG = 10, FRAGMENT = 20, COMPONENT = 30, TEXT = 40
+}
+
 export class VNode {
     id:number;
     children:VNode[];
+    type:NodeType;
     keyMap:{[index: string]:number};
     key:string;
-    destroyed:boolean;
+    //destroyed:boolean;
     dom:Node;
     ref:string;
 
@@ -88,6 +93,8 @@ var textCache = <any>new Array(100000);
 textCache.len = 0;
 
 export function getVText(text:string) {
+    return <VText><any>{type: NodeType.TEXT, dom: null, text: text};
+
     if (textCache.len > 0) {
         var item = textCache[--textCache.len];
         item.text = text;
