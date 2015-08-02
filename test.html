@@ -99,6 +99,7 @@
             values: [{class: 'hey'}, items.map(function (item) {
                 return {
                     template: t2,
+                    key: item,
                     node: null,
                     values: [item, item],
                     domNodes: new Array(2)
@@ -167,7 +168,7 @@
 
     function norm(vdom, i) {
         if (vdom.values[i] instanceof Array) {
-            vdom.values[i] = {tag: 'array', node: null, children: vdom.values[i]};
+            vdom.values[i] = {tag: 'array', keyMap: {}, node: null, children: vdom.values[i]};
             return;
         }
         vdom.values[i] = {tag: '#', node: null, children: vdom.values[i]};
