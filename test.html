@@ -6,13 +6,170 @@
 </head>
 <body>
 
+<script src="node_modules/t7/t7.js" type="text/javascript"></script>
 <script type="text/javascript">
-    console.time('perf');
-    for (var i = 0; i < 1000000; i++) {
 
+    Node.prototype.setAttr = function (attrName, attrVal) {
+        this.setAttribute(attrName, attrVal);
+        return this;
+    };
+    Node.prototype.setStyle = function (attrName, attrVal) {
+        this.style[attrName] = attrVal;
+        return this;
+    };
+    Node.prototype.setAttrs = function (attrs) {
+        for (var i in attrs) {
+            this.setAttribute(i, attrs[i]);
+        }
+        return this;
+    };
+    Node.prototype.setRef = function (args, i) {
+        args.domNodes[i] = this;
+        return this;
+    };
+
+    Node.prototype.addChild = function (child) {
+        if (child instanceof Node) {
+            this.appendChild(child);
+            return this;
+        }
+        if (child instanceof Array){
+            for (var i = 0; i < child.length; i++) {
+                this.addChild(child[i]);
+            }
+            return this;
+        }
+        if (typeof child == 'object' && child && typeof child.template !== 'undefined') {
+            render(child, this);
+            return this;
+        }
+        this.appendChild(document.createTextNode(child));
+        return this;
+    };
+
+    var t1 = {
+        render: function (vdomTemplate, parentNode) {
+            parentNode.appendChild(document.createElement('div')
+                    .setAttr('class', 'peow')
+                    .addChild(document.createElement('div')
+                            .setAttrs(vdomTemplate.values[0]).setRef(vdomTemplate, 0)
+                            .addChild(vdomTemplate.values[1]).setRef(vdomTemplate, 1))
+                    .addChild('Wow')
+                    .addChild(vdomTemplate.values[2]).setRef(vdomTemplate, 2)
+                    .addChild(document.createElement(vdomTemplate.values[3]).setRef(vdomTemplate, 3)
+                            .setAttr('class', vdomTemplate.values[4]).setRef(vdomTemplate, 4)
+                            .setStyle('color', vdomTemplate.values[5]).setRef(vdomTemplate, 5)
+                            .addChild(1)))
+
+        }, argTypes: [['attrs'], ['children'], ['children'], ['tag'], ['attr', 'class'], ['style', 'color']]
+    };
+
+    var t2 = {
+        render: function (vdomTemplate, parentNode) {
+            parentNode.appendChild(document.createElement('div')
+                    .setAttr('title', 'item ' + vdomTemplate.values[0]).setRef(vdomTemplate, 0)
+                    .addChild(document.createElement('span')
+                            .addChild(vdomTemplate.values[1]).setRef(vdomTemplate, 1)))
+
+        }, argTypes: [['attr', 'title'], ['children']]
+    };
+
+    var items = [1, 2, 3];
+    var vdomTemplate = {
+        template: t1,
+        values: [{class: 'hey'}, items.map(function (item) {
+            return {
+                template: t2,
+                values: [item, item],
+                domNodes: new Array(2)
+            }
+        }), 'Hello2', 'div', 'foo', 'red'],
+        domNodes: new Array(5)
+    };
+
+    function render(vdomTemplate, rootNode) {
+        vdomTemplate.template.render(vdomTemplate, rootNode);
     }
-    console.timeEnd('perf');
+
+    var node = render(vdomTemplate, document.body.appendChild(document.createElement('div')));
+    console.log(node);
+
+
+    /*
+        function norm(parent, i) {
+            var node = parent.children[i];
+            if (typeof node == 'object' && node && typeof node.tag !== 'undefined') {
+                return;
+            }
+            parent.children[i] = {tag: '#', dom: null, children: node};
+        }
+
+        function create(vdom, domNodes, parentNode, insertBefore) {
+            if (vdom.tag == '#') {
+                vdom.dom = document.createTextNode(vdom.children);
+                parentNode.insertBefore(vdom.dom, insertBefore);
+                return;
+            }
+            if (typeof vdom.tag == 'string') {
+                vdom.dom = document.createElement(vdom.tag);
+                setAttrs(vdom);
+                setStyle(vdom);
+                setRefs(vdom, domNodes);
+                parentNode.insertBefore(vdom.dom, insertBefore);
+                if (typeof vdom.children !== 'object' && vdom.children !== null) {
+                    vdom.dom.textContent = vdom.children;
+                    return;
+                }
+            }
+            if (typeof vdom.children !== 'undefined') {
+                for (var i = 0; i < vdom.children.length; i++) {
+                    norm(vdom, i);
+                    create(vdom.children[i], domNodes, vdom.dom, null);
+                }
+            }
+        }
+
+
+        function setAttrs(vdom) {
+            if (typeof vdom.attrs !== 'undefined') {
+                for (var i = 0; i < vdom.attrs.length; i += 2) {
+                    vdom.dom.setAttribute(vdom.attrs[i], vdom.attrs[i + 1]);
+                }
+            }
+        }
+
+        function setStyle(vdom) {
+            if (typeof vdom.style !== 'undefined') {
+                for (var i = 0; i < vdom.style.length; i += 2) {
+                    vdom.dom.style[vdom.style[i]] = vdom.style[i + 1];
+                }
+            }
+        }
+
+        function setRefs(vdom, domNodes) {
+            if (typeof vdom.refs !== 'undefined') {
+                for (var i = 0; i < vdom.refs.length; i++) {
+                    domNodes[vdom.refs[i]] = vdom.dom;
+                }
+            }
+        }*/
+
+
+
+    /*
+
+        var people = [1, 2, 3];
+        function abc() {
+            return t7`<div><ul> ${ people.map(function (person) { return t7`<li>${ person }</li>` }) }</ul></div>`;
+        }
+        var res = abc();
+        var res = abc();
+        console.log(res);
+        console.log(JSON.stringify(res, null, 2));
+
+    */
+
 </script>
-<script src="dist/index.js" type="text/javascript"></script>
+<!--<script src="dist/index.js" type="text/javascript"></script>-->
 </body>
 </html>
