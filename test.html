@@ -28,19 +28,27 @@
         return this;
     };
 
-    Node.prototype.addChild = function (child) {
-        if (child instanceof Node) {
-            this.appendChild(child);
-            return this;
-        }
-        if (child instanceof Array){
-            for (var i = 0; i < child.length; i++) {
-                this.addChild(child[i]);
+    Node.prototype.addValueChild = function (parent, i) {
+        norm(parent, i);
+        var child = parent.values[i];
+        if (child.tag == 'array') {
+            for (var i = 0; i < child.children.length; i++) {
+                var child_ = child.children[i];
+                render(child_, this);
             }
             return this;
         }
-        if (typeof child == 'object' && child && typeof child.template !== 'undefined') {
+        if (child.tag == 'template') {
             render(child, this);
+            return this;
+        }
+        parent.values[i].node = this.appendChild(document.createTextNode(child.children));
+        return this;
+    };
+
+    Node.prototype.addChild = function (child) {
+        if (child instanceof Node) {
+            this.appendChild(child);
             return this;
         }
         this.appendChild(document.createTextNode(child));
@@ -49,50 +57,149 @@
 
     var t1 = {
         render: function (vdomTemplate, parentNode) {
-            parentNode.appendChild(document.createElement('div')
+            vdomTemplate.node = document.createElement('div')
                     .setAttr('class', 'peow')
                     .addChild(document.createElement('div')
                             .setAttrs(vdomTemplate.values[0]).setRef(vdomTemplate, 0)
-                            .addChild(vdomTemplate.values[1]).setRef(vdomTemplate, 1))
+                            .addValueChild(vdomTemplate, 1).setRef(vdomTemplate, 1))
                     .addChild('Wow')
-                    .addChild(vdomTemplate.values[2]).setRef(vdomTemplate, 2)
+                    .addValueChild(vdomTemplate, 2).setRef(vdomTemplate, 2)
                     .addChild(document.createElement(vdomTemplate.values[3]).setRef(vdomTemplate, 3)
                             .setAttr('class', vdomTemplate.values[4]).setRef(vdomTemplate, 4)
                             .setStyle('color', vdomTemplate.values[5]).setRef(vdomTemplate, 5)
-                            .addChild(1)))
-
-        }, argTypes: [['attrs'], ['children'], ['children'], ['tag'], ['attr', 'class'], ['style', 'color']]
+                            .addChild(1))
+            if (parentNode) {
+                parentNode.appendChild(vdomTemplate.node);
+            }
+            return vdomTemplate;
+        }, argTypes: [['attrs'], ['children', 0], ['children', 2], ['tag'], ['attr', 'class'], ['style', 'color']]
     };
 
     var t2 = {
         render: function (vdomTemplate, parentNode) {
-            parentNode.appendChild(document.createElement('div')
+            vdomTemplate.node = document.createElement('div')
                     .setAttr('title', 'item ' + vdomTemplate.values[0]).setRef(vdomTemplate, 0)
                     .addChild(document.createElement('span')
-                            .addChild(vdomTemplate.values[1]).setRef(vdomTemplate, 1)))
+                            .addValueChild(vdomTemplate, 1).setRef(vdomTemplate, 1))
 
+            if (parentNode) {
+                parentNode.appendChild(vdomTemplate.node);
+            }
+            return vdomTemplate;
         }, argTypes: [['attr', 'title'], ['children']]
     };
 
-    var items = [1, 2, 3];
-    var vdomTemplate = {
-        template: t1,
-        values: [{class: 'hey'}, items.map(function (item) {
-            return {
-                template: t2,
-                values: [item, item],
-                domNodes: new Array(2)
-            }
-        }), 'Hello2', 'div', 'foo', 'red'],
-        domNodes: new Array(5)
-    };
-
-    function render(vdomTemplate, rootNode) {
-        vdomTemplate.template.render(vdomTemplate, rootNode);
+    var k = 0;
+    function component() {
+        var items = [k++, k++, k++];
+        return {
+            tag: 'template',
+            template: t1,
+            node: null,
+            values: [{class: 'hey'}, items.map(function (item) {
+                return {
+                    template: t2,
+                    node: null,
+                    values: [item, item],
+                    domNodes: new Array(2)
+                }
+            }), 'Hello' + k++, 'div', 'foo' + k++, k % 2 ? 'red' : 'blue'],
+            domNodes: new Array(5)
+        };
     }
 
-    var node = render(vdomTemplate, document.body.appendChild(document.createElement('div')));
+    function render(vdomTemplate, rootNode) {
+        return vdomTemplate.template.render(vdomTemplate, rootNode);
+    }
+
+    function update(old, vdomTemplate) {
+        vdomTemplate.node = old.node;
+        if (vdomTemplate.tag !== old.tag) {
+            //todo
+        }
+        else if (vdomTemplate.tag == 'template') {
+            for (var i = 0; i < vdomTemplate.values.length; i++) {
+                var type = vdomTemplate.template.argTypes[i];
+                var dom = vdomTemplate.domNodes[i] = old.domNodes[i];
+                var val = vdomTemplate.values[i];
+                var oldVal = old.values[i];
+                if (type[0] == 'attr') {
+                    if (val !== oldVal) {
+                        dom.setAttribute(type[1], val);
+                    }
+                }
+                else if (type[0] == 'style') {
+                    if (val !== oldVal) {
+                        dom.style[type[1]] = val;
+                    }
+                }
+                else if (type[0] == 'attrs') {
+                    for (var attr in val) {
+                        if (val[attr] !== oldVal[attr]) {
+                            this.setAttribute(attr, val[attr]);
+                        }
+                    }
+                }
+                else if (type[0] == 'children') {
+                    norm(vdomTemplate, i);
+
+                    update(oldVal, vdomTemplate.values[i]);
+                }
+                else if (type[0] == 'tag') {
+                    //todo
+                }
+            }
+        }
+        else if (vdomTemplate.tag == '#'){
+            if (vdomTemplate.children !== old.children) {
+                vdomTemplate.node.textContent = vdomTemplate.children;
+            }
+        }
+        else if (vdomTemplate.tag == 'array'){
+            //todo
+        }
+        return vdomTemplate;
+    }
+
+    function replaceChild(old, vdomTemplate, i) {
+
+    }
+
+    function norm(vdom, i) {
+        if (vdom.values[i] instanceof Array) {
+            vdom.values[i] = {tag: 'array', node: null, children: vdom.values[i]};
+            return;
+        }
+        vdom.values[i] = {tag: '#', node: null, children: vdom.values[i]};
+    }
+
+    function updateChild(old, vdomTemplate, i) {
+        norm(vdomTemplate, i);
+
+        var val = vdomTemplate.values[i];
+        var oldVal = old.values[i];
+//        var dom = old.domNodes[i].childNodes[old.template.argTypes[i][1]];
+        var dom = old.values[i].node;
+
+        var child = vdomTemplate.values[i];
+        if (child.tag == 'template') {
+            var node = render(child, this);
+            old.domNodes[i].replaceChild(node, dom);
+            return this;
+        }
+    }
+
+    function updateChildren() {
+
+    }
+
+    var node = render(component(), document.body.appendChild(document.createElement('div')));
     console.log(node);
+
+    setTimeout(function () {
+        node = update(node, component());
+        console.log(node);
+    }, 2000);
 
 
     /*
