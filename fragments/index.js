@@ -1,9 +1,25 @@
 !function (global) {
     var undef = 'undefined';
-    var typeText = '#';
-    var typeTemplate = 'template';
-    var typeArray = 'array';
+    var typeText = new VText();
+    var typeArray = new VArray();
+    var typeTemplate = new VTemplate(null, null);
     var NodeProto = Node.prototype;
+
+    function VDom() {}
+
+    function VText() {}
+
+    VText.prototype = new VDom();
+    function VArray() {}
+
+    VArray.prototype = new VDom();
+    function VTemplate(render, argTypes) {
+        this.render = render;
+        this.argTypes = argTypes;
+    }
+
+    VTemplate.prototype = new VDom();
+
     NodeProto.setAttr = function (attrName, attrVal) {
         this.setAttribute(attrName, attrVal);
         return this;
@@ -38,38 +54,44 @@
     };
 
     function norm(vdom, pos) {
-        var child = vdom.values[pos];
-        if (typeof child == 'object' && child && (typeof child.tag !== undef || (child instanceof Array && typeof child[child.length - 1].render !== undef))) {
+        var child = vdom[pos];
+        if (child == null) {
+            vdom[pos] = ['', typeText];
+            return;
+        }
+        if (typeof child == 'object' && child.constructor === Array && child[child.length - 1] instanceof VDom) {
             return;
         }
         if (child instanceof Array) {
-            vdom.values[pos] = {tag: typeArray, keyMap: {}, node: vdom.node, values: child};
+            vdom[pos] = [child, {}, typeArray];
             return;
         }
-        vdom.values[pos] = {tag: typeText, node: null, children: child};
+        vdom[pos] = [child, typeText];
     }
 
 
     function create(parent, pos, rootNode) {
         norm(parent, pos);
-        var vdom = parent.values[pos];
+        var vdom = parent[pos];
+        var type = vdom[vdom.length - 1/*type*/].constructor;
         //console.log("create", vdom, rootNode);
-        if (typeof vdom.key !== undef) {
-            parent.keyMap[vdom.key] = pos;
+
+        if (vdom[vdom.length - 2/*key*/] !== null) {
+            parent[parent.length - 2/*keymap*/][vdom[vdom.length - 2/*key*/]] = pos;
         }
 
-        if (vdom.tag == typeTemplate) {
-            vdom.template.render(vdom, rootNode);
+        if (type == VTemplate) {
+            vdom[vdom.length - 1/*type*/].render(vdom, rootNode);
         }
-        else if (vdom.tag == typeText) {
-            vdom.node = document.createTextNode(vdom.children);
+        else if (type == VText) {
+            vdom.node = document.createTextNode(vdom[0/*children*/]);
             if (rootNode) {
                 rootNode.appendChild(vdom.node);
             }
         }
-        else if (vdom.tag == typeArray) {
+        else if (type == VArray) {
             vdom.node = rootNode;
-            for (var i = 0; i < vdom.values.length; i++) {
+            for (var i = 0; i < vdom.length; i++) {
                 create(vdom, i, rootNode);
             }
         }
@@ -78,60 +100,60 @@
 
     function update(old, parent, pos) {
         norm(parent, pos);
-        var vdom = parent.values[pos];
+        var vdom = parent[pos];
+        var type = vdom[vdom.length - 1/*type*/].constructor;
         //console.log("Update", vdom);
-        vdom.node = old.node;
-        if (vdom.tag !== old.tag) {
+        if (type !== old[old.length - 1/*type*/].constructor) {
             replace(old, parent, pos);
         }
-        else if (vdom.tag == typeTemplate) {
-            for (var i = 0; i < vdom.values.length; i++) {
-                var type = vdom.template.argTypes[i];
+        else if (type == VTemplate) {
+            for (var i = 0; i < vdom.length - 2; i++) {
+                var argType = vdom[vdom.length - 1/*type*/].argTypes[i];
                 var dom = vdom.domNodes[i] = old.domNodes[i];
-                var val = vdom.values[i];
-                var oldVal = old.values[i];
-                if (type[0] == 'attr') {
+                var val = vdom[i];
+                var oldVal = old[i];
+                if (argType[0] == 'attr') {
                     if (val !== oldVal) {
-                        dom.setAttribute(type[1], val);
+                        dom.setAttribute(argType[1], val);
                     }
                 }
-                else if (type[0] == 'style') {
+                else if (argType[0] == 'style') {
                     if (val !== oldVal) {
-                        dom.style[type[1]] = val;
+                        dom.style[argType[1]] = val;
                     }
                 }
-                else if (type[0] == 'attrs') {
+                else if (argType[0] == 'attrs') {
                     for (var attr in val) {
                         if (val[attr] !== oldVal[attr]) {
                             this.setAttribute(attr, val[attr]);
                         }
                     }
                 }
-                else if (type[0] == 'children') {
+                else if (argType[0] == 'children') {
                     update(oldVal, vdom, i);
                 }
             }
         }
-        else if (vdom.tag == typeText) {
-            if (vdom.children !== old.children) {
-                vdom.node.textContent = vdom.children;
+        else if (type == VText) {
+            if (vdom[0/*children*/] !== old[0/*children*/]) {
+                vdom.node.textContent = vdom[0];
             }
         }
-        else if (vdom.tag == typeArray) {
-            updateChildren(old, vdom);
+        else if (type == VArray) {
+            //updateChildren(old, vdom);
         }
         return vdom;
     }
 
     function replace(old, parent, pos) {
         create(parent, pos, null);
-        old.node.parentNode.replaceChild(parent.values[pos].node, old.node);
+        old.node.parentNode.replaceChild(parent[pos].node, old.node);
     }
 
 
     function updateChildren(old, vdom) {
-        var oldChildren = old.values;
-        var newChildren = vdom.values;
+        var oldChildren = old;
+        var newChildren = vdom;
         var inserts = [];
         if (newChildren) {
             var fitCount = 0;
@@ -155,7 +177,7 @@
 
                 if (fitPos != null) {
                     fitCount++;
-                    vdom.keyMap[vdom.values[i].key] = i;
+                    vdom[vdom.length - 2/*keymap*/][vdom[i][vdom[i].length - 2/*key*/]] = i;
                     update(oldChildren[fitPos], vdom, i);
                     if (fitPos !== i) {
                         inserts.push(i);
@@ -210,12 +232,13 @@
     }
 
     global.FastReact = {
+        VTemplate: VTemplate,
         render: function (vdom, rootNode) {
-            var parent = {values: [vdom]};
+            var parent = [vdom, typeTemplate];
             return create(parent, 0, rootNode);
         },
         update: function (old, vdom) {
-            var parent = {values: [vdom]};
+            var parent = [vdom, typeTemplate];
             return update(old, parent, 0);
         }
     };
