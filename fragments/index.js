@@ -24,7 +24,6 @@
     };
 
     NodeProto.addValueChild = function (parent, i) {
-        norm(parent, i);
         create(parent, i, this);
         return this;
     };
@@ -38,20 +37,21 @@
         return this;
     };
 
-    function norm(vdom, i) {
-        var child = vdom.values[i];
-        if (typeof child == 'object' && child && typeof child.tag !== undef) {
+    function norm(vdom, pos) {
+        var child = vdom.values[pos];
+        if (typeof child == 'object' && child && (typeof child.tag !== undef || (child instanceof Array && typeof child[child.length - 1].render !== undef))) {
             return;
         }
         if (child instanceof Array) {
-            vdom.values[i] = {tag: typeArray, keyMap: {}, node: vdom.node, values: child};
+            vdom.values[pos] = {tag: typeArray, keyMap: {}, node: vdom.node, values: child};
             return;
         }
-        vdom.values[i] = {tag: typeText, node: null, children: child};
+        vdom.values[pos] = {tag: typeText, node: null, children: child};
     }
 
 
     function create(parent, pos, rootNode) {
+        norm(parent, pos);
         var vdom = parent.values[pos];
         //console.log("create", vdom, rootNode);
         if (typeof vdom.key !== undef) {
@@ -76,12 +76,13 @@
         return vdom;
     }
 
-    function update(old, parent, i) {
-        var vdom = parent.values[i];
+    function update(old, parent, pos) {
+        norm(parent, pos);
+        var vdom = parent.values[pos];
         //console.log("Update", vdom);
         vdom.node = old.node;
         if (vdom.tag !== old.tag) {
-            replace(old, parent, i);
+            replace(old, parent, pos);
         }
         else if (vdom.tag == typeTemplate) {
             for (var i = 0; i < vdom.values.length; i++) {
@@ -107,7 +108,6 @@
                     }
                 }
                 else if (type[0] == 'children') {
-                    norm(vdom, i);
                     update(oldVal, vdom, i);
                 }
             }
@@ -123,9 +123,9 @@
         return vdom;
     }
 
-    function replace(old, parent, i) {
-        create(parent, i, null);
-        old.node.parentNode.replaceChild(parent.values[i].node, old.node);
+    function replace(old, parent, pos) {
+        create(parent, pos, null);
+        old.node.parentNode.replaceChild(parent.values[pos].node, old.node);
     }
 
 
@@ -136,7 +136,6 @@
         if (newChildren) {
             var fitCount = 0;
             for (var i = 0; i < newChildren.length; i++) {
-                norm(vdom, i);
                 var fitPos = null;
                 var newChild = newChildren[i]; // only use before update
                 var oldChild = oldChildren && oldChildren[i];
@@ -212,10 +211,12 @@
 
     global.FastReact = {
         render: function (vdom, rootNode) {
-            return create({values: [vdom]}, 0, rootNode);
+            var parent = {values: [vdom]};
+            return create(parent, 0, rootNode);
         },
         update: function (old, vdom) {
-            return update(old, {values: [vdom]}, 0);
+            var parent = {values: [vdom]};
+            return update(old, parent, 0);
         }
     };
 }(window);
