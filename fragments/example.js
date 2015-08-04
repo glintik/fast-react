@@ -10,14 +10,14 @@ var t1 = new FastReact.VTemplate(function (vdom) {
             .setAttr('class', vdom[6])
             .setStyle('color', vdom[7])
             .addChild(1))
-}, [['attrs'], ['children', 0], ['children', 2], ['tag'], ['attr', 'class'], ['style', 'color']], 6, -1, [0, 0, 9, 9, 8, 10, 10, 10]);
+}, [['attrs'], ['children', 0], ['children', 2], ['tag'], ['attr', 'class'], ['style', 'color']], 6, -1, [9, 9, 8, 10, 10, 10]);
 
 var t2 = new FastReact.VTemplate(function (vdom) {
     vdom[1] = document.createElement('div').setRef(vdom, 4)
         .setAttr('title', vdom[2])
         .addChild(document.createElement('span').setRef(vdom, 5)
             .addValueChild(vdom, 3))
-}, [['attr', 'title'], ['children', 0]], 2, false, [0, 0, 4, 5]);
+}, [['attr', 'title'], ['children', 0]], 2, false, [4, 5]);
 
 var k = 0;
 function component() {
@@ -30,6 +30,6 @@ var node = FastReact.render(component(), document.body.appendChild(document.crea
 console.log(node);
 
 setTimeout(function () {
-    //node = FastReact.update(node, component());
+    node = FastReact.update(node, component());
     //console.log(node);
 }, 2000);
