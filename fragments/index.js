@@ -60,29 +60,29 @@
         return this;
     };
 
-    function norm(vdom, pos) {
-        var child = vdom[pos];
+    function norm(child, vdom, pos) {
         if (child == null) {
             vdom[pos] = [typeText, null, ''];
-            return;
+            return vdom[pos];
         }
         if (typeof child == 'object' && child.constructor === Array && child[0] instanceof VDom) {
-            return;
+            return vdom[pos];
         }
         if (child instanceof Array) {
-            vdom[pos] = new Array(child.length + 3);
-            vdom[pos][0] = typeArray;
-            vdom[pos][2] = {};
+            var p = new Array(child.length + 3);
+            p[0] = typeArray;
+            p[2] = {};
             for (var j = 0; j < child.length; j++) {
-                vdom[pos][j + 3] = child[j];
+                p[j + 3] = child[j];
             }
-            return;
+            return vdom[pos] = p;
         }
         vdom[pos] = [typeText, null, child];
+        return vdom[pos];
     }
 
     function create(parent, pos, rootNode) {
-        norm(parent, pos);
+        norm(parent[pos], parent, pos);
         var vdom = parent[pos];
         //console.log("create", vdom);
         var type = vdom[0];
@@ -116,10 +116,8 @@
         return vdom;
     }
 
-    function update(oldParent, oldPos, parent, pos) {
-        norm(parent, pos);
-        var old = oldParent[oldPos];
-        var vdom = parent[pos];
+    function update(oldParent, oldPos, parent, pos, old, vdom) {
+        vdom = norm(vdom, parent, pos);
         //console.log("update", old, vdom);
         var type = vdom[0/*type*/];
         var typeCtor = type.constructor;
@@ -133,7 +131,7 @@
                 var domEl = old[type.refs[i - 2]];
                 //console.log('argType', argType);
                 if (argType[0] == 'children') {
-                    update(old, i, vdom, i);
+                    update(old, i, vdom, i, old[i], vdom[i]);
                 }
                 else if (argType[0] == 'attr') {
                     //console.log("change attr");
@@ -189,7 +187,7 @@
 
         var fitCount = 0;
         for (var i = 3; i < vdom.length; i++) {
-            norm(vdom, i);
+            norm(vdom[i], vdom, i);
             var fitPos = null;
             var newKey = null;
             var newChild = vdom[i]; // only use before update
@@ -214,7 +212,7 @@
                     // vdom.keymap[newKey] = i;
                     vdom[2][newKey] = i;
                 }
-                update(old, fitPos, vdom, i);
+                update(old, fitPos, vdom, i, old[fitPos], vdom[i]);
                 //after update restore old
                 vdom[i] = old[fitPos];
                 if (fitPos !== i) {
@@ -283,7 +281,7 @@
             return create([typeTemplate, null, vdom], 2, rootNode);
         },
         update: function (old, vdom) {
-            return update([typeTemplate, null, old], 2, [typeTemplate, null, vdom], 2);
+            return update([typeTemplate, null, old], 2, [typeTemplate, null, vdom], 2, old, vdom);
         }
     };
 }(window);
