@@ -84,7 +84,7 @@
     function create(parent, pos, rootNode) {
         norm(parent, pos);
         var vdom = parent[pos];
-        console.log("create", vdom);
+        //console.log("create", vdom);
         var type = vdom[0];
         var typeCtor = type.constructor;
 
@@ -120,7 +120,7 @@
         norm(parent, pos);
         var old = oldParent[oldPos];
         var vdom = parent[pos];
-        console.log("update", old, vdom);
+        //console.log("update", old, vdom);
         var type = vdom[0/*type*/];
         var typeCtor = type.constructor;
         //console.log("Update", vdom);
@@ -131,23 +131,23 @@
             for (var i = 2; i < type.len + 2; i++) {
                 var argType = type.argTypes[i - 2];
                 var domEl = old[type.refs[i - 2]];
-                console.log('argType', argType);
+                //console.log('argType', argType);
                 if (argType[0] == 'attr') {
-                    console.log("change attr");
+                    //console.log("change attr");
                     if (vdom[i] !== old[i]) {
                         old[i] = vdom[i];
                         domEl.setAttribute(argType[1], vdom[i]);
                     }
                 }
                 else if (argType[0] == 'style') {
-                    console.log("change style");
+                    //console.log("change style");
                     if (vdom[i] !== old[i]) {
                         old[i] = vdom[i];
                         domEl.style[argType[1]] = vdom[i];
                     }
                 }
                 else if (argType[0] == 'attrs') {
-                    console.log("change attrs");
+                    //console.log("change attrs");
                     //todo: check diff
                     old[i] = vdom[i];
                     for (var attr in vdom[i]) {
@@ -176,7 +176,7 @@
 
     function replace(oldParent, oldPos, parent, pos) {
         create(parent, pos, null);
-        oldParent[oldPos][0].parentNode.replaceChild(parent[pos][1], oldParent[oldPos][1]);
+        oldParent[oldPos][1].parentNode.replaceChild(parent[pos][1], oldParent[oldPos][1]);
         oldParent[oldPos] = parent[pos];
     }
 
@@ -184,7 +184,7 @@
     function updateChildren(oldParent, oldPos, vdom) {
         var old = oldParent[oldPos];
         //[type, node, keyMap, ...values]
-        var inserts = [];
+        var inserts = null;
 
 
         var fitCount = 0;
@@ -218,11 +218,17 @@
                 //after update restore old
                 vdom[i] = old[fitPos];
                 if (fitPos !== i) {
+                    if (inserts == null) {
+                        inserts = [];
+                    }
                     inserts.push(i);
                 }
                 old[fitPos] = null;
             }
             else {
+                if (inserts == null) {
+                    inserts = [];
+                }
                 inserts.push(i);
             }
         }
@@ -237,23 +243,25 @@
             }
         }
 
+        if (inserts) {
+            for (var i = inserts.length - 1; i >= 0; i--) {
+                var pos = inserts[i];
 
-        for (var i = inserts.length - 1; i >= 0; i--) {
-            var pos = inserts[i];
+                if (i == vdom.length - 1) {
+                    var beforeChild = null;
+                }
+                else {
+                    beforeChild = vdom[pos + 1][1];
+                }
 
-            if (i == vdom.length - 1) {
-                var beforeChild = null;
-            }
-            else {
-                beforeChild = vdom[pos + 1][1];
-            }
-
-            if (vdom[pos][1]) {
-                move(vdom, vdom[pos], beforeChild);
-            }
-            else {
-                create(vdom, pos, null);
-                move(old[1], vdom[pos], beforeChild);
+                if (vdom[pos][1]) {
+                    move(vdom, vdom[pos], beforeChild);
+                }
+                else {
+                    //todo:dont use norm
+                    create(vdom, pos, null);
+                    move(old[1], vdom[pos], beforeChild);
+                }
             }
         }
         oldParent[oldPos] = vdom;

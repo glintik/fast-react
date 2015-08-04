@@ -91,50 +91,30 @@
     var renderK = 0;
 
     var fn = function fn(item) {
-        return {tag: 'template', node: null, key: item, template: t2, values: [item], domNodes: new Array(1)};
-        return {0: item, length: 0, key: item, domNodes: null, template: t2};
+        return [t2, null, item, null, item];
     };
 
-    var t1 = {
-        render: function (vdom, parentNode) {
-            vdom.node = document.createElement('div')
-                    .setAttr('class', 'items')
-                    .addValueChild(vdom, 0).setRef(vdom, 0);
+    var t1 = new FastReact.VTemplate(function (vdom) {
+        vdom[1] = document.createElement('div').setRef(vdom, 3)
+                .setAttr('class', 'items')
+                .addValueChild(vdom, 2);
+    }, [['children', 0]], 1, -1, [3]);
 
-            if (parentNode) {
-                parentNode.appendChild(vdom.node);
-            }
-            return vdom;
-        }, argTypes: [['children', 0]]
-    };
-
-    var t2 = {
-        render: function (vdom, parentNode) {
-            vdom.node = document.createElement('div')
-                    .setAttr('class', 'item')
-                    .addValueChild(vdom, 0).setRef(vdom, 0)
-                    .addChild(2)
-
-            if (parentNode) {
-                parentNode.appendChild(vdom.node);
-            }
-            return vdom;
-        }, argTypes: [['children', 0]]
-    };
+    var t2 = new FastReact.VTemplate(function (vdom) {
+        vdom[1] = document.createElement('div').setRef(vdom, 3)
+                .setAttr('class', 'item')
+                .addValueChild(vdom, 2)
+                .addChild(2)
+    }, [['children', 0]], 1, 4, [3]);
 
     function component() {
         setTimeout(update);
-        renderK++;
-        if (renderK % 2 && isCreate) {
-//            return createElement('div');
-        }
-        return {tag: 'template', node: null, template: t1, values: [this.items.map(fn)], domNodes: new Array(1)};
+        return [t1, null, this.items.map(fn), null];
     }
 
     function update() {
+//        component();
         node = FastReact.update(node, component());
-        if (renderK % 2) {
-        }
         tick();
     }
 
