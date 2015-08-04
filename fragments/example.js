@@ -17,12 +17,12 @@ var t2 = new FastReact.VTemplate(function (vdom) {
         .setAttr('title', vdom[2])
         .addChild(document.createElement('span').setRef(vdom, 5)
             .addValueChild(vdom, 3))
-}, [['attr', 'title'], ['children', 0]], 2, false, [4, 5]);
+}, [['attr', 'title'], ['children', 0]], 2, 6, [4, 5]);
 
 var k = 0;
 function component() {
     var items = [100, ++k, 500];
-    items = items.map(function (item) {return [t2, null, item, item, null, null]});
+    items = items.map(function (item) {return [t2, null, item, item, null, null, item]});
     return [t1, null, {class: 'hey'}, items, 'Hello' + k++, k % 2 ? 'div' : 'span', 'foo' + k++, k % 2 ? 'red' : 'blue', null, null, null];
 }
 
