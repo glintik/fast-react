@@ -7,12 +7,19 @@
 <body>
 
 <script>
-/*    console.time('perf');
-    for (var i = 0; i < 100000000; i++) {
-//        var a = {0: i, length: 0, key: i, domNodes: null, template: i};
-//        var a = [i, i, null, i];
-    }
-    console.timeEnd('perf');*/
+    var a = [1, 2, 3, 4, 5];
+    var c = [1, 2, 3];
+    var push = Array.prototype.push;
+    console.time('perf');
+    /*for (var i = 0; i < 10000000; i++) {
+        var b = new Array(a.length + 2);
+        b[0] = i;
+        b[1] = i + 1;
+        for (var j = 0; j < a.length; j++) {
+            b[j + 2] = a[j];
+        }
+    }*/
+    console.timeEnd('perf');
 
 </script>
 

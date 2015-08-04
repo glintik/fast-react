@@ -1,43 +1,35 @@
-var t1 = new FastReact.VTemplate(function (vdom, parentNode) {
-    vdom.node = document.createElement('div')
+var t1 = new FastReact.VTemplate(function (vdom) {
+    vdom[1] = document.createElement('div').setRef(vdom, 8)
         .setAttr('class', 'peow')
-        .addChild(document.createElement('div')
-            .setAttrs(vdom.values[0]).setRef(vdom, 0)
-            .addValueChild(vdom, 1).setRef(vdom, 1))
+        .addChild(document.createElement('div').setRef(vdom, 9)
+            .setAttrs(vdom[2])
+            .addValueChild(vdom, 3))
         .addChild('Wow')
-        .addValueChild(vdom, 2).setRef(vdom, 2)
-        .addChild(document.createElement(vdom.values[3]).setRef(vdom, 3)
-            .setAttr('class', vdom.values[4]).setRef(vdom, 4)
-            .setStyle('color', vdom.values[5]).setRef(vdom, 5)
+        .addValueChild(vdom, 4)
+        .addChild(document.createElement(vdom[5]).setRef(vdom, 10)
+            .setAttr('class', vdom[6])
+            .setStyle('color', vdom[7])
             .addChild(1))
-    if (parentNode) {
-        parentNode.appendChild(vdom.node);
-    }
-    return vdom;
-}, [['attrs'], ['children', 0], ['children', 2], ['tag'], ['attr', 'class'], ['style', 'color']]);
+}, [['attrs'], ['children', 0], ['children', 2], ['tag'], ['attr', 'class'], ['style', 'color']], 6, -1, [0, 0, 9, 9, 8, 10, 10, 10]);
 
-var t2 = new FastReact.VTemplate(function (vdom, parentNode) {
-    vdom.node = document.createElement('div')
-        .setAttr('title', vdom.values[0]).setRef(vdom, 0)
-        .addChild(document.createElement('span')
-            .addValueChild(vdom, 1).setRef(vdom, 1))
-
-    if (parentNode) {
-        parentNode.appendChild(vdom.node);
-    }
-    return vdom;
-}, [['attr', 'title'], ['children']]);
+var t2 = new FastReact.VTemplate(function (vdom) {
+    vdom[1] = document.createElement('div').setRef(vdom, 4)
+        .setAttr('title', vdom[2])
+        .addChild(document.createElement('span').setRef(vdom, 5)
+            .addValueChild(vdom, 3))
+}, [['attr', 'title'], ['children', 0]], 2, false, [0, 0, 4, 5]);
 
 var k = 0;
 function component() {
-    var items = [100, k++, 500];
-    return [{class: 'hey'}, items.map(function (item) {return [item, item, item, t2]}), 'Hello' + k++, k % 2 ? 'div' : 'span', 'foo' + k++, k % 2 ? 'red' : 'blue', null, null, t1];
+    var items = [100, ++k, 500];
+    items = items.map(function (item) {return [t2, null, item, item, null, null]});
+    return [t1, null, {class: 'hey'}, items, 'Hello' + k++, k % 2 ? 'div' : 'span', 'foo' + k++, k % 2 ? 'red' : 'blue', null, null, null];
 }
 
 var node = FastReact.render(component(), document.body.appendChild(document.createElement('div')));
 console.log(node);
 
 setTimeout(function () {
-    node = FastReact.update(node, component());
-    console.log(node);
+    //node = FastReact.update(node, component());
+    //console.log(node);
 }, 2000);
