@@ -132,7 +132,10 @@
                 var argType = type.argTypes[i - 2];
                 var domEl = old[type.refs[i - 2]];
                 //console.log('argType', argType);
-                if (argType[0] == 'attr') {
+                if (argType[0] == 'children') {
+                    update(old, i, vdom, i);
+                }
+                else if (argType[0] == 'attr') {
                     //console.log("change attr");
                     if (vdom[i] !== old[i]) {
                         old[i] = vdom[i];
@@ -155,9 +158,6 @@
                             domEl.setAttribute(attr, vdom[i][attr]);
                         }
                     }
-                }
-                else if (argType[0] == 'children') {
-                    update(old, i, vdom, i);
                 }
             }
         }
