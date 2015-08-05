@@ -47,7 +47,7 @@
     };
 
     NodeProto.addValueChild = function (parent, i) {
-        create(parent, i, this);
+        create(parent[i], parent, i, this);
         return this;
     };
 
@@ -81,9 +81,8 @@
         return vdom[pos];
     }
 
-    function create(parent, pos, rootNode) {
-        norm(parent[pos], parent, pos);
-        var vdom = parent[pos];
+    function create(vdom, parent, pos, rootNode) {
+        vdom = norm(vdom, parent, pos);
         //console.log("create", vdom);
         var type = vdom[0];
         var typeCtor = type.constructor;
@@ -110,7 +109,7 @@
             //[type, node, keyMap, ...values]
             vdom[1] = rootNode;
             for (var i = 3; i < vdom.length; i++) {
-                create(vdom, i, rootNode);
+                create(vdom[i], vdom, i, rootNode);
             }
         }
         return vdom;
@@ -173,7 +172,7 @@
     }
 
     function replace(oldParent, oldPos, parent, pos) {
-        create(parent, pos, null);
+        create(parent[pos], parent, pos, null);
         oldParent[oldPos][1].parentNode.replaceChild(parent[pos][1], oldParent[oldPos][1]);
         oldParent[oldPos] = parent[pos];
     }
@@ -257,7 +256,7 @@
                 }
                 else {
                     //todo:dont use norm
-                    create(vdom, pos, null);
+                    create(vdom[pos], vdom, pos, null);
                     move(old[1], vdom[pos], beforeChild);
                 }
             }
@@ -278,7 +277,7 @@
     global.FastReact = {
         VTemplate: VTemplate,
         render: function (vdom, rootNode) {
-            return create([typeTemplate, null, vdom], 2, rootNode);
+            return create(vdom, [typeTemplate, null, vdom], 2, rootNode);
         },
         update: function (old, vdom) {
             return update([typeTemplate, null, old], 2, [typeTemplate, null, vdom], 2, old, vdom);
