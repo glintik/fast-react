@@ -1,17 +1,21 @@
 var esprima = require('esprima-fb');
-var code = 'call(<div hello={213} key={item} ref="name" foo="adf" {...bar}><span key="123" class={wow}>1{item}2</span></div>); var answer = <div {...props} className={123}>{1, <div title={5}>{2,<div title={6}><Component><span></span>{<strong>123</strong>}</Component></div>}</div>}</div>';
+var code = 'call(<div hello={213} key={item} ref="name" foo="adf" {...bar}><span key="123" class={wow}>{<italic>wtf</italic>}1{item}2</span></div>); ' +
+    'var answer = <div {...props} className={123}>{<div title={5}>{2,<div title={6}><Component><span></span>{<strong>123</strong>}</Component></div>}</div>}</div>';
+
 var syntax = esprima.parse(code, {range: true});
 
 var stack = [];
 
 var templateId = 1;
+var globTemplates = [];
+globTemplates.level = 0;
 
-//var code = '1-2-3-4';
+
 function getFixedRange(range) {
     var newRange = range.slice();
     for (var i = 0; i < stack.length; i++) {
         var stackItem = stack[i];
-        if (stackItem.range[0] <= newRange[0]) {
+        if (stackItem.range[0] < newRange[0]) {
             newRange[0] += stackItem.diff;
         }
         if (stackItem.range[1] <= newRange[1]) {
@@ -27,47 +31,49 @@ function getText(range) {
 }
 
 function replace(range, text) {
-
     var newRange = getFixedRange(range);
+    console.log(text, range, newRange, stack);
     var preffix = code.substring(0, newRange[0]);
     var suffix = code.substring(newRange[1]);
 
     code = preffix + text + suffix;
     var oldLen = newRange[1] - newRange[0];
-    //stack.sort(function (a, b) {return a[0] > b[0] ? 1 : -1});
     //console.log(stack);
     //console.log(preffix, '/', text, '/', suffix, range, newRange);
     //console.log('');
     stack.push({range: newRange, diff: text.length - oldLen});
-
+    stack.sort(function (a, b) {return a[0] > b[0] ? 1 : -1});
 }
 
-/*
- var ranges = [[0, 1], [2, 3], [4, 5], [6, 7]];
- replace([0, 0], '%');
+/*var ranges = [[0, 1], [2, 3], [4, 5], [6, 7]];
+ var code = '1-2-3-4';
+
 
  for (var i = 0; i < ranges.length; i++) {
  var range = ranges[i];
  replace(range, 'hello');
  }
- */
-//console.log(code);
+
+ replace([4, 5], 'x');
+
+ console.log(code);*/
 
 function recur(parent, data) {
     if (data && typeof data == 'object') {
 
-        if (data.type == 'JSXExpressionContainer') {
-            replace([data.range[0], data.range[0]], '$');
-        }
-        if (data.type == 'JSXSpreadAttribute') {
-            replace([data.range[0], data.range[0]], '$');
-        }
-        if (data.type == 'JSXElement') {
+        /*if (data.type == 'JSXExpressionContainer') {
+         replace([data.range[0], data.range[0]], '$');
+         }
+         if (data.type == 'JSXSpreadAttribute') {
+         replace([data.range[0], data.range[0]], '$');
+         }
+         if (data.type == 'JSXElement') {
 
-        }
+         }*/
 
         if (data.type == 'JSXElement' && (parent.type != 'JSXElement')) {
             var s = generateTemplate(data);
+            return;
             //replace([data.range[0], data.range[0]], 't7`');
             //replace([data.range[1], data.range[1]], '`');
         }
@@ -83,6 +89,16 @@ function recur(parent, data) {
     }
 }
 recur({}, syntax);
+
+globTemplates.sort(function (a, b) {return b.globLevel - a.globLevel});
+for (var i = 0; i < globTemplates.length; i++) {
+    var globTemplate = globTemplates[i];
+
+    //replace(globTemplate.element.range, globTemplate.data);
+    //replace(JSXElement.range, globTemplate.data);
+
+    console.log(globTemplate);
+}
 console.log(code);
 
 function spaceDeep(spaceDeep) {
@@ -94,8 +110,23 @@ function spaceDeep(spaceDeep) {
 }
 
 function generateTemplate(JSXElement) {
-    var glob = {args: [], pos: 2, templates: [], level: -1, spaceDeep: 0};
-    var s = 'var _t' + templateId++ + ' = new FastReact(function(d){\n';
+    globTemplates.level++;
+    var t = '_t' + templateId++;
+    var glob = {
+        args: [],
+        pos: 2,
+        template: t,
+        element: JSXElement,
+        globLevel: globTemplates.level,
+        templates: [],
+        level: -1,
+        spaceDeep: 0
+    };
+    globTemplates.push(glob);
+
+
+    var s = 'var ' + t + ' = new FastReact(function(d){\n';
+    s += '/*' + getText(JSXElement.range) + '*/\n';
     s += '' + templateFn(JSXElement, glob);
     var refs = [];
     var attrTypes = [];
@@ -103,15 +134,17 @@ function generateTemplate(JSXElement) {
         var arg = glob.args[i];
         attrTypes.push('["' + arg.type + '", ' + JSON.stringify(arg.name) + ']');
     }
-    console.log(JSON.stringify(glob, null, 2));
 
+    var refsS = [];
     for (var i = 0; i < glob.templates.length; i++) {
         var template = glob.templates[i];
         s += 'd[' + glob.pos++ + '] = ' + template.dom + '\n';
-        for (var j = 0; j < template.args.length; j++) {
-            var arg = template.args[j];
-            console.log(arg, i);
-            refs[arg - 2] = i;
+        if (template.args.length) {
+            refsS.push('null');
+            for (var j = 0; j < template.args.length; j++) {
+                var arg = template.args[j];
+                refs[arg - 2] = i;
+            }
         }
         //refs.push(template);
     }
@@ -121,8 +154,20 @@ function generateTemplate(JSXElement) {
         keyPos += ++glob.pos;
     }
 
-    s += '}, [' + attrTypes.join(', ') + '], ' + keyPos + ', [' + refs.join() + '])';
-    console.log(s);
+    s += '}, [' + attrTypes.join(', ') + '], ' + keyPos + ', [' + refs.join(', ') + '])';
+    //console.log(s);
+    globTemplates.level--;
+
+    var childs = [];
+    for (var i = 0; i < glob.args.length; i++) {
+        var args = glob.args[i];
+        childs.push(args.value);
+    }
+    glob.data = '[' + t + ', null' +
+        (childs.length > 0 ? ', ' + childs.join(', ') : '') +
+        (refsS.length > 0 ? ', ' + refsS.join(', ') : '') +
+        (glob.key ? ', ' + glob.key : '') + ']';
+    replace(JSXElement.range, glob.data);
     return s;
 }
 
@@ -181,19 +226,23 @@ function templateFn(JSXElement, glob) {
             if (child.type == 'Literal') {
                 s += space + dom + '.appendChild(document.createTextNode(' + child.raw + '))\n';
             }
-            if (child.type == 'JSXExpressionContainer') {
+            else if (child.type == 'JSXExpressionContainer') {
+                recur(JSXElement, child);
                 glob.args.push({type: 'children', name: childrenPos, value: getVal(child)});
                 template.args.push(glob.pos);
                 //s += space + 'FastReact.create(' + dom + ', d, ' + glob.pos++ + ')\n';
                 s += space + 'FastReact.create(d[' + glob.pos + '], d, ' + glob.pos + ', ' + dom + ')\n';
                 glob.pos++;
             }
-            if (child.type == 'JSXElement') {
+            else if (child.type == 'JSXElement') {
                 //glob.args.push({type: 'children', name: childrenPos, value: null});
                 s += templateFn(child, glob);
                 var _dom = glob.templates[glob.templates.length - 1].dom;
                 s += space + dom + '.appendChild(' + _dom + ')\n';
                 glob.pos++;
+            }
+            else {
+                //recur(JSXElement, child);
             }
         }
     }
