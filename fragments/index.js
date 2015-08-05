@@ -185,7 +185,6 @@
         //[type, node, keyMap, sourceArray, ...values]
         var inserts = null;
 
-
         var fitCount = 0;
         var sourceArray = vdom[3];
         for (var i = 4; i < vdom.length; i++) {
