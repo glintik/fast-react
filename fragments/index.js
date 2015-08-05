@@ -69,12 +69,10 @@
             return vdom[pos];
         }
         if (child instanceof Array) {
-            var p = new Array(child.length + 3);
+            var p = new Array(child.length + 4);
             p[0] = typeArray;
             p[2] = {};
-            for (var j = 0; j < child.length; j++) {
-                p[j + 3] = child[j];
-            }
+            p[3] = child;
             return vdom[pos] = p;
         }
         vdom[pos] = [typeText, null, child];
@@ -106,11 +104,15 @@
             }
         }
         else if (typeCtor == VArray) {
-            //[type, node, keyMap, ...values]
+            //[type, node, keyMap, sourceArray,...values]
             vdom[1] = rootNode;
-            for (var i = 3; i < vdom.length; i++) {
-                create(vdom[i], vdom, i, rootNode);
+            //iterate source array
+            var sourceArray = vdom[3];
+            for (var i = 0; i < sourceArray.length; i++) {
+                vdom[i + 4] = sourceArray[i];
+                create(sourceArray[i], vdom, i + 4, rootNode);
             }
+            vdom[3] = null;
         }
         return vdom;
     }
@@ -180,16 +182,17 @@
 
     function updateChildren(oldParent, oldPos, vdom) {
         var old = oldParent[oldPos];
-        //[type, node, keyMap, ...values]
+        //[type, node, keyMap, sourceArray, ...values]
         var inserts = null;
 
 
         var fitCount = 0;
-        for (var i = 3; i < vdom.length; i++) {
-            norm(vdom[i], vdom, i);
+        var sourceArray = vdom[3];
+        for (var i = 4; i < vdom.length; i++) {
+            vdom[i] = sourceArray[i - 4];
+            var newChild = norm(vdom[i], vdom, i);
             var fitPos = null;
             var newKey = null;
-            var newChild = vdom[i]; // only use before update
             var newChildType = newChild[0];
             if (old.length > i) {
                 var oldChildType = old[i][0];
@@ -229,6 +232,7 @@
                 inserts.push(i);
             }
         }
+        vdom[3] = null; // clear source array
 
         if (old.length - 3 !== fitCount) {
             for (var i = 3; i < old.length; i++) {
