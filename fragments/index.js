@@ -182,6 +182,7 @@
 
     function updateChildren(oldParent, oldPos, vdom) {
         var old = oldParent[oldPos];
+        vdom[1] = old[1];
         //[type, node, keyMap, sourceArray, ...values]
         var inserts = null;
 
@@ -193,7 +194,7 @@
             var fitPos = null;
             var newKey = null;
             var newChildType = newChild[0];
-            if (old.length > i) {
+            if (old.length > i && old[i] != null) {
                 var oldChildType = old[i][0];
             }
             if (newChildType.constructor == VTemplate && newChildType.keyPos > -1) {
@@ -233,8 +234,8 @@
         }
         vdom[3] = null; // clear source array
 
-        if (old.length - 3 !== fitCount) {
-            for (var i = 3; i < old.length; i++) {
+        if (old.length - 4 !== fitCount) {
+            for (var i = 4; i < old.length; i++) {
                 var oldChild = old[i];
                 if (oldChild) {
                     remove(oldChild, old, i)
@@ -247,7 +248,7 @@
             for (var i = inserts.length - 1; i >= 0; i--) {
                 var pos = inserts[i];
 
-                if (i == vdom.length - 1) {
+                if (pos == vdom.length - 1) {
                     var beforeChild = null;
                 }
                 else {
@@ -255,12 +256,12 @@
                 }
 
                 if (vdom[pos][1]) {
-                    move(vdom, vdom[pos], beforeChild);
+                    move(old[1], vdom[pos], beforeChild);
                 }
                 else {
                     //todo:dont use norm
                     create(vdom[pos], vdom, pos, null);
-                    move(old[1], vdom[pos], beforeChild);
+                    old[1].insertBefore(vdom[pos][1], beforeChild);
                 }
             }
         }
@@ -279,6 +280,7 @@
 
     global.FastReact = {
         VTemplate: VTemplate,
+        create: create,
         render: function (vdom, rootNode) {
             return create(vdom, [typeTemplate, null, vdom], 2, rootNode);
         },
