@@ -47,7 +47,7 @@
     };
 
     NodeProto.addValueChild = function (parent, i) {
-        create(parent, i, this);
+        create(parent[i], parent, i, this);
         return this;
     };
 
@@ -69,21 +69,18 @@
             return vdom[pos];
         }
         if (child instanceof Array) {
-            var p = new Array(child.length + 3);
+            var p = new Array(child.length + 4);
             p[0] = typeArray;
             p[2] = {};
-            for (var j = 0; j < child.length; j++) {
-                p[j + 3] = child[j];
-            }
+            p[3] = child;
             return vdom[pos] = p;
         }
         vdom[pos] = [typeText, null, child];
         return vdom[pos];
     }
 
-    function create(parent, pos, rootNode) {
-        norm(parent[pos], parent, pos);
-        var vdom = parent[pos];
+    function create(vdom, parent, pos, rootNode) {
+        vdom = norm(vdom, parent, pos);
         //console.log("create", vdom);
         var type = vdom[0];
         var typeCtor = type.constructor;
@@ -107,11 +104,15 @@
             }
         }
         else if (typeCtor == VArray) {
-            //[type, node, keyMap, ...values]
+            //[type, node, keyMap, sourceArray,...values]
             vdom[1] = rootNode;
-            for (var i = 3; i < vdom.length; i++) {
-                create(vdom, i, rootNode);
+            //iterate source array
+            var sourceArray = vdom[3];
+            for (var i = 0; i < sourceArray.length; i++) {
+                vdom[i + 4] = sourceArray[i];
+                create(sourceArray[i], vdom, i + 4, rootNode);
             }
+            vdom[3] = null;
         }
         return vdom;
     }
@@ -173,7 +174,7 @@
     }
 
     function replace(oldParent, oldPos, parent, pos) {
-        create(parent, pos, null);
+        create(parent[pos], parent, pos, null);
         oldParent[oldPos][1].parentNode.replaceChild(parent[pos][1], oldParent[oldPos][1]);
         oldParent[oldPos] = parent[pos];
     }
@@ -181,16 +182,16 @@
 
     function updateChildren(oldParent, oldPos, vdom) {
         var old = oldParent[oldPos];
-        //[type, node, keyMap, ...values]
+        //[type, node, keyMap, sourceArray, ...values]
         var inserts = null;
 
-
         var fitCount = 0;
-        for (var i = 3; i < vdom.length; i++) {
-            norm(vdom[i], vdom, i);
+        var sourceArray = vdom[3];
+        for (var i = 4; i < vdom.length; i++) {
+            vdom[i] = sourceArray[i - 4];
+            var newChild = norm(vdom[i], vdom, i);
             var fitPos = null;
             var newKey = null;
-            var newChild = vdom[i]; // only use before update
             var newChildType = newChild[0];
             if (old.length > i) {
                 var oldChildType = old[i][0];
@@ -230,6 +231,7 @@
                 inserts.push(i);
             }
         }
+        vdom[3] = null; // clear source array
 
         if (old.length - 3 !== fitCount) {
             for (var i = 3; i < old.length; i++) {
@@ -257,7 +259,7 @@
                 }
                 else {
                     //todo:dont use norm
-                    create(vdom, pos, null);
+                    create(vdom[pos], vdom, pos, null);
                     move(old[1], vdom[pos], beforeChild);
                 }
             }
@@ -278,7 +280,7 @@
     global.FastReact = {
         VTemplate: VTemplate,
         render: function (vdom, rootNode) {
-            return create([typeTemplate, null, vdom], 2, rootNode);
+            return create(vdom, [typeTemplate, null, vdom], 2, rootNode);
         },
         update: function (old, vdom) {
             return update([typeTemplate, null, old], 2, [typeTemplate, null, vdom], 2, old, vdom);
