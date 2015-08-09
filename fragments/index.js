@@ -186,6 +186,8 @@
         var old = oldParent[oldPos];
         vdom[1] = old[1];
         var keyMap = old[2];
+        vdom[2] = keyMap;
+
 
         //[type, node, keyMap, sourceArray, ...values]
         var inserts = null;
@@ -269,7 +271,6 @@
                 }
             }
         }
-        vdom[2] = keyMap;
         oldParent[oldPos] = vdom;
     }
 
