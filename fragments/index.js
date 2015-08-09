@@ -66,7 +66,7 @@
             return vdom[pos];
         }
         if (typeof child == 'object' && child.constructor === Array && child[0] instanceof VDom) {
-            return vdom[pos];
+            return child;
         }
         if (child instanceof Array) {
             var p = new Array(child.length + 4);
@@ -79,8 +79,9 @@
         return vdom[pos];
     }
 
-    function create(vdom, parent, pos, rootNode) {
+    function create(vdom, parent, pos, rootNode, before) {
         vdom = norm(vdom, parent, pos);
+
         //console.log("create", vdom);
         var type = vdom[0];
         var typeCtor = type.constructor;
@@ -89,7 +90,7 @@
             //[type, node, ...values, ...refs, key]
             type.render(vdom, rootNode);
             if (rootNode) {
-                rootNode.appendChild(vdom[1]);
+                rootNode.insertBefore(vdom[1], before);
             }
             if (type.keyPos > -1) {
                 //parent should be array type
@@ -259,9 +260,7 @@
                     move(old[1], vdom[pos], beforeChild);
                 }
                 else {
-                    //todo:dont use norm
-                    create(vdom[pos], vdom, pos, null);
-                    old[1].insertBefore(vdom[pos][1], beforeChild);
+                    create(vdom[pos], vdom, pos, old[1], beforeChild);
                 }
             }
         }
