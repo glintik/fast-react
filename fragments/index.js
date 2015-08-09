@@ -71,7 +71,7 @@
         if (child instanceof Array) {
             var p = new Array(child.length + 4);
             p[0] = typeArray;
-            p[2] = {};
+            //p[2] = {};
             p[3] = child;
             return vdom[pos] = p;
         }
@@ -107,6 +107,7 @@
         else if (typeCtor == VArray) {
             //[type, node, keyMap, sourceArray,...values]
             vdom[1] = rootNode;
+            vdom[2] = {};
             //iterate source array
             var sourceArray = vdom[3];
             for (var i = 0; i < sourceArray.length; i++) {
@@ -184,6 +185,8 @@
     function updateChildren(oldParent, oldPos, vdom) {
         var old = oldParent[oldPos];
         vdom[1] = old[1];
+        var keyMap = old[2];
+
         //[type, node, keyMap, sourceArray, ...values]
         var inserts = null;
 
@@ -201,7 +204,7 @@
             if (newChildType.constructor == VTemplate && newChildType.keyPos > -1) {
                 newKey = newChild[newChildType.keyPos];
                 // fitPos = old.keyMap[newKey];
-                fitPos = old[2][newKey];
+                fitPos = keyMap[newKey];
             }
             else {
                 if (oldChildType && (oldChildType.constructor !== VTemplate || oldChildType.keyPos == -1)) {
@@ -213,7 +216,7 @@
                 fitCount++;
                 if (newKey != null) {
                     // vdom.keymap[newKey] = i;
-                    vdom[2][newKey] = i;
+                    keyMap[newKey] = i;
                 }
                 update(old, fitPos, vdom, i, old[fitPos], vdom[i]);
                 //after update restore old
@@ -227,6 +230,7 @@
                 old[fitPos] = null;
             }
             else {
+                keyMap[newKey] = i;
                 if (inserts == null) {
                     inserts = [];
                 }
@@ -239,6 +243,7 @@
             for (var i = 4; i < old.length; i++) {
                 var oldChild = old[i];
                 if (oldChild) {
+                    keyMap[oldChild[keyMap.length - 1]] = null;
                     remove(oldChild, old, i)
                 }
                 old[i] = null;
@@ -264,6 +269,7 @@
                 }
             }
         }
+        vdom[2] = keyMap;
         oldParent[oldPos] = vdom;
     }
 
