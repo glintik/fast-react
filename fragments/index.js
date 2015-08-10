@@ -184,10 +184,27 @@
 
     function updateChildren(oldParent, oldPos, vdom) {
         var old = oldParent[oldPos];
-        vdom[1] = old[1];
+        var rootNode = old[1];
+        vdom[1] = rootNode;
         var keyMap = old[2];
         vdom[2] = keyMap;
-
+        var oldLen = old.length;
+        var sourceArray = vdom[3];
+        if (oldLen == 4) {
+            for (var i = 4; i < sourceArray.length + 4; i++) {
+                vdom[i] = sourceArray[i - 4];
+                create(vdom[i], vdom, i, rootNode, null);
+            }
+            oldParent[oldPos] = vdom;
+            return;
+        }
+        if (vdom.length == 4) {
+            for (var i = 4; i < old.length; i++) {
+                remove(rootNode, old[i]);
+            }
+            oldParent[oldPos] = vdom;
+            return;
+        }
 
         //[type, node, keyMap, sourceArray, ...values]
         var inserts = null;
@@ -241,14 +258,18 @@
         }
         vdom[3] = null; // clear source array
 
-        if (old.length - 4 !== fitCount) {
-            for (var i = 4; i < old.length; i++) {
+        var oldLenFull = oldLen - 4;
+        if (oldLenFull > fitCount) {
+            for (var i = 4; i < oldLen; i++) {
                 var oldChild = old[i];
                 if (oldChild) {
-                    keyMap[oldChild[keyMap.length - 1]] = null;
-                    remove(oldChild, old, i)
+                    keyMap[oldChild[oldChild.length - 1]] = null;
+                    remove(rootNode, oldChild);
+                    old[i] = null;
+                    if (oldLenFull == ++fitCount){
+                        break;
+                    }
                 }
-                old[i] = null;
             }
         }
 
@@ -264,18 +285,18 @@
                 }
 
                 if (vdom[pos][1]) {
-                    move(old[1], vdom[pos], beforeChild);
+                    move(rootNode, vdom[pos], beforeChild);
                 }
                 else {
-                    create(vdom[pos], vdom, pos, old[1], beforeChild);
+                    create(vdom[pos], vdom, pos, rootNode, beforeChild);
                 }
             }
         }
         oldParent[oldPos] = vdom;
     }
 
-    function remove(vdom) {
-        vdom[1].parentNode.removeChild(vdom[1]);
+    function remove(parentNode, vdom) {
+        parentNode.removeChild(vdom[1]);
     }
 
     function move(parentNode, vdom, beforeChild) {
