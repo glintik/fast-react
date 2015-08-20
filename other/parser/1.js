@@ -132,11 +132,12 @@ module.exports = function (code) {
         for (var i = 0; i < glob.templates.length; i++) {
             var template = glob.templates[i];
             if (template.args.length) {
-                s += 'd[' + glob.pos++ + '] = ' + template.dom + '\n';
+                s += 'd[' + glob.pos + '] = ' + template.dom + '\n';
+                incRefs(glob, 'ref');
                 refsS.push('null');
                 for (var j = 0; j < template.args.length; j++) {
                     var arg = template.args[j];
-                    refs[arg - 2] = i;
+                    refs[arg - 2] = glob.pos - 1;
                 }
             }
             //refs.push(template);
@@ -147,7 +148,8 @@ module.exports = function (code) {
 
         var keyPos = -1;
         if (glob.key != null) {
-            keyPos += ++glob.pos;
+            incRefs(glob, 'key');
+            keyPos += glob.pos;
         }
 
         s += '}, [' + attrTypes.join(', ') + '], ' + keyPos + ', [' + refs.join(', ') + '])';
@@ -171,6 +173,58 @@ module.exports = function (code) {
     function getVal(attr) {
         return getText(attr.type == 'JSXExpressionContainer' ? attr.expression.range : attr.range)
     }
+
+    function incRefs(glob, type) {
+        console.log('inc', glob.pos, type);
+        glob.pos++;
+
+    }
+
+    function cleanJSXElementLiteralChild(child) {
+        var lines = child.value.split(/\r\n|\n|\r/);
+
+        var lastNonEmptyLine = 0;
+
+        for (var i = 0; i < lines.length; i++) {
+            if (lines[i].match(/[^ \t]/)) {
+                lastNonEmptyLine = i;
+            }
+        }
+
+        var str = "";
+
+        for (var i = 0; i < lines.length; i++) {
+            var line = lines[i];
+
+            var isFirstLine = i === 0;
+            var isLastLine = i === lines.length - 1;
+            var isLastNonEmptyLine = i === lastNonEmptyLine;
+
+            // replace rendered whitespace tabs with spaces
+            var trimmedLine = line.replace(/\t/g, " ");
+
+            // trim whitespace touching a newline
+            if (!isFirstLine) {
+                trimmedLine = trimmedLine.replace(/^[ ]+/, "");
+            }
+
+            // trim whitespace touching an endline
+            if (!isLastLine) {
+                trimmedLine = trimmedLine.replace(/[ ]+$/, "");
+            }
+
+            if (trimmedLine) {
+                if (!isLastNonEmptyLine) {
+                    trimmedLine += " ";
+                }
+
+                str += trimmedLine;
+            }
+        }
+        return str;
+        //if (str) args.push(t.literal(str));
+    }
+
 
     function templateFn(JSXElement, glob) {
         var template = {args: []};
@@ -199,7 +253,7 @@ module.exports = function (code) {
                     template.args.push(glob.pos);
                     glob.args.push({type: 'attr', name: attr.name.name, value: getVal(attr.value)});
                     value = 'd[' + glob.pos + ']';
-                    glob.pos++;
+                    incRefs(glob, 'attr');
                 }
                 else {
                     value = attr.value.raw;
@@ -208,9 +262,9 @@ module.exports = function (code) {
             }
             if (attr.type == 'JSXSpreadAttribute') {
                 template.args.push(glob.pos);
-                glob.args.push({type: 'attrs', name: null, value: getVal(attr)});
+                glob.args.push({type: 'attrs', name: null, value: getVal(attr.argument)});
                 value = 'd[' + glob.pos + ']';
-                glob.pos++;
+                incRefs(glob, 'attrs');
                 s += space + 'FastReact.setAttrs(' + dom + ', ' + value + ')\n';
             }
 
@@ -218,33 +272,39 @@ module.exports = function (code) {
 
         var childrenPos = 0;
         if (JSXElement.children) {
+            var prevChild;
             for (var i = 0; i < JSXElement.children.length; i++) {
                 var child = JSXElement.children[i];
-                childrenPos++;
                 if (child.type == 'Literal') {
                     //console.log(child);
-                    if (child.raw.trim()) {
-                        s += space + dom + '.appendChild(document.createTextNode(' + JSON.stringify(child.raw) + '))\n';
+                    var childS = cleanJSXElementLiteralChild(child);
+                    if (!childS) {
+                        continue;
                     }
+                    childrenPos++;
+                    s += space + dom + '.appendChild(document.createTextNode(' + JSON.stringify(childS) + '))\n';
                 }
                 else if (child.type == 'JSXExpressionContainer') {
                     recur(JSXElement, child);
-                    glob.args.push({type: 'children', name: childrenPos, value: getVal(child)});
+                    glob.args.push({type: 'children', name: null, value: getVal(child)});
                     template.args.push(glob.pos);
                     //s += space + 'FastReact.create(' + dom + ', d, ' + glob.pos++ + ')\n';
+                    childrenPos++;
                     s += space + 'FastReact.create(d[' + glob.pos + '], d, ' + glob.pos + ', ' + dom + ')\n';
-                    glob.pos++;
+                    incRefs(glob, 'customchild');
                 }
                 else if (child.type == 'JSXElement') {
                     //glob.args.push({type: 'children', name: childrenPos, value: null});
+                    childrenPos++;
                     s += templateFn(child, glob);
                     var _dom = glob.templates[glob.templates.length - 1].dom;
                     s += space + dom + '.appendChild(' + _dom + ')\n';
-                    glob.pos++;
+                    //incRefs(glob, 'child');
                 }
                 else {
                     //recur(JSXElement, child);
                 }
+                prevChild = child;
             }
         }
         if (startRef < glob.pos) {
