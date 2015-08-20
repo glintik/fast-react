@@ -2,10 +2,10 @@ var path = require('path');
 var webpack = require('webpack');
 module.exports = {
     context: path.join(__dirname, './'),
-    entry: './index.ts',
+    entry: './fragments/example2.js',
     output: {
-        path: './dist/',
-        filename: 'index.js'
+        path: './fragments/',
+        filename: 'dist.js'
     },
 
     module: {
@@ -13,6 +13,21 @@ module.exports = {
             {
                 test: /\.ts$/,
                 loader: 'awesome-typescript-loader?module=common',
+            }
+        ],
+        preLoaders: [
+            {
+                test: /\.js$/,
+                loader: './other/parser/1.js'
+            }
+        ],
+        loaders: [
+            {
+                test: /\.js$/,
+                loader: 'babel',
+                query: {
+                    stage: 0
+                }
             }
         ]
     },
