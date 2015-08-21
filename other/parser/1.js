@@ -73,7 +73,7 @@ module.exports = function (code) {
 
              }*/
 
-            if (data.type == 'JSXElement' && (parent.type != 'JSXElement')) {
+            if (data.type == 'JSXElement') {
                 var s = generateTemplate(data);
                 return;
                 //replace([data.range[0], data.range[0]], 't7`');
@@ -102,11 +102,73 @@ module.exports = function (code) {
         return s;
     }
 
+    function generateComponent(JSXElement) {
+        //[VComponent, node, Ctor, instance, props, children, key]
+        var props = [];
+        var children = [];
+        var key = null;
+        var tag = JSXElement.openingElement;
+        for (var i = 0; i < tag.attributes.length; i++) {
+            var attr = tag.attributes[i];
+            if (attr.name && attr.name.name == 'key') {
+                key = getVal(attr.value);
+                continue;
+            }
+            if (attr.type == 'JSXAttribute') {
+                if (attr.value.type == 'JSXExpressionContainer') {
+                    var val = getVal(attr.value);
+                }
+                else {
+                    val = attr.value.raw;
+                }
+                props.push(attr.name.name + ': ' + val);
+            }
+            if (attr.type == 'JSXSpreadAttribute') {
+                props.push('...'+getVal(attr.argument));
+            }
+        }
+
+        if (JSXElement.children) {
+            for (var i = 0; i < JSXElement.children.length; i++) {
+                var child = JSXElement.children[i];
+                if (child.type == 'Literal') {
+                    //console.log(child);
+                    var childS = cleanJSXElementLiteralChild(child);
+                    if (!childS) {
+                        continue;
+                    }
+                    children.push(JSON.stringify(childS));
+                }
+                else if (child.type == 'JSXExpressionContainer') {
+                    recur(JSXElement, child);
+                    children.push(getText(child.expression.range));
+                }
+                else if (child.type == 'JSXElement') {
+                    recur(JSXElement, child);
+                    children.push(getText(child.range));
+                }
+
+            }
+        }
+        props.push('children: [' + children.join(', ') + ']');
+
+        var s = '[FastReact.VComponent, null, ' + JSXElement.openingElement.name.name + ', null, {' + props.join(', ') + '}, null' + (key ? ', ' + key : '') + ']';
+        replace(JSXElement.range, s);
+        return;
+    }
+
     function generateTemplate(JSXElement) {
-        globTemplates.level++;
+        var isComponent = Boolean(JSXElement.openingElement.name.name[0].match(/[A-Z]/));
+        if (isComponent) {
+            return generateComponent(JSXElement);
+        }
+
         var t = '_t' + templateId++;
+        globTemplates.level++;
         var glob = {
             args: [],
+            templateCode: '',
+            isComponent: isComponent,
             pos: 2,
             template: t,
             element: JSXElement,
@@ -116,7 +178,6 @@ module.exports = function (code) {
             spaceDeep: 0
         };
         globTemplates.push(glob);
-
 
         var s = 'var ' + t + ' = new FastReact(function(d){\n';
         s += '/*' + getText(JSXElement.range) + '*/\n';
@@ -284,7 +345,7 @@ module.exports = function (code) {
                     childrenPos++;
                     s += space + dom + '.appendChild(document.createTextNode(' + JSON.stringify(childS) + '))\n';
                 }
-                else if (child.type == 'JSXExpressionContainer') {
+                else if (child.type == 'JSXExpressionContainer' || (child.type == 'JSXElement' && child.openingElement.name.name[0].match(/[A-Z]/))) {
                     recur(JSXElement, child);
                     glob.args.push({type: 'children', name: null, value: getVal(child)});
                     template.args.push(glob.pos);
@@ -294,6 +355,7 @@ module.exports = function (code) {
                     incRefs(glob, 'customchild');
                 }
                 else if (child.type == 'JSXElement') {
+
                     //glob.args.push({type: 'children', name: childrenPos, value: null});
                     childrenPos++;
                     s += templateFn(child, glob);

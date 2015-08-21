@@ -348,6 +348,7 @@
 
     global.FastReact = {
         VTemplate: VTemplate,
+        VComponent: VComponent,
         create: create,
         Component: Component,
         findDOMNode: findDOMNode,
