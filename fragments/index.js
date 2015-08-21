@@ -92,7 +92,8 @@
             //iterate source array
             var sourceArray = vdom[3];
             for (var i = 0; i < sourceArray.length; i++) {
-                create(vdom[i + 4] = sourceArray[i], vdom, i + 4, rootNode);
+                var child = vdom[i + 4] = norm(sourceArray[i], vdom, i + 4);
+                create(child, vdom, i + 4, rootNode);
             }
             vdom[3] = null;
         }
@@ -181,7 +182,7 @@
         var sourceArray = vdom[3];
         if (oldLen == 4) {
             for (var i = 4; i < sourceArray.length + 4; i++) {
-                create(vdom[i] = norm(sourceArray[i - 4]), vdom, i, rootNode, null);
+                create(vdom[i] = norm(sourceArray[i - 4], vdom, i), vdom, i, rootNode, null);
             }
             oldParent[oldPos] = vdom;
             return;
@@ -322,7 +323,7 @@
         vdom[5] = norm(component.render(), vdom, 5);
         var prevComponent = globs.component;
         globs.component = component;
-        create(vdom[5], null, null, rootNode, vdom[1]);
+        create(vdom[5], null, null, vdom[1]);
         globs.component = prevComponent;
         component.componentDidMount();
     }
