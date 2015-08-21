@@ -2,6 +2,7 @@
     function VDom() {}
 
     VDom.prototype.vdom = true;
+    VDom.prototype.fragment = false;
 
     function VText() {}
 
@@ -12,6 +13,7 @@
 
     VArray.prototype = new VDom();
     VArray.prototype.constructor = VArray;
+    VArray.prototype.fragment = true;
 
 
     //[VComponent, node, Ctor, instance, props, children, key]
@@ -19,6 +21,7 @@
 
     VComponent.prototype = new VDom();
     VComponent.prototype.constructor = VComponent;
+    VComponent.prototype.fragment = true;
 
     function VTemplate(render, argTypes, len, keyPos, refs, origin) {
         this.render = render;
@@ -40,13 +43,15 @@
     function norm(child, vdom, pos) {
         var newChild;
         if (child == null) {
-            newChild = vdom[pos] = [typeText, null, ''];
+            newChild = vdom[pos] = [typeText, null, 'Null'];
             return newChild;
         }
         if (typeof child == 'object' && child.constructor === Array && child.length > 0 && typeof child[0].vdom == 'boolean') {
             return child;
         }
         if (child.constructor == Array) {
+            //todo
+            child.unshift(null);
             var p = new Array(child.length + 4);
             p[0] = typeArray;
             //p[2] = {};
@@ -83,7 +88,7 @@
         else if (typeCtor == VText) {
             //[type, node, value]
             vdom[1] = document.createTextNode(vdom[2]);
-            rootNode.appendChild(vdom[1]);
+            rootNode.insertBefore(vdom[1], before);
         }
         else if (typeCtor == VArray) {
             //[type, node, keyMap, sourceArray,...values]
@@ -93,12 +98,12 @@
             var sourceArray = vdom[3];
             for (var i = 0; i < sourceArray.length; i++) {
                 var child = vdom[i + 4] = norm(sourceArray[i], vdom, i + 4);
-                create(child, vdom, i + 4, rootNode);
+                create(child, vdom, i + 4, rootNode, before);
             }
             vdom[3] = null;
         }
         else if (typeCtor == VComponent) {
-            createComponent(vdom, rootNode);
+            createComponent(vdom, rootNode, before);
         }
         return vdom;
     }
@@ -164,14 +169,6 @@
         return old;
     }
 
-    function replace(oldParent, oldPos, old, vdom) {
-        var parentNode = old[1].parentNode;
-        create(vdom, null, null, parentNode, old[1]);
-        remove(parentNode, old);
-        oldParent[oldPos] = vdom;
-    }
-
-
     function updateChildren(oldParent, oldPos, vdom) {
         var old = oldParent[oldPos];
         var rootNode = old[1];
@@ -189,7 +186,7 @@
         }
         if (vdom.length == 4) {
             for (var i = 4; i < old.length; i++) {
-                remove(rootNode, old[i]);
+                remove(old[i]);
             }
             oldParent[oldPos] = vdom;
             return;
@@ -254,7 +251,7 @@
                 var oldChild = old[i];
                 if (oldChild) {
                     keyMap[oldChild[oldChild.length - 1]] = null;
-                    remove(rootNode, oldChild);
+                    remove(oldChild);
                     old[i] = null;
                     if (oldLenFull == ++fitCount) {
                         break;
@@ -286,15 +283,57 @@
         oldParent[oldPos] = vdom;
     }
 
-    function remove(parentNode, vdom) {
-        parentNode.removeChild(vdom[1]);
+
+    function replace(oldParent, oldPos, old, vdom) {
+        var Ctor = old[0].constructor;
+        if (old[0].fragment) {
+            var parentNode = old[1];
+            if (Ctor == VArray) {
+                var before = old[4][1];
+            }
+            else if (Ctor == VComponent) {
+                //[VComponent, node, Ctor, instance, props, children, key]
+                before = old[5][1];
+            }
+        }
+        else {
+            parentNode = old[1].parentNode;
+            before = old[1];
+        }
+        create(vdom, null, null, parentNode, before);
+        remove(old);
+        oldParent[oldPos] = vdom;
+    }
+
+    function remove(vdom) {
+        var Ctor = vdom[0].constructor;
+        if (vdom[0].fragment) {
+            if (Ctor == VArray) {
+                for (var i = 4; i < vdom.length; i++) {
+                    remove(vdom[i]);
+                }
+            }
+            else if (Ctor == VComponent) {
+                remove(vdom[5]);
+            }
+        }
+        else {
+            vdom[1].parentNode.removeChild(vdom[1]);
+        }
     }
 
     function move(parentNode, vdom, beforeChild) {
-        if (vdom[1].nextSibling !== beforeChild) {
-            parentNode.insertBefore(vdom[1], beforeChild);
+        if (vdom[0].constructor == VComponent) {
+            var node = vdom[5][1];
+        }
+        else {
+            node = vdom[1];
+        }
+        if (node.nextSibling !== beforeChild) {
+            parentNode.insertBefore(node, beforeChild);
         }
     }
+
 
     function updateComponent(oldParent, oldPos, old, vdom) {
         // 0           1     2     3         4      5         6
@@ -312,7 +351,7 @@
         }
     }
 
-    function createComponent(vdom, rootNode) {
+    function createComponent(vdom, rootNode, before) {
         // 0           1     2     3         4      5         6
         //[VComponent, node, Ctor, instance, props, children, key]
         vdom[1] = rootNode;
@@ -323,7 +362,7 @@
         vdom[5] = norm(component.render(), vdom, 5);
         var prevComponent = globs.component;
         globs.component = component;
-        create(vdom[5], null, null, vdom[1]);
+        create(vdom[5], null, null, vdom[1], before);
         globs.component = prevComponent;
         component.componentDidMount();
     }

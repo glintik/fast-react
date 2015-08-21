@@ -1,7 +1,7 @@
 var k = 0;
 class Hello extends FastReact.Component {
     componentDidMount() {
-        setTimeout(()=> {
+        setInterval(()=> {
             this.forceUpdate();
         }, 1000);
     }
@@ -18,7 +18,7 @@ class Hello extends FastReact.Component {
             <div>
                 <span>What do you mean</span>
                 <span>No mean {1} {2} </span>
-                {k % 2 ? <Fui {...props} key={123} title="wow" name={title}>
+                {k % 2 == 0 ? <Fui {...props} key={123} title="wow" name={title}>
                     Child1
                     <div>
                         <span>Hello Man</span>
@@ -33,7 +33,6 @@ class Hello extends FastReact.Component {
 
 class Fui extends FastReact.Component {
     render() {
-        console.log(this.props);
         return <div>FUck {this.props.children}</div>;
     }
 }
