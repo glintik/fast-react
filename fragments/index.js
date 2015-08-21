@@ -1,8 +1,4 @@
 !function (global) {
-    var typeText = new VText();
-    var typeArray = new VArray();
-    var typeTemplate = new VTemplate(null, null);
-
     function VDom() {}
 
     VDom.prototype.vdom = true;
@@ -24,17 +20,22 @@
     VComponent.prototype = new VDom();
     VComponent.prototype.constructor = VComponent;
 
-
-    function VTemplate(render, argTypes, len, keyPos, refs) {
+    function VTemplate(render, argTypes, len, keyPos, refs, origin) {
         this.render = render;
         this.argTypes = argTypes;
         this.len = len;
         this.keyPos = keyPos;
         this.refs = refs;
+        this.origin = origin;
     }
 
     VTemplate.prototype = new VDom();
     VTemplate.prototype.constructor = VTemplate;
+
+    var typeText = new VText();
+    var typeArray = new VArray();
+    var typeComponent = new VComponent();
+    var typeTemplate = new VTemplate(null, null);
 
     function norm(child, vdom, pos) {
         var newChild;
@@ -42,7 +43,7 @@
             newChild = vdom[pos] = [typeText, null, ''];
             return newChild;
         }
-        if (typeof child == 'object' && child.constructor === Array && typeof child[0].vdom == 'boolean') {
+        if (typeof child == 'object' && child.constructor === Array && child.length > 0 && typeof child[0].vdom == 'boolean') {
             return child;
         }
         if (child.constructor == Array) {
@@ -55,6 +56,12 @@
         }
         newChild = vdom[pos] = [typeText, null, child];
         return newChild;
+    }
+
+    function setAttrs(dom, attrs) {
+        for (var attr in attrs) {
+            dom.setAttribute(attr, attrs[attr]);
+        }
     }
 
     function create(vdom, parent, pos, rootNode, before) {
@@ -312,10 +319,10 @@
         var component = vdom[3] = new vdom[2](props);
         component.node = vdom;
         component.componentWillMount();
-        vdom[3] = component.render();
+        vdom[5] = norm(component.render(), vdom, 5);
         var prevComponent = globs.component;
         globs.component = component;
-        create(norm(vdom[5], vdom, 5), null, rootNode, vdom[1]);
+        create(vdom[5], null, null, rootNode, vdom[1]);
         globs.component = prevComponent;
         component.componentDidMount();
     }
@@ -324,7 +331,7 @@
         return vdom[1];
     }
 
-    function Component() {}
+    function Component(props) {this.props = props}
 
     var ComponentProto = Component.prototype;
     ComponentProto.componentWillMount = function () {};
@@ -346,12 +353,14 @@
         this.componentDidUpdate();
     };
 
+    var globs = {component: null};
     global.FastReact = {
         VTemplate: VTemplate,
-        VComponent: VComponent,
-        create: create,
+        create: function (vdom, parent, pos, rootNode, before) {return create(norm(vdom, parent, pos), parent, pos, rootNode, before)},
+        VComponent: typeComponent,
         Component: Component,
         findDOMNode: findDOMNode,
+        setAttrs: setAttrs,
         render: function (vdom, rootNode) {
             return create(vdom, null, null, rootNode, null);
         },
