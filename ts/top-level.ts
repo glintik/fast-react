@@ -1,4 +1,4 @@
-import {NodeType, VText, VTagNode, VNode, VComponent, VFragment} from './node';
+import {VText, VTagNode, VNode, VComponent, VFragment} from './node';
 import {IComponent} from './component';
 import {append} from './append';
 import {update} from './update';
@@ -7,7 +7,7 @@ import {normChild} from './utils';
 export {Component, findDOMNode} from './component';
 
 export function render(node:VNode, dom:Node) {
-    var root = <any>{type: NodeType.TAG, tag: null, attrs: null, attrsCode: '', children: [node], key: null, dom: null};
+    var root = new VTagNode(null, null, [node], null);
     root.dom = dom;
     normChild(root, 0);
     append(root, 0);
@@ -15,14 +15,13 @@ export function render(node:VNode, dom:Node) {
 }
 
 export function updater(old:VNode, node:VNode) {
-    var root = <any>{type: NodeType.TAG, tag: null, attrs: null, attrsCode: '', children: [node], key: null, dom: null};
+    var root = new VTagNode(null, null, [node], null);
     root.dom = old.dom.parentNode;
     normChild(root, 0);
     update(old, root, 0);
     return root.children[0];
 }
 
-var id = 1;
 export function createElement(tag:string | IComponent, attrs?:any, ...children:any[]):VNode;
 export function createElement(tag:string | IComponent, attrs?:any):VNode {
     if (attrs) {
@@ -38,12 +37,12 @@ export function createElement(tag:string | IComponent, attrs?:any):VNode {
         }
     }
     if (tag == '@') {
-        return <any>{type: NodeType.FRAGMENT, lastNode: null, firstNode: null, children: children, key: key, dom: null};
+        return new VFragment(children, key);
     }
     if (typeof tag == 'string') {
-        return <any>{type: NodeType.TAG, tag: tag, attrs: attrs, attrsCode: '', children: children, key: key, dom: null};
+        return new VTagNode(<string>tag, attrs, children, key);
     }
     else if (typeof tag == 'function') {
-        return <any>{type: NodeType.COMPONENT, lastNode: null, firstNode: null, ctor: tag, component: null, attrs: attrs, children: children, key: key, dom: null};
+        return new VComponent(<IComponent>tag, attrs, children, key);
     }
 }
