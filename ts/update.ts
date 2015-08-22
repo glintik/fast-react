@@ -1,5 +1,5 @@
-import {VText, VTagNode, VNode, VComponent, VFragment} from './node';
-import {normChild} from './utils';
+import {NodeType, VText, VTagNode, VNode, VComponent, VFragment} from './node';
+import {normChild, destroy} from './utils';
 import {remove} from './remove';
 import {append} from './append';
 import {updateChildren} from './update-children';
@@ -9,16 +9,17 @@ import {updateComponent} from './component';
 export function update(old:VNode, parent:VNode, childPos:number) {
     var node = parent.children[childPos];
 
-    if (old.constructor !== node.constructor) {
+    if (old.type !== node.type) {
         replaceNode(old, parent, childPos);
         return;
     }
-    if (node instanceof VText) {
+    if (node.type == NodeType.TEXT) {
         node.dom = (<VText>old).dom;
-        if ((<VText>old).text !== node.text) {
-            node.dom.textContent = node.text;
+        if ((<VText>old).text !== (<VText>node).text) {
+            node.dom.textContent = (<VText>node).text;
         }
-        old.destroy();
+        destroy(old);
+        //old.destroy();
         return;
     }
 
@@ -29,8 +30,8 @@ export function update(old:VNode, parent:VNode, childPos:number) {
         parent.keyMap[node.key] = childPos;
     }
 
-    if (node instanceof VTagNode) {
-        if ((<VTagNode>old).tag !== node.tag) {
+    if (node.type == NodeType.TAG) {
+        if ((<VTagNode>old).tag !== (<VTagNode>node).tag) {
             replaceNode(old, parent, childPos);
             return;
         }
@@ -38,25 +39,26 @@ export function update(old:VNode, parent:VNode, childPos:number) {
 
         updateAttrs(<VTagNode>old, parent, childPos);
     }
-    else if (node instanceof VFragment) {
-        if (node instanceof VComponent) {
-            if ((<VComponent>old).ctor !== node.ctor) {
+    else if (node.type == NodeType.FRAGMENT || node.type == NodeType.COMPONENT) {
+        if (node.type == NodeType.COMPONENT) {
+            if ((<VComponent>old).ctor !== (<VComponent>node).ctor) {
                 replaceNode(old, parent, childPos);
                 return;
             }
             updateComponent(<VComponent>old, parent, childPos);
             return;
         }
-        node.lastNode = (<VFragment>old).lastNode;
-        node.firstNode = (<VFragment>old).firstNode;
+        (<VFragment>node).lastNode = (<VFragment>old).lastNode;
+        (<VFragment>node).firstNode = (<VFragment>old).firstNode;
         node.dom = (<VFragment>old).dom;
     }
 
     updateChildren(old, node);
-    old.destroy();
+    destroy(old);
+    //old.destroy();
 }
 
 export function replaceNode(old:VNode, parent:VNode, childPos:number) {
-    append(parent, childPos, old instanceof VFragment ? old.firstNode : (<VTagNode>old).dom);
+    append(parent, childPos, (old.type == NodeType.FRAGMENT || old.type == NodeType.COMPONENT) ? (<VFragment>old).firstNode : (<VTagNode>old).dom);
     remove(old, parent);
 }

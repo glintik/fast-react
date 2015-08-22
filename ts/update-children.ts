@@ -1,4 +1,4 @@
-import {VText, VTagNode, VNode, VComponent, VFragment} from './node';
+import {NodeType, VText, VTagNode, VNode, VComponent, VFragment} from './node';
 import {append} from './append';
 import {update} from './update';
 import {remove} from './remove';
@@ -55,18 +55,19 @@ export function updateChildren(old:VNode, node:VNode) {
         }
     }
 
+
     for (var i = inserts.length - 1; i >= 0; i--) {
         var pos:number = inserts[i];
 
         if (i == inserts.length - 1) {
-            var beforeChild = node instanceof VFragment
-                ? node.lastNode
+            var beforeChild = (node.type == NodeType.FRAGMENT || node.type == NodeType.COMPONENT)
+                ? (<VFragment>node).lastNode
                 : null;
         }
         else {
-            beforeChild = newChildren[i + 1] instanceof VFragment
-                ? (<VFragment>newChildren[i + 1]).firstNode
-                : newChildren[i + 1].dom;
+            beforeChild = (newChildren[pos + 1].type == NodeType.FRAGMENT || newChildren[pos + 1].type == NodeType.COMPONENT)
+                ? (<VFragment>newChildren[pos + 1]).firstNode
+                : newChildren[pos + 1].dom;
         }
 
         if (newChildren[pos].dom) {
@@ -79,10 +80,10 @@ export function updateChildren(old:VNode, node:VNode) {
 }
 
 function move(node:VNode, parent:VNode, beforeChild:Node) {
-    if (node instanceof VFragment) {
+    if (node.type == NodeType.FRAGMENT || node.type == NodeType.COMPONENT) {
         var prevDom:Node;
-        var dom = node.lastNode;
-        var endNode = node.firstNode;
+        var dom = (<VFragment>node).lastNode;
+        var endNode = (<VFragment>node).firstNode;
         while (true) {
             prevDom = dom.previousSibling;
             if (dom.previousSibling !== beforeChild) {
