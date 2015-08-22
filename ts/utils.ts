@@ -1,11 +1,11 @@
-import {NodeType, VText, VTagNode, VNode, VComponent, VFragment, getVText} from './node';
+import {VText, VTagNode, VNode, VComponent, VFragment, getVText} from './node';
 export function normChild(parent:VNode, childPos:number) {
     var node = <any>parent.children[childPos];
-    if (node && typeof node == 'object' && node.type > 0) {
+    if (typeof node == 'object' && node && node instanceof VNode) {
         return;
     }
     if (typeof node == 'string' || typeof node == 'number') {
-        parent.children[childPos] = <any>{type: NodeType.TEXT, dom: null, text: node};
+        parent.children[childPos] = getVText(node + '');
         return;
     }
     if (node == null) {
@@ -14,7 +14,7 @@ export function normChild(parent:VNode, childPos:number) {
     }
     if (typeof node === 'object') {
         if (node instanceof Array) {
-            parent.children[childPos] = <any>{type: NodeType.FRAGMENT, lastNode: null, firstNode: null, children: node, dom: null};
+            parent.children[childPos] = new VFragment(node, null);
         }
         else {
             parent.children[childPos] = getVText(JSON.stringify(node));
@@ -26,8 +26,4 @@ export function normChild(parent:VNode, childPos:number) {
         return;
     }
     parent.children[childPos] = getVText('');
-}
-
-export function destroy(node: VNode){
-    //node.dom = null;
 }

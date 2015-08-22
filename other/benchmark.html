@@ -8,13 +8,11 @@
 <div id="fps"></div>
 <div id="test"></div>
 <script src="../node_modules/react/dist/react.min.js" type="text/javascript"></script>
-<script src="../dist/index.js" type="text/javascript"></script>
-<script src="../fragments/index.js" type="text/javascript"></script>
+<script src="../dist/fast-react.js" type="text/javascript"></script>
 <style type="text/css">
     .items {
         display: none;
     }
-
     .item {
         display: inline-block;
         width: 50px;
@@ -24,24 +22,25 @@
     /*
 
 
-     Results                      FastReact      React
+    Results                      FastReact      React
      Create 5000                   80/160         9
      Create 5000,2child            45/323         5
      Update 20000                  83/560         8
      Update 20000,2child           42/1000        3
      Update 20000,3child           28/1200        2
 
-     */
+    */
 
     /* console.time('perf');
      for (var i = 0; i < 1000000; i++) {
-     var div = document.createElement('div');
-     var t = document.createTextNode('wow');
-     div.appendChild(t);
-     //        div.textContent = 'wow';
-     //        div.firstChild;
+         var div = document.createElement('div');
+         var t = document.createTextNode('wow');
+         div.appendChild(t);
+ //        div.textContent = 'wow';
+ //        div.firstChild;
      }
      console.timeEnd('perf');*/
+
 
 
     var isCreate = location.hash.indexOf('create') > -1;
@@ -59,6 +58,7 @@
         createElement = FastReact.createElement;
 
     }
+
 
 
     var fps = document.getElementById('fps');
@@ -82,43 +82,47 @@
     }, 800);
 
 
-    var count = isCreate ? 5000 : 40000;
-    var items = [];
-    for (var i = 0; i < count; i++) {
-        items.push(i);
-    }
+    function ExtendComponent() {}
+    ExtendComponent.prototype = Component.prototype;
 
+    var count = isCreate ? 5000 : 20000;
+    function Cmp() {
+        Component.call(this);
+        this.items = [];
+        var that = this;
+        for (var i = 0; i < count; i++) {
+            this.items.push(i);
+        }
+        this.update = function () {
+            that.forceUpdate();
+            if (renderK % 2) {
+            }
+            tick();
+        };
+    }
     var renderK = 0;
+    Cmp.prototype = new ExtendComponent();
+
 
     var fn = function fn(item) {
-        return [t2, null, item, null, item];
+        return createElement('div', {className: 'item', key: item}, item);
+    };
+    if (twoChilds) {
+        fn = function fn(item) {
+            return createElement('div', {className: 'item', key: item}, item, 2);
+        };
+    }
+    Cmp.prototype.render = function () {
+        setTimeout(this.update);
+        renderK++;
+        if (renderK % 2 && isCreate) {
+            return createElement('div');
+        }
+        return createElement('div', {className: 'items'}, this.items.map(fn));
     };
 
-    var t1 = new FastReact.VTemplate(function (vdom) {
-        vdom[1] = document.createElement('div').setRef(vdom, 3)
-                .setAttr('class', 'items')
-                .addValueChild(vdom, 2);
-    }, [['children', 0]], 1, -1, [3]);
+    var node = render(createElement(Cmp), document.getElementById('test'));
 
-    var t2 = new FastReact.VTemplate(function (vdom) {
-        vdom[1] = document.createElement('div').setRef(vdom, 3)
-                .setAttr('class', 'item')
-                .addValueChild(vdom, 2)
-                .addChild(2)
-    }, [['children', 0]], 1, 4, [3]);
-
-    function component() {
-        setTimeout(update);
-        return [t1, null, this.items.map(fn), null];
-    }
-
-    function update() {
-//        component();
-        node = FastReact.update(node, component());
-        tick();
-    }
-
-    var node = render(component(), document.getElementById('test'));
 
 
     function profile() {

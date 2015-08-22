@@ -179,8 +179,9 @@ module.exports = function (code) {
         };
         globTemplates.push(glob);
 
-        var s = 'var ' + t + ' = new FastReact(function(d){\n';
-        s += '/*' + getText(JSXElement.range) + '*/\n';
+
+        var s = 'var ' + t + ' = new FastReact.VTemplate(function(d){\n';
+        var origin = getText(JSXElement.range);
         s += '' + templateFn(JSXElement, glob);
         var refs = [];
         var attrTypes = [];
@@ -190,6 +191,7 @@ module.exports = function (code) {
         }
 
         var refsS = [];
+        s += 'd[1] = p1;\n';
         for (var i = 0; i < glob.templates.length; i++) {
             var template = glob.templates[i];
             if (template.args.length) {
@@ -213,7 +215,7 @@ module.exports = function (code) {
             keyPos += glob.pos;
         }
 
-        s += '}, [' + attrTypes.join(', ') + '], ' + keyPos + ', [' + refs.join(', ') + '])';
+        s += '}, [' + attrTypes.join(', ') + '], ' + attrTypes.length +', '+ keyPos + ', [' + refs.join(', ') + '], '+JSON.stringify(origin)+')';
         //console.log(s);
         globTemplates.level--;
 
@@ -287,7 +289,7 @@ module.exports = function (code) {
     }
 
 
-    function templateFn(JSXElement, glob) {
+    function templateFn(JSXElement, glob, parentTemplate) {
         var template = {args: []};
         glob.templates.push(template);
         glob.spaceDeep += 2;
@@ -358,9 +360,7 @@ module.exports = function (code) {
 
                     //glob.args.push({type: 'children', name: childrenPos, value: null});
                     childrenPos++;
-                    s += templateFn(child, glob);
-                    var _dom = glob.templates[glob.templates.length - 1].dom;
-                    s += space + dom + '.appendChild(' + _dom + ')\n';
+                    s += templateFn(child, glob, template);
                     //incRefs(glob, 'child');
                 }
                 else {
@@ -374,6 +374,9 @@ module.exports = function (code) {
         }
         glob.spaceDeep -= 2;
         glob.level--;
+        if (parentTemplate) {
+            s += space + parentTemplate.dom + '.appendChild(' + dom + ')\n';
+        }
         return s;
     }
 
