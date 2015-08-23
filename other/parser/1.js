@@ -152,7 +152,7 @@ module.exports = function (code) {
         }
         props.push('children: [' + children.join(', ') + ']');
 
-        var s = '[FastReact.VComponent, null, ' + JSXElement.openingElement.name.name + ', null, {' + props.join(', ') + '}, null' + (key ? ', ' + key : '') + ']';
+        var s = '[FastReact.VComponent, null, null, ' + JSXElement.openingElement.name.name + ', null, {' + props.join(', ') + '}, null' + (key ? ', ' + key : '') + ']';
         replace(JSXElement.range, s);
         return;
     }
