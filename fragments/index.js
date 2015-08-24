@@ -73,7 +73,7 @@
     function norm(child, vdom, pos) {
         var newChild;
         if (child == null) {
-            newChild = vdom[pos] = [typeText, null, 'Null'];
+            newChild = vdom[pos] = [typeText, null, ''];
             return newChild;
         }
         if (typeof child == 'object' && child.constructor === Array && child.length > 0 && typeof child[0/*type*/].vdom == 'boolean') {
@@ -196,7 +196,7 @@
         return old;
     }
 
-    function updateChildren(oldParent, oldPos, vdom) {
+    function updateChildren(oldParent, oldPos, vdom, beforeNode2) {
         //VArrayTuple[type, node, parentNode, keyMap, sourceArray, ...values]
         var old = oldParent[oldPos];
         var rootNode = old[2/*parentNode*/];
@@ -205,32 +205,35 @@
         vdom[3/*keymap*/] = keyMap;
         var oldLen = old.length;
         var sourceArray = vdom[4/*sourceArray*/];
+        var lastNode = old[old.length - 1];
         /*if (oldLen == arrayStart) {
-            for (var i = arrayStart; i < sourceArray.length + arrayStart; i++) {
-                create(vdom[i] = norm(sourceArray[i - arrayStart], vdom, i), vdom, i, rootNode, null);
-            }
-            oldParent[oldPos] = vdom;
-            return;
-        }
-        if (vdom.length == arrayStart) {
-            for (var i = arrayStart; i < old.length; i++) {
-                remove(rootNode, old[i]);
-            }
-            oldParent[oldPos] = vdom;
-            return;
-        }
-*/
+         for (var i = arrayStart; i < sourceArray.length + arrayStart; i++) {
+         create(vdom[i] = norm(sourceArray[i - arrayStart], vdom, i), vdom, i, rootNode, null);
+         }
+         oldParent[oldPos] = vdom;
+         return;
+         }
+         if (vdom.length == arrayStart) {
+         for (var i = arrayStart; i < old.length; i++) {
+         remove(rootNode, old[i]);
+         }
+         oldParent[oldPos] = vdom;
+         return;
+         }
+         */
         var inserts = null;
 
         var fitCount = 0;
         for (var i = arrayStart; i < vdom.length; i++) {
-            var newChild = norm(vdom[i] = sourceArray[i - arrayStart], vdom, i);
+            vdom[i] = sourceArray[i - arrayStart];
+            var newChild = norm(vdom[i], vdom, i);
             var oldChild = old[i];
             var fitPos = null;
             var newKey = null;
+            var oldChildType = null;
             var newChildType = newChild[0/*type*/];
             if (old.length > i && oldChild != null) {
-                var oldChildType = oldChild[0/*type*/];
+                oldChildType = oldChild[0/*type*/];
             }
             if (newChildType.constructor == VTemplate && newChildType.keyPos > -1) {
                 newKey = newChild[newChild.length - 1/*key*/];
@@ -292,7 +295,7 @@
                 var child = vdom[pos];
 
                 if (pos == vdom.length - 1) {
-                    var beforeChild = null;
+                    var beforeChild = getLastNode(lastNode).nextSibling;
                 }
                 else {
                     beforeChild = getFirstNode(vdom[pos + 1]);
@@ -315,6 +318,24 @@
                 var type = vdom[0/*type*/];
                 if (type.constructor == VArray) {
                     vdom = vdom[5/*arrayFirstNode*/];
+                }
+                else if (type.constructor == VComponent) {
+                    vdom = vdom[6/*children*/];
+                }
+                if (!vdom[0/*type*/].fragment) {
+                    break;
+                }
+            }
+        }
+        return vdom[1/*node*/];
+    }
+
+    function getLastNode(vdom) {
+        if (vdom[0/*type*/].fragment) {
+            while (true) {
+                var type = vdom[0/*type*/];
+                if (type.constructor == VArray) {
+                    vdom = vdom[vdom.length - 1];
                 }
                 else if (type.constructor == VComponent) {
                     vdom = vdom[6/*children*/];
@@ -441,7 +462,12 @@
         findDOMNode: findDOMNode,
         setAttrs: setAttrs,
         render: function (vdom, rootNode) {
-            return create(vdom, null, null, rootNode, null);
+            if (typeof rootNode._vdom == 'undefined') {
+                rootNode._vdom = vdom;
+                return global.FastReact.create(vdom, null, null, rootNode, null);
+            }
+            var old = rootNode._vdom;
+            return update([typeTemplate, null, old], 2/*templateFirstValue*/, old, vdom);
         },
         update: function (old, vdom) {
             return update([typeTemplate, null, old], 2/*templateFirstValue*/, old, vdom);
