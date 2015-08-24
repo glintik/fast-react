@@ -53,7 +53,7 @@
     // 4/*sourceArray*/
     // 5/*arrayFirstNode*/
 
-    //VComponentTuple[VComponent, node, parentNode, Ctor, instance, props, children, key?]
+    //VComponentTuple[type, node, parentNode, Ctor, instance, props, children, key?]
     // 0/*type*/
     // 1/*node*/
     // 2/*parentNode*/
@@ -80,6 +80,9 @@
             return child;
         }
         if (child.constructor == Array) {
+            if (child.length == 0) {
+                child = [null];
+            }
             var p = new Array(child.length + arrayStart);
             p[0/*type*/] = typeArray;
             //p[3/*keymap*/] = {};
@@ -122,7 +125,7 @@
             //VArrayTuple[type, node, parentNode, keyMap, sourceArray, ...values]
             vdom[2/*parentNode*/] = rootNode;
             vdom[3/*keymap*/] = {};
-            vdom[1/*node*/] = rootNode.insertBefore(document.createComment('array'), before);
+            //vdom[1/*node*/] = rootNode.insertBefore(document.createComment('array'), before);
             //iterate source array
             var sourceArray = vdom[4/*sourceArray*/];
             for (var i = 0; i < sourceArray.length; i++) {
@@ -202,7 +205,7 @@
         vdom[3/*keymap*/] = keyMap;
         var oldLen = old.length;
         var sourceArray = vdom[4/*sourceArray*/];
-        if (oldLen == arrayStart) {
+        /*if (oldLen == arrayStart) {
             for (var i = arrayStart; i < sourceArray.length + arrayStart; i++) {
                 create(vdom[i] = norm(sourceArray[i - arrayStart], vdom, i), vdom, i, rootNode, null);
             }
@@ -211,12 +214,12 @@
         }
         if (vdom.length == arrayStart) {
             for (var i = arrayStart; i < old.length; i++) {
-                remove(old[i]);
+                remove(rootNode, old[i]);
             }
             oldParent[oldPos] = vdom;
             return;
         }
-
+*/
         var inserts = null;
 
         var fitCount = 0;
@@ -274,7 +277,7 @@
                 var oldChild = old[i];
                 if (oldChild) {
                     keyMap[oldChild[oldChild.length - 1/*key*/]] = null;
-                    remove(oldChild);
+                    remove(rootNode, oldChild);
                     old[i] = null;
                     if (oldLenFull == ++fitCount) {
                         break;
@@ -292,7 +295,7 @@
                     var beforeChild = null;
                 }
                 else {
-                    beforeChild = vdom[pos + 1][1/*node*/];
+                    beforeChild = getFirstNode(vdom[pos + 1]);
                 }
 
                 if (child[1/*node*/]) {
@@ -306,30 +309,39 @@
         oldParent[oldPos] = vdom;
     }
 
+    function getFirstNode(vdom) {
+        if (vdom[0/*type*/].fragment) {
+            while (true) {
+                var type = vdom[0/*type*/];
+                if (type.constructor == VArray) {
+                    vdom = vdom[5/*arrayFirstNode*/];
+                }
+                else if (type.constructor == VComponent) {
+                    vdom = vdom[6/*children*/];
+                }
+                if (!vdom[0/*type*/].fragment) {
+                    break;
+                }
+            }
+        }
+        return vdom[1/*node*/];
+    }
 
     function replace(oldParent, oldPos, old, vdom) {
-        var Ctor = old[0/*type*/].constructor;
         if (old[0/*type*/].fragment) {
             var parentNode = old[2/*parentNode*/];
-            if (Ctor == VArray) {
-                //VArrayTuple[type, node, parentNode, keyMap, sourceArray, ...values]
-                var before = old[5/*arrayFirstNode*/][1/*node*/];
-            }
-            else if (Ctor == VComponent) {
-                //VComponentTuple[VComponent, node, parentNode, Ctor, instance, props, children, key?]
-                before = old[6/*children*/][1/*node*/];
-            }
+            var before = getFirstNode(old);
         }
         else {
             parentNode = old[1/*node*/].parentNode;
             before = old[1/*node*/];
         }
         create(vdom, null, null, parentNode, before);
-        remove(old);
+        remove(parentNode, old);
         oldParent[oldPos] = vdom;
     }
 
-    function remove(vdom) {
+    function remove(parentNode, vdom) {
         //todo deep remove
         //todo componentWillUnmount
         var type = vdom[0/*type*/];
@@ -338,14 +350,16 @@
             if (Ctor == VArray) {
                 //VArrayTuple[type, node, parentNode, keyMap, sourceArray, ...values]
                 for (var i = arrayStart; i < vdom.length; i++) {
-                    remove(vdom[i]);
+                    remove(vdom[2/*parentNode*/], vdom[i]);
                 }
             }
             else if (Ctor == VComponent) {
-                remove(vdom[6/*children*/]);
+                remove(vdom[2/*parentNode*/], vdom[6/*children*/]);
             }
         }
-        vdom[1/*node*/].parentNode.removeChild(vdom[1/*node*/]);
+        else {
+            parentNode.removeChild(vdom[1/*node*/]);
+        }
     }
 
     function move(parentNode, vdom, beforeChild) {
@@ -378,7 +392,7 @@
     function createComponent(vdom, rootNode, before) {
         var Ctor = vdom[3/*Ctor*/];
         //VComponentTuple[VComponent, node, parentNode, Ctor, instance, props, children, key?]
-        vdom[1/*node*/] = rootNode.insertBefore(document.createComment(Ctor.name), before);
+        //vdom[1/*node*/] = rootNode.insertBefore(document.createComment(Ctor.name), before);
         vdom[2/*parentNode*/] = rootNode;
         var props = vdom[5/*props*/];
         var component = vdom[4/*instance*/] = new Ctor(props);
