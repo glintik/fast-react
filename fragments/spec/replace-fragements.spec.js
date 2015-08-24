@@ -16,8 +16,7 @@ describe("Replace Components", () => {
         new Test()
             .create(<Foo text="wow">Foo {123} {456}</Foo>, `<div>Bar Foo 123 456 wow</div>`)
             .update(<Foo></Foo>, `<div>Bar </div>`)
-            //.update(<Foo text="me">{123}</Foo>, `<div>Bar 123 me</div>`)
-            //.debug()
+            .update(<Foo text="me">{123}</Foo>, `<div>Bar 123 me</div>`)
             .update(<Foo text="me">{123} {456}</Foo>, `<div>Bar 123 456 me</div>`)
     });
 });

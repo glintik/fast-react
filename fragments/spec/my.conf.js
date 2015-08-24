@@ -60,7 +60,8 @@ module.exports = function (config) {
                 ]
             },
             //devtool: 'inline-source-map',
-            devtool: 'source-map',
+            devtool: 'inline-source-map'
+            //devtool: 'source-map',
         },
 
 
