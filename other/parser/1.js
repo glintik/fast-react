@@ -1,10 +1,12 @@
-var esprima = require('esprima-fb');
+var babel = require('babel-core');
 module.exports = function (code) {
 
 //var code = 'call(<div hello={213} key={item} ref="name" foo="adf" {...bar}><span key="123" class={wow}>{<italic>wtf</italic>}1{item}2</span></div>); ' +
 //    'var answer = <div {...props} className={123}>{<div title={5}>{2,<div title={6}><Component><span></span>{<strong>123</strong>}</Component></div>}</div>}</div>';
 
-    var syntax = esprima.parse(code, {range: true});
+    var bb = babel.transform(code, {stage: 0, whitelist: ['es7.classProperties']});
+    var syntax = bb.ast;
+
 
     var stack = [];
 
@@ -60,7 +62,11 @@ module.exports = function (code) {
 
      console.log(code);*/
 
-    function recur(parent, data) {
+    function recur(parent, data, prop) {
+        if (prop == 'tokens' || prop == '_scopeInfo' || prop == '_paths' || prop == 'loc' || prop == 'range' || prop == 'start' || prop == 'end') {
+            return;
+        }
+
         if (data && typeof data == 'object') {
 
             /*if (data.type == 'JSXExpressionContainer') {
@@ -81,17 +87,17 @@ module.exports = function (code) {
             }
             if (data instanceof Array) {
                 for (var i = 0; i < data.length; i++) {
-                    recur(parent, data[i]);
+                    recur(parent, data[i], prop);
                 }
                 return;
             }
             for (var prop in data) {
-                recur(data, data[prop]);
+                recur(data, data[prop], prop);
             }
         }
     }
 
-    recur({}, syntax);
+    recur({}, syntax, null);
 
 
     function spaceDeep(spaceDeep) {
@@ -140,11 +146,11 @@ module.exports = function (code) {
                     children.push(JSON.stringify(childS));
                 }
                 else if (child.type == 'JSXExpressionContainer') {
-                    recur(JSXElement, child);
+                    recur(JSXElement, child, 'children');
                     children.push(getText(child.expression.range));
                 }
                 else if (child.type == 'JSXElement') {
-                    recur(JSXElement, child);
+                    recur(JSXElement, child, 'children');
                     children.push(getText(child.range));
                 }
 
@@ -348,7 +354,7 @@ module.exports = function (code) {
                     s += space + dom + '.appendChild(document.createTextNode(' + JSON.stringify(childS) + '))\n';
                 }
                 else if (child.type == 'JSXExpressionContainer' || (child.type == 'JSXElement' && child.openingElement.name.name[0].match(/[A-Z]/))) {
-                    recur(JSXElement, child);
+                    recur(JSXElement, child, 'children');
                     glob.args.push({type: 'children', name: null, value: getVal(child)});
                     template.args.push(glob.pos);
                     //s += space + 'FastReact.create(' + dom + ', d, ' + glob.pos++ + ')\n';
