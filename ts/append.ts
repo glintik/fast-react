@@ -15,24 +15,38 @@ export function append(parent:VNode, childPos:number, beforeChild?:Node) {
         parent.keyMap[node.key] = childPos;
     }
 
-    if (node instanceof VText) {
-        node.dom = document.createTextNode(node.text);
-        parentDom.insertBefore(node.dom, beforeChild);
-        return;
-    }
-
     if (node instanceof VTagNode) {
         node.dom = document.createElement(node.tag);
         if (node.attrs) {
             createAttrs(node);
         }
         parentDom.insertBefore(node.dom, beforeChild);
+        if (node.children && node.children.length == 1) {
+            normChild(node, 0);
+            var child = node.children[0];
+            if (child instanceof VText){
+                node.text = node.dom.textContent = child.text;
+                node.children = null;
+                return;
+            }
+        }
+    }
+    else if (node instanceof VText) {
+        node.dom = document.createTextNode(node.text);
+        parentDom.insertBefore(node.dom, beforeChild);
+        return;
     }
     else if (node instanceof VFragment) {
         node.dom = parentDom;
-        let txt = node instanceof VComponent ? (<any>node.ctor).name + ':' + node.id : '#';
-        node.firstNode = document.createComment(' ' + txt + ' ');
-        node.lastNode = document.createComment(' :' + txt + ' ');
+        if (node instanceof VComponent){
+            let txt = node instanceof VComponent ? (<any>node.ctor).name + ':' + node.id : '#';
+            node.firstNode = document.createComment(' ' + txt + ' ');
+            node.lastNode = document.createComment(' :' + txt + ' ');
+        }
+        else {
+            node.firstNode = document.createTextNode('');
+            node.lastNode = document.createTextNode('');
+        }
         (<any>node.firstNode).skip = true;
         (<any>node.lastNode).skip = true;
         parentDom.insertBefore(node.firstNode, beforeChild);

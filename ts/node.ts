@@ -63,6 +63,7 @@ export class VTagNode extends VNode {
     attrs:any;
     attrsCode:string;
     tag:string;
+    text:string;
 
     constructor(tag:string, attrs:any, children:VNode[], key:string) {
         if (false) {
@@ -71,6 +72,7 @@ export class VTagNode extends VNode {
         //this.id = id++;
         this.dom = null;
         this.tag = tag;
+        this.text = null;
         this.attrs = attrs;
         this.attrsCode = '';
         this.children = children;

@@ -1,25 +1,32 @@
-//var path = require('path');
+var path = require('path');
 var webpack = require('webpack');
 module.exports = {
-    //context: path.join(__dirname, './'),
-    entry: './index.ts',
+    context: path.join(__dirname, './'),
+    entry: './fragments/example2.js',
     output: {
-        path: './dist/',
-        filename: 'index.js'
+        path: './fragments/',
+        filename: 'dist.js'
     },
 
     module: {
         loaders: [
             {
                 test: /\.ts$/,
-                loader: 'awesome-typescript-loader?module=commonjs&tsconfig=./ts/tsconfig.json',
-            },
+                loader: 'awesome-typescript-loader?module=common',
+            }
+        ],
+        preLoaders: [
+            {
+                test: /\.js$/,
+                loader: './other/parser/1.js'
+            }
+        ],
+        loaders: [
             {
                 test: /\.js$/,
                 loader: 'babel',
                 query: {
-                    stage: 0,
-                    loose: ["es6.classes"]
+                    stage: 0
                 }
             }
         ]
