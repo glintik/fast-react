@@ -109,15 +109,20 @@ module.exports = function (code) {
     }
 
     function generateComponent(JSXElement) {
-        //[VComponent, node, Ctor, instance, props, children, key]
+        //[VComponent, node, parentNode, Ctor, instance, props, children, ref, key]
         var props = [];
         var children = [];
         var key = null;
+        var ref = null;
         var tag = JSXElement.openingElement;
         for (var i = 0; i < tag.attributes.length; i++) {
             var attr = tag.attributes[i];
             if (attr.name && attr.name.name == 'key') {
                 key = getVal(attr.value);
+                continue;
+            }
+            if (attr.name && attr.name.name == 'ref') {
+                ref = getVal(attr.value);
                 continue;
             }
             if (attr.type == 'JSXAttribute') {
@@ -130,7 +135,7 @@ module.exports = function (code) {
                 props.push(attr.name.name + ': ' + val);
             }
             if (attr.type == 'JSXSpreadAttribute') {
-                props.push('...'+getVal(attr.argument));
+                props.push('...' + getVal(attr.argument));
             }
         }
 
@@ -158,7 +163,7 @@ module.exports = function (code) {
         }
         props.push('children: [' + children.join(', ') + ']');
 
-        var s = '[FastReact.VComponent, null, null, ' + JSXElement.openingElement.name.name + ', null, {' + props.join(', ') + '}, null' + (key ? ', ' + key : '') + ']';
+        var s = '[FastReact.VComponent, null, null, ' + JSXElement.openingElement.name.name + ', null, {' + props.join(', ') + '}, null' + (ref ? ', ' + ref : '') + (key ? ', ' + key : '') + ']';
         replace(JSXElement.range, s);
         return;
     }
@@ -186,7 +191,7 @@ module.exports = function (code) {
         globTemplates.push(glob);
 
 
-        var s = 'var ' + t + ' = new FastReact.VTemplate(function(d){\n';
+        var s = 'var ' + t + ' = new FastReact.VTemplate(function(d, topComponent){\n';
         var origin = getText(JSXElement.range);
         s += '' + templateFn(JSXElement, glob);
         var refs = [];
@@ -221,7 +226,7 @@ module.exports = function (code) {
             keyPos += glob.pos;
         }
 
-        s += '}, [' + attrTypes.join(', ') + '], ' + attrTypes.length +', '+ keyPos + ', [' + refs.join(', ') + '], '+JSON.stringify(origin)+')';
+        s += '}, [' + attrTypes.join(', ') + '], ' + attrTypes.length + ', ' + keyPos + ', [' + refs.join(', ') + '], ' + JSON.stringify(origin) + ')';
         //console.log(s);
         globTemplates.level--;
 
@@ -315,6 +320,11 @@ module.exports = function (code) {
             var attr = tag.attributes[i];
             if (attr.name && attr.name.name == 'key' && glob.level == 0) {
                 glob.key = getVal(attr.value);
+                continue;
+            }
+            if (attr.name && attr.name.name == 'ref' && glob.level == 0) {
+                var ref = getVal(attr.value);
+                s += space + 'FastReact.setRef(topComponent, ' + ref + ', ' + dom + ')\n';
                 continue;
             }
             if (attr.type == 'JSXAttribute') {

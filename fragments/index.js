@@ -53,7 +53,7 @@
     // 4/*sourceArray*/
     // 5/*arrayFirstNode*/
 
-    //VComponentTuple[type, node, parentNode, Ctor, instance, props, children, key?]
+    //VComponentTuple[type, node, parentNode, Ctor, instance, props, children, ref, key?]
     // 0/*type*/
     // 1/*node*/
     // 2/*parentNode*/
@@ -61,6 +61,7 @@
     // 4/*instance*/
     // 5/*props*/
     // 6/*children*/
+    // 7/*ref*/
     // len - 1/*key*/
 
     var arrayStart = 5;
@@ -98,6 +99,13 @@
         for (var attr in attrs) {
             dom.setAttribute(attr, attrs[attr]);
         }
+    }
+
+    function setRef(component, name, node) {
+        if (!component.refs) {
+            component.refs = {};
+        }
+        component.refs[name] = node;
     }
 
     function create(vdom, parent, pos, rootNode, before, topComponent) {
@@ -390,12 +398,12 @@
     }
 
     function updateComponent(oldParent, oldPos, old, vdom) {
-        //VComponentTuple[VComponent, node, parentNode, Ctor, instance, props, children, key?]
+        //VComponentTuple[type, node, parentNode, Ctor, instance, props, children, ref, key?]
+        var component = old[4/*instance*/];
         if (old[3/*Ctor*/] !== vdom[3/*Ctor*/]) {
-            replace(oldParent, oldPos, old, vdom, vdom);
+            replace(oldParent, oldPos, old, vdom, component);
         }
         else {
-            var component = old[4/*instance*/];
             var props = vdom[5/*props*/];
             component.componentWillReceiveProps(props);
             component.props = old[5/*props*/] = props;
@@ -406,7 +414,7 @@
 
     function createComponent(vdom, rootNode, before) {
         var Ctor = vdom[3/*Ctor*/];
-        //VComponentTuple[VComponent, node, parentNode, Ctor, instance, props, children, key?]
+        //VComponentTuple[type, node, parentNode, Ctor, instance, props, children, ref, key?]
         //vdom[1/*node*/] = rootNode.insertBefore(document.createComment(Ctor.name), before);
         vdom[2/*parentNode*/] = rootNode;
         var props = vdom[5/*props*/];
@@ -416,7 +424,7 @@
         vdom[6/*children*/] = norm(component.render(), vdom, 6/*children*/);
         var prevComponent = globs.component;
         globs.component = component;
-        create(vdom[6/*children*/], null, null, vdom[2/*parentNode*/], before, vdom);
+        create(vdom[6/*children*/], null, null, vdom[2/*parentNode*/], before, component);
         globs.component = prevComponent;
         component.componentDidMount();
     }
@@ -438,7 +446,7 @@
     ComponentProto.setState = function () {}; //todo
     ComponentProto.render = function () {return null};
     ComponentProto.forceUpdate = function () {
-        //VComponentTuple[VComponent, node, parentNode, Ctor, instance, props, children, key?]
+        //VComponentTuple[type, node, parentNode, Ctor, instance, props, children, ref, key?]
         this.componentWillUpdate();
         var prevComponent = globs.component;
         globs.component = this;
@@ -450,11 +458,12 @@
     var globs = {component: null};
     global.FastReact = {
         VTemplate: VTemplate,
-        create: function (vdom, parent, pos, rootNode, before) {return create(norm(vdom, parent, pos), parent, pos, rootNode, before, null )},
+        create: function (vdom, parent, pos, rootNode, before) {return create(norm(vdom, parent, pos), parent, pos, rootNode, before, null)},
         VComponent: typeComponent,
         Component: Component,
         findDOMNode: findDOMNode,
         setAttrs: setAttrs,
+        setRef: setRef,
         render: function (vdom, rootNode) {
             if (typeof rootNode._vdom == 'undefined') {
                 rootNode._vdom = vdom;
