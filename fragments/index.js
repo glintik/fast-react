@@ -201,7 +201,7 @@
         else if (typeCtor == VComponent) {
             updateComponent(oldParent, oldPos, old, vdom);
         }
-        return old;
+        return oldParent[oldPos];
     }
 
     function updateChildren(oldParent, oldPos, old, vdom, topComponent) {
@@ -470,7 +470,7 @@
                 return global.FastReact.create(vdom, null, null, rootNode, null);
             }
             var old = rootNode._vdom;
-            return update([typeTemplate, null, old], 2/*templateFirstValue*/, old, vdom, null);
+            return rootNode._vdom = update([typeTemplate, null, old], 2/*templateFirstValue*/, old, vdom, null);
         },
         update: function (old, vdom) {
             return update([typeTemplate, null, old], 2/*templateFirstValue*/, old, vdom, null);
