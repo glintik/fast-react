@@ -9,13 +9,7 @@ module.exports = {
     },
 
     module: {
-        loaders: [
-            {
-                test: /\.ts$/,
-                loader: 'awesome-typescript-loader?module=common',
-            }
-        ],
-        preLoaders: [
+        postLoaders: [
             {
                 test: /\.js$/,
                 loader: './other/parser/1.js'
@@ -26,7 +20,8 @@ module.exports = {
                 test: /\.js$/,
                 loader: 'babel',
                 query: {
-                    stage: 0
+                    stage: 0,
+                    blacklist: ["react"]
                 }
             }
         ]

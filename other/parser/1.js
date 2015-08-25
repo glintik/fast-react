@@ -1,16 +1,29 @@
 var babel = require('babel-core');
 var sourcemaps = require('./sourcemaps');
-module.exports = function (code) {
+var SourceMapConsumer = require("source-map").SourceMapConsumer;
+var SourceMapGenerator = require("source-map").SourceMapGenerator;
+module.exports = function (code, sourceMaps) {
     var original = code;
+
 
 //var code = 'call(<div hello={213} key={item} ref="name" foo="adf" {...bar}><span key="123" class={wow}>{<italic>wtf</italic>}1{item}2</span></div>); ' +
 //    'var answer = <div {...props} className={123}>{<div title={5}>{2,<div title={6}><Component><span></span>{<strong>123</strong>}</Component></div>}</div>}</div>';
 
-    var bb = babel.transform(code, {stage: 0, whitelist: ['es7.classProperties']});
+    var bb = babel.transform(code, {stage: 0, whitelist: []});
     var syntax = bb.ast;
 
-
     var sourcemap = [];
+/*
+    var sourcemapConsumer = new SourceMapConsumer(sourceMaps);
+    sourcemapConsumer.eachMapping(function (item) {
+        sourcemap.push({
+            source: item.source,
+            original: {line: item.originalLine, column: item.originalColumn},
+            generated: {line: item.generatedLine, column: item.generatedColumn}
+        })
+    });
+*/
+    //console.log(sourcemap);
 
     var stack = [];
 
@@ -38,39 +51,56 @@ module.exports = function (code) {
         return code.substring(newRange[0], newRange[1]);
     }
 
-    function getLoc(code, pos) {
+    function getLoc(code, pos, skipIfError) {
         var lines = code.split('\n');
         var currPos = 0;
         for (var i = 0; i < lines.length; i++) {
             var line = lines[i];
-            if (currPos <= pos && currPos + line.length > pos) {
-                return {line: i, column: pos - currPos};
+            //console.log("line", currPos, currPos + line.length, pos);
+            if (currPos <= pos && currPos + line.length >= pos) {
+                return {line: i, column: pos - currPos, _pos: pos};
             }
             currPos += line.length + 1;
         }
+        if (skipIfError) {
+            return {line: lines.length, column: line.length - 1};
+        }
+        console.error("Not Found", code.length, pos);
     }
 
     function getOrigLoc(range) {
         return [getLoc(original, range[0]), getLoc(original, range[1])];
     }
 
-    function getNewLoc(range) {
-        return [getLoc(code, range[0]), getLoc(code, range[1])];
+    function getNewLoc(pos) {
+        return getLoc(code, pos, true);
     }
 
     function replace(range, text) {
         var newRange = getFixedRange(range);
-        //console.log(text, range, newRange, stack);
+        if (newRange[0] < 0 || newRange[1] >= code.length) {
+            console.error('Out of range', code.length, newRange, text);
+        }
         var preffix = code.substring(0, newRange[0]);
+        var replaced = code.substring(newRange[0], newRange[1]);
         var suffix = code.substring(newRange[1]);
 
-        code = preffix + text + suffix;
+        //console.log(text, replaced, newRange);
+
         var oldLen = newRange[1] - newRange[0];
         //console.log(stack);
         //console.log(preffix, '/', text, '/', suffix, range, newRange);
         //console.log('');
+        var diff = text.length - oldLen;
         stack.push({range: newRange, diff: text.length - oldLen});
-        sourcemaps.remove(sourcemap, getOrigLoc(range));
+        //console.log(code.length, newRange, newRange[1] + diff);
+        for (var i = 0; i < diff; i++) {
+            code += " ";
+        }
+        sourcemaps.shiftGenRight(sourcemap, getNewLoc(newRange[1]), getNewLoc(newRange[1] + diff));
+
+        code = preffix + text + suffix;
+
         stack.sort(function (a, b) {return a[0] > b[0] ? 1 : -1});
     }
 
@@ -259,23 +289,27 @@ module.exports = function (code) {
 
         var jsx = '[' + t + ', null';
         var startPos = JSXElement.range[0];
-        var childs = [];
         for (var i = 0; i < glob.args.length; i++) {
             var args = glob.args[i];
+            //console.log(args);
             sourcemaps.move(sourcemap, getOrigLoc(args.range), getNewLoc(startPos + jsx.length));
-            childs.push(args.value);
+            jsx += ', ' + args.value;
         }
-        glob.data = '[' + t + ', null' +
-            (childs.length > 0 ? ', ' + childs.join(', ') : '') +
-            (refsS.length > 0 ? ', ' + refsS.join(', ') : '') +
-            (glob.key ? ', ' + glob.key : '') + ']';
+        jsx += (refsS.length > 0 ? ', ' + refsS.join(', ') : '');
+        jsx += (glob.key ? ', ' + glob.key : '');
+        jsx += ']';
+        glob.data = jsx;
         replace(JSXElement.range, glob.data);
         glob.templateCode = s;
         return s;
     }
 
     function getVal(attr) {
-        return getText(attr.type == 'JSXExpressionContainer' ? attr.expression.range : attr.range)
+        return getText(getRange(attr));
+    }
+
+    function getRange(attr) {
+        return attr.type == 'JSXExpressionContainer' ? attr.expression.range : attr.range;
     }
 
     function incRefs(glob, type) {
@@ -360,7 +394,12 @@ module.exports = function (code) {
             if (attr.type == 'JSXAttribute') {
                 if (attr.value.type == 'JSXExpressionContainer') {
                     template.args.push(glob.pos);
-                    glob.args.push({type: 'attr', name: attr.name.name, value: getVal(attr.value)});
+                    glob.args.push({
+                        type: 'attr',
+                        name: attr.name.name,
+                        range: getRange(attr.value),
+                        value: getVal(attr.value)
+                    });
                     value = 'd[' + glob.pos + ']';
                     incRefs(glob, 'attr');
                 }
@@ -371,7 +410,12 @@ module.exports = function (code) {
             }
             if (attr.type == 'JSXSpreadAttribute') {
                 template.args.push(glob.pos);
-                glob.args.push({type: 'attrs', name: null, value: getVal(attr.argument)});
+                glob.args.push({
+                    type: 'attrs',
+                    name: null,
+                    range: getRange(attr.argument),
+                    value: getVal(attr.argument)
+                });
                 value = 'd[' + glob.pos + ']';
                 incRefs(glob, 'attrs');
                 s += space + 'FastReact.setAttrs(' + dom + ', ' + value + ')\n';
@@ -395,8 +439,7 @@ module.exports = function (code) {
                 }
                 else if (child.type == 'JSXExpressionContainer' || (child.type == 'JSXElement' && child.openingElement.name.name[0].match(/[A-Z]/))) {
                     recur(JSXElement, child, 'children');
-                    var val = getVal(child);
-                    glob.args.push({type: 'children', name: null, value: val});
+                    glob.args.push({type: 'children', name: null, range: getRange(child), value: getVal(child)});
                     template.args.push(glob.pos);
                     //s += space + 'FastReact.create(' + dom + ', d, ' + glob.pos++ + ')\n';
                     childrenPos++;
@@ -441,7 +484,19 @@ module.exports = function (code) {
     //console.log(code);
 
     replace([0, 0], ss);
-    return code;
+
+
+/*
+    var generator = SourceMapGenerator.fromSourceMap(sourcemapConsumer);
+    for (var i = 0; i < sourcemap.length; i++) {
+        generator.addMapping(sourcemap[i]);
+        //console.log(sourcemap[i].generated.line);
+    }
+    console.log(code.split('\n').length);
+
+*/
+    //this.callback(null, code, generator.toString());
+    this.callback(null, code, sourceMaps);
 };
 
 
