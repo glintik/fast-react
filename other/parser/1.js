@@ -1,5 +1,7 @@
 var babel = require('babel-core');
+var sourcemaps = require('./sourcemaps');
 module.exports = function (code) {
+    var original = code;
 
 //var code = 'call(<div hello={213} key={item} ref="name" foo="adf" {...bar}><span key="123" class={wow}>{<italic>wtf</italic>}1{item}2</span></div>); ' +
 //    'var answer = <div {...props} className={123}>{<div title={5}>{2,<div title={6}><Component><span></span>{<strong>123</strong>}</Component></div>}</div>}</div>';
@@ -7,6 +9,8 @@ module.exports = function (code) {
     var bb = babel.transform(code, {stage: 0, whitelist: ['es7.classProperties']});
     var syntax = bb.ast;
 
+
+    var sourcemap = [];
 
     var stack = [];
 
@@ -34,6 +38,26 @@ module.exports = function (code) {
         return code.substring(newRange[0], newRange[1]);
     }
 
+    function getLoc(code, pos) {
+        var lines = code.split('\n');
+        var currPos = 0;
+        for (var i = 0; i < lines.length; i++) {
+            var line = lines[i];
+            if (currPos <= pos && currPos + line.length > pos) {
+                return {line: i, column: pos - currPos};
+            }
+            currPos += line.length + 1;
+        }
+    }
+
+    function getOrigLoc(range) {
+        return [getLoc(original, range[0]), getLoc(original, range[1])];
+    }
+
+    function getNewLoc(range) {
+        return [getLoc(code, range[0]), getLoc(code, range[1])];
+    }
+
     function replace(range, text) {
         var newRange = getFixedRange(range);
         //console.log(text, range, newRange, stack);
@@ -46,6 +70,7 @@ module.exports = function (code) {
         //console.log(preffix, '/', text, '/', suffix, range, newRange);
         //console.log('');
         stack.push({range: newRange, diff: text.length - oldLen});
+        sourcemaps.remove(sourcemap, getOrigLoc(range));
         stack.sort(function (a, b) {return a[0] > b[0] ? 1 : -1});
     }
 
@@ -165,6 +190,7 @@ module.exports = function (code) {
 
         var s = '[FastReact.VComponent, null, null, ' + JSXElement.openingElement.name.name + ', null, {' + props.join(', ') + '}, null' + (ref ? ', ' + ref : '') + (key ? ', ' + key : '') + ']';
         replace(JSXElement.range, s);
+        //sourcemaps.move(sourcemap, getLoc(range[0]), getLoc(range[1]));
         return;
     }
 
@@ -230,9 +256,13 @@ module.exports = function (code) {
         //console.log(s);
         globTemplates.level--;
 
+
+        var jsx = '[' + t + ', null';
+        var startPos = JSXElement.range[0];
         var childs = [];
         for (var i = 0; i < glob.args.length; i++) {
             var args = glob.args[i];
+            sourcemaps.move(sourcemap, getOrigLoc(args.range), getNewLoc(startPos + jsx.length));
             childs.push(args.value);
         }
         glob.data = '[' + t + ', null' +
@@ -249,7 +279,7 @@ module.exports = function (code) {
     }
 
     function incRefs(glob, type) {
-        console.log('inc', glob.pos, type);
+        //console.log('inc', glob.pos, type);
         glob.pos++;
 
     }
@@ -365,7 +395,8 @@ module.exports = function (code) {
                 }
                 else if (child.type == 'JSXExpressionContainer' || (child.type == 'JSXElement' && child.openingElement.name.name[0].match(/[A-Z]/))) {
                     recur(JSXElement, child, 'children');
-                    glob.args.push({type: 'children', name: null, value: getVal(child)});
+                    var val = getVal(child);
+                    glob.args.push({type: 'children', name: null, value: val});
                     template.args.push(glob.pos);
                     //s += space + 'FastReact.create(' + dom + ', d, ' + glob.pos++ + ')\n';
                     childrenPos++;
