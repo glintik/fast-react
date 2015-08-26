@@ -6,7 +6,9 @@ export class Test {
     create(vdom, html) {
         this.div = document.body.appendChild(document.createElement('div'));
         this.node = render(vdom, this.div);
-        this.toBe(html);
+        if (html) {
+            this.toBe(html);
+        }
         return this;
     }
 
@@ -17,7 +19,7 @@ export class Test {
         return this;
     }
 
-    debug(){
+    debug() {
         this.div;
         this.node;
         debugger;
@@ -26,7 +28,9 @@ export class Test {
 
     update(vdom, html) {
         this.node = render(vdom, this.div);
-        this.toBe(html);
+        if (html) {
+            this.toBe(html);
+        }
         return this;
     }
 }
