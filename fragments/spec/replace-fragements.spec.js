@@ -58,11 +58,19 @@ describe("Replace Components", () => {
         new Test()
             .create(<Foo text="wow">Foo {123} {456}</Foo>, `<div>Bar Foo 123 456 wow</div>`)
             .update(<Game id="1"/>, `<div>GameId: 1</div>`)
-            //1.update(<MyNameIs name="Steve"/>, //broken
-            .update(<Game id={10}/>, `<div>GameId: 1</div>`)
-            //.update(<MyNameIs name="Steve"/>, `<div>My name is Steve</div>`)
-            //.update(<Game id={10}/>, `<div>GameId: 10</div>`)
+            .update(<Game id={10}/>, `<div>GameId: 10</div>`)
             .update(<Foo text="wow">Foo {123} {456}</Foo>, `<div>Bar Foo 123 456 wow</div>`)
             .update(<MyNameIs name="Steve"/>, `<div>My name is Steve</div>`)
+    });
+
+    it('component <=> array', () => {
+        new Test()
+            .create(<MyNameIs name={[1,[2],3]}/>, `<div>My name is 123</div>`)
+            .update(<MyNameIs name={[[4,5,6]]}/>, `<div>My name is 456</div>`)
+            .update(<MyNameIs name={[3,[4,[5],6],7]}/>, `<div>My name is 34567</div>`)
+            .update(<MyNameIs name={[1,[<MyNameIs name={[2,3,4]}/>],5]}/>, `<div>My name is 1<div>My name is 234</div>5</div>`)
+            .update(<MyNameIs name={[1,<Foo text="wow">Foo {123} {456}</Foo>, 7]}/>, `<div>My name is 1<div>Bar Foo 123 456 wow</div>7</div>`)
+            .update(<MyNameIs name={[1,[2,[3,[4]]],5]}/>, `<div>My name is 12345</div>`)
+            .update(<MyNameIs name={[1,2,3,4]}/>, `<div>My name is 1234</div>`)
     });
 });

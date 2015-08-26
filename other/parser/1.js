@@ -78,7 +78,7 @@ module.exports = function (code, sourceMaps) {
 
     function replace(range, text) {
         var newRange = getFixedRange(range);
-        if (newRange[0] < 0 || newRange[1] >= code.length) {
+        if (newRange[0] < 0 || newRange[1] > code.length) {
             console.error('Out of range', code.length, newRange, text);
         }
         var preffix = code.substring(0, newRange[0]);
@@ -101,7 +101,7 @@ module.exports = function (code, sourceMaps) {
 
         code = preffix + text + suffix;
 
-        stack.sort(function (a, b) {return a[0] > b[0] ? 1 : -1});
+        //stack.sort(function (a, b) {return a[0] > b[0] ? 1 : -1});
     }
 
     /*var ranges = [[0, 1], [2, 3], [4, 5], [6, 7]];
@@ -173,16 +173,16 @@ module.exports = function (code, sourceMaps) {
         for (var i = 0; i < tag.attributes.length; i++) {
             var attr = tag.attributes[i];
             if (attr.name && attr.name.name == 'key') {
-                key = getVal(attr.value);
+                key = getVal(attr.value, JSXElement);
                 continue;
             }
             if (attr.name && attr.name.name == 'ref') {
-                ref = getVal(attr.value);
+                ref = getVal(attr.value, JSXElement);
                 continue;
             }
             if (attr.type == 'JSXAttribute') {
                 if (attr.value.type == 'JSXExpressionContainer') {
-                    var val = getVal(attr.value);
+                    var val = getVal(attr.value, JSXElement);
                 }
                 else {
                     val = attr.value.raw;
@@ -190,7 +190,7 @@ module.exports = function (code, sourceMaps) {
                 props.push(attr.name.name + ': ' + val);
             }
             if (attr.type == 'JSXSpreadAttribute') {
-                props.push('...' + getVal(attr.argument));
+                props.push('...' + getVal(attr.argument, JSXElement));
             }
         }
 
@@ -304,7 +304,8 @@ module.exports = function (code, sourceMaps) {
         return s;
     }
 
-    function getVal(attr) {
+    function getVal(attr, parent, prop) {
+        recur(parent, attr.expression, prop);
         return getText(getRange(attr));
     }
 
@@ -383,11 +384,11 @@ module.exports = function (code, sourceMaps) {
         for (var i = 0; i < tag.attributes.length; i++) {
             var attr = tag.attributes[i];
             if (attr.name && attr.name.name == 'key' && glob.level == 0) {
-                glob.key = getVal(attr.value);
+                glob.key = getVal(attr.value, JSXElement);
                 continue;
             }
             if (attr.name && attr.name.name == 'ref' && glob.level == 0) {
-                var ref = getVal(attr.value);
+                var ref = getVal(attr.value, JSXElement);
                 s += space + 'FastReact.setRef(topComponent, ' + ref + ', ' + dom + ')\n';
                 continue;
             }
@@ -398,7 +399,7 @@ module.exports = function (code, sourceMaps) {
                         type: 'attr',
                         name: attr.name.name,
                         range: getRange(attr.value),
-                        value: getVal(attr.value)
+                        value: getVal(attr.value, JSXElement)
                     });
                     value = 'd[' + glob.pos + ']';
                     incRefs(glob, 'attr');
@@ -414,7 +415,7 @@ module.exports = function (code, sourceMaps) {
                     type: 'attrs',
                     name: null,
                     range: getRange(attr.argument),
-                    value: getVal(attr.argument)
+                    value: getVal(attr.argument, JSXElement)
                 });
                 value = 'd[' + glob.pos + ']';
                 incRefs(glob, 'attrs');
@@ -438,8 +439,7 @@ module.exports = function (code, sourceMaps) {
                     s += space + dom + '.appendChild(document.createTextNode(' + JSON.stringify(childS) + '))\n';
                 }
                 else if (child.type == 'JSXExpressionContainer' || (child.type == 'JSXElement' && child.openingElement.name.name[0].match(/[A-Z]/))) {
-                    recur(JSXElement, child, 'children');
-                    glob.args.push({type: 'children', name: null, range: getRange(child), value: getVal(child)});
+                    glob.args.push({type: 'children', name: null, range: getRange(child), value: getVal(child, JSXElement, 'children')});
                     template.args.push(glob.pos);
                     //s += space + 'FastReact.create(' + dom + ', d, ' + glob.pos++ + ')\n';
                     childrenPos++;
