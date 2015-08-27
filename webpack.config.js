@@ -21,6 +21,7 @@ module.exports = {
                 loader: 'babel',
                 query: {
                     stage: 0,
+                    loose: ["es6.classes"],
                     blacklist: ["react"]
                 }
             }

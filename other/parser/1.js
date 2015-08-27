@@ -24,33 +24,56 @@ module.exports = function (code, sourceMaps) {
     }, null, SourceMapConsumer.ORIGINAL_ORDER);
 
     var origin = sourceMaps.sourcesContent[0];
-    var originMap = [];
-    var codeMap = [];
-    var _origin = origin.split('\n');
-    var _code = code.split('\n');
-    var pos = 0;
 
-    for (var i = 0; i < _origin.length; i++) {
-        var line = _origin[i];
-        originMap[i + 1] = new Array(line.length);
-        for (var j = 0; j <= line.length; j++) {
-            originMap[i + 1][j] = pos;
-            pos++;
+    function generateMap(code) {
+        var _code = code.split('\n');
+        var pos = 0;
+        var codeMap = [];
+        for (var i = 0; i < _code.length; i++) {
+            var line = _code[i];
+            codeMap[i + 1] = new Array(line.length);
+            for (var j = 0; j <= line.length; j++) {
+                codeMap[i + 1][j] = pos;
+                pos++;
+            }
+        }
+        return codeMap;
+    }
+
+    function setPosToMappings() {
+        var codeMap = generateMap(code);
+        //console.log(codeMap);
+        for (var i = 0; i < sourcemaping.length; i++) {
+            var map = sourcemaping[i];
+            map.generated.pos = codeMap[map.generated.line][map.generated.column];
+            //console.log(map.generated);
         }
     }
-    pos = 0;
-    for (i = 0; i < _code.length; i++) {
-        line = _code[i];
-        codeMap[i + 1] = new Array(line.length);
-        for (j = 0; j <= line.length; j++) {
-            codeMap[i + 1][j] = pos;
-            pos++;
+
+    setPosToMappings();
+
+    function fixGenPosToLineColumn() {
+        var _code = code.split('\n');
+        var pos = 0;
+        var codeMapPos = [];
+        for (i = 0; i < _code.length; i++) {
+            var line = _code[i];
+            for (var j = 0; j <= line.length; j++) {
+                codeMapPos[pos] = {line: i + 1, column: j};
+                pos++;
+            }
+        }
+        for (var i = 0; i < sourcemaping.length; i++) {
+            var map = sourcemaping[i];
+            map.generated = codeMapPos[map.generated.pos];
         }
     }
 
 
     function printMaps() {
         var prev;
+        var originMap = generateMap(origin);
+        var codeMap = generateMap(code);
         for (var i = 0; i < sourcemaping.length; i++) {
             var map = sourcemaping[i];
             if (prev) {
@@ -59,14 +82,23 @@ module.exports = function (code, sourceMaps) {
                 var currCodePos = codeMap[map.generated.line][map.generated.column];
                 var lastCodePos = codeMap[prev.generated.line][prev.generated.column];
                 //console.log(lastOriginPos, currOriginPos);
-                console.log(origin.substring(lastOriginPos, currOriginPos));
-/*
-                if (currOriginPos!=null && lastOriginPos!=null && lastCodePos!=null && currCodePos!=null){
-                    console.log(origin.substring(lastOriginPos, currOriginPos), '=======',
-                        code.substring(lastCodePos, currCodePos)
-                    );
+                //console.log(origin.substring(lastOriginPos, currOriginPos));
+                for (var j = prev.original.column; j < map.original.column; j++) {
+                    //var pos = sourcemapConsumer.generatedPositionFor({line: map.original.line, column:});
                 }
-*/
+
+                var oo = origin.substring(lastOriginPos, currOriginPos).trim();
+                var vv = code.substring(lastCodePos, currCodePos).trim();
+                if (oo) {
+                    console.log('** ', oo, '=======', vv);
+                }
+                /*
+                 if (currOriginPos!=null && lastOriginPos!=null && lastCodePos!=null && currCodePos!=null){
+                 console.log(origin.substring(lastOriginPos, currOriginPos), '=======',
+                 code.substring(lastCodePos, currCodePos)
+                 );
+                 }
+                 */
                 //console.log(lastOriginPos, currOriginPos, map.original);
 
 
@@ -79,7 +111,6 @@ module.exports = function (code, sourceMaps) {
         //console.log(originMap);
     }
 
-    printMaps();
 
     //console.log(sourcemap);
 
@@ -109,31 +140,6 @@ module.exports = function (code, sourceMaps) {
         return code.substring(newRange[0], newRange[1]);
     }
 
-    function getLoc(code, pos, skipIfError) {
-        var lines = code.split('\n');
-        var currPos = 0;
-        for (var i = 0; i < lines.length; i++) {
-            var line = lines[i];
-            //console.log("line", currPos, currPos + line.length, pos);
-            if (currPos <= pos && currPos + line.length >= pos) {
-                return {line: i, column: pos - currPos, _pos: pos};
-            }
-            currPos += line.length + 1;
-        }
-        if (skipIfError) {
-            return {line: lines.length, column: line.length - 1};
-        }
-        console.error("Not Found", code.length, pos);
-    }
-
-    function getOrigLoc(range) {
-        return [getLoc(original, range[0]), getLoc(original, range[1])];
-    }
-
-    function getNewLoc(pos) {
-        return getLoc(code, pos, true);
-    }
-
     function replace(range, text) {
         var newRange = getFixedRange(range);
         if (newRange[0] < 0 || newRange[1] > code.length) {
@@ -155,11 +161,41 @@ module.exports = function (code, sourceMaps) {
         for (var i = 0; i < diff; i++) {
             code += " ";
         }
-        sourcemaps.shiftGenRight(sourcemap, getNewLoc(newRange[1]), getNewLoc(newRange[1] + diff));
-
+        //sourcemaps.shiftGenRight(sourcemap, getNewLoc(newRange[1]), getNewLoc(newRange[1] + diff));
+        for (var i = 0; i < sourcemaping.length; i++) {
+            var map = sourcemaping[i];
+            //console.log("diff", map.pos, newRange[1]);
+            /*
+             if (map.generated.pos >= newRange[0] && map.generated.pos < newRange[1]) {
+             map.generated.pos = 0;
+             }
+             */
+            if (map.generated.pos >= newRange[1]) {
+                map.generated.pos += diff;
+            }
+        }
+        //console.log("replace", newRange);
         code = preffix + text + suffix;
 
         //stack.sort(function (a, b) {return a[0] > b[0] ? 1 : -1});
+    }
+
+    function moveSourceMap(range, to) {
+        return;
+        var diff = to - range[0];
+        range = getFixedRange(range);
+        to = getFixedRange([to, 0])[0];
+        console.log("move", range, to, code.substring(range[0], range[1]));
+        var start = range[0];
+        var end = range[1];
+        //var diff = start - to;
+        for (var i = 0; i < sourcemaping.length; i++) {
+            var map = sourcemaping[i];
+            if (map.generated.pos >= start && map.generated.pos < end) {
+                map.generated.pos -= diff;
+                //console.log("Diff", map);
+            }
+        }
     }
 
     /*var ranges = [[0, 1], [2, 3], [4, 5], [6, 7]];
@@ -221,37 +257,59 @@ module.exports = function (code, sourceMaps) {
         return s;
     }
 
+    function getExpressionRange(child) {
+        if (child.type == 'JSXExpressionContainer') {
+            return child.range;
+        }
+        return child.range;
+    }
+
     function generateComponent(JSXElement) {
         //[VComponent, node, parentNode, Ctor, instance, props, children, ref, key]
         var props = [];
         var children = [];
         var key = null;
+        var keyRange;
         var ref = null;
+        var refRange;
         var tag = JSXElement.openingElement;
+        var startPos = JSXElement.range[0];
+        var s = '[FastReact.VComponent, null, null, ' + JSXElement.openingElement.name.name + ', null, {';
+        //props.join(', ') + '}, null' + (ref ? ', ' + ref : '') + (key ? ', ' + key : '') + ']';
+
+        var attrk = 0;
         for (var i = 0; i < tag.attributes.length; i++) {
             var attr = tag.attributes[i];
             if (attr.name && attr.name.name == 'key') {
                 key = getVal(attr.value, JSXElement);
+                keyRange = getExpressionRange(attr.value);
                 continue;
             }
             if (attr.name && attr.name.name == 'ref') {
                 ref = getVal(attr.value, JSXElement);
+                refRange = getExpressionRange(attr.value);
                 continue;
             }
+
             if (attr.type == 'JSXAttribute') {
                 if (attr.value.type == 'JSXExpressionContainer') {
                     var val = getVal(attr.value, JSXElement);
+                    moveSourceMap(attr.value.range, startPos + s.length);
                 }
                 else {
                     val = attr.value.raw;
                 }
-                props.push(attr.name.name + ': ' + val);
+                s += attr.name.name + ': ' + val;
             }
             if (attr.type == 'JSXSpreadAttribute') {
-                props.push('...' + getVal(attr.argument, JSXElement));
+                s += '...' + getVal(attr.argument, JSXElement);
+                moveSourceMap(attr.argument.range, startPos + s.length);
             }
+            s += ', ';
+            attrk++;
         }
-
+        s += 'children: [';
+        var childk = 0;
         if (JSXElement.children) {
             for (var i = 0; i < JSXElement.children.length; i++) {
                 var child = JSXElement.children[i];
@@ -261,22 +319,50 @@ module.exports = function (code, sourceMaps) {
                     if (!childS) {
                         continue;
                     }
-                    children.push(JSON.stringify(childS));
+                    s += JSON.stringify(childS);
+                    s += ', ';
+                    childk++;
                 }
                 else if (child.type == 'JSXExpressionContainer') {
-                    recur(JSXElement, child, 'children');
-                    children.push(getText(child.expression.range));
+                    var val = getVal(child, JSXElement);
+                    moveSourceMap(child.range, startPos + s.length);
+                    s += val;
+                    s += ', ';
+                    childk++;
                 }
                 else if (child.type == 'JSXElement') {
                     recur(JSXElement, child, 'children');
-                    children.push(getText(child.range));
+                    moveSourceMap(child.range, startPos + s.length);
+                    s += getText(child.range);
+                    s += ', ';
+                    childk++;
                 }
-
             }
         }
-        props.push('children: [' + children.join(', ') + ']');
 
-        var s = '[FastReact.VComponent, null, null, ' + JSXElement.openingElement.name.name + ', null, {' + props.join(', ') + '}, null' + (ref ? ', ' + ref : '') + (key ? ', ' + key : '') + ']';
+        if (childk > 0) {
+            s = s.substring(0, s.length - 2);
+        }
+
+        s += ']}, null, ';
+
+        if (ref) {
+            moveSourceMap(refRange, startPos + s.length);
+            s += ref;
+        }
+        else {
+            s += 'null'
+        }
+        s += ',';
+        if (key) {
+            moveSourceMap(keyRange, startPos + s.length);
+            s += key;
+        }
+        else {
+            s += 'null'
+        }
+        s += ']';
+
         replace(JSXElement.range, s);
         //sourcemaps.move(sourcemap, getLoc(range[0]), getLoc(range[1]));
         return;
@@ -347,17 +433,27 @@ module.exports = function (code, sourceMaps) {
 
         var jsx = '[' + t + ', null';
         var startPos = JSXElement.range[0];
+        var aaa = [];
         for (var i = 0; i < glob.args.length; i++) {
             var args = glob.args[i];
             //console.log(args);
-            sourcemaps.move(sourcemap, getOrigLoc(args.range), getNewLoc(startPos + jsx.length));
-            jsx += ', ' + args.value;
+            jsx += ', ';
+            //console.log("prevMove");
+            moveSourceMap(args.range, startPos + jsx.length);
+            aaa.push([args.range, startPos + jsx.length]);
+            jsx += args.value;
         }
         jsx += (refsS.length > 0 ? ', ' + refsS.join(', ') : '');
         jsx += (glob.key ? ', ' + glob.key : '');
         jsx += ']';
         glob.data = jsx;
-        replace(JSXElement.range, glob.data);
+        replace(JSXElement.range, jsx);
+        //console.log("movesss");
+        for (var i = 0; i < aaa.length; i++) {
+            var item = aaa[i];
+            var moveSize = item[0][1] - item[0][0];
+            //console.log('move2', moveSize, getText([item[1], item[1] + moveSize]));
+        }
         glob.templateCode = s;
         return s;
     }
@@ -456,8 +552,8 @@ module.exports = function (code, sourceMaps) {
                     glob.args.push({
                         type: 'attr',
                         name: attr.name.name,
+                        value: getVal(attr.value, JSXElement),
                         range: getRange(attr.value),
-                        value: getVal(attr.value, JSXElement)
                     });
                     value = 'd[' + glob.pos + ']';
                     incRefs(glob, 'attr');
@@ -472,8 +568,8 @@ module.exports = function (code, sourceMaps) {
                 glob.args.push({
                     type: 'attrs',
                     name: null,
+                    value: getVal(attr.argument, JSXElement),
                     range: getRange(attr.argument),
-                    value: getVal(attr.argument, JSXElement)
                 });
                 value = 'd[' + glob.pos + ']';
                 incRefs(glob, 'attrs');
@@ -500,9 +596,10 @@ module.exports = function (code, sourceMaps) {
                     glob.args.push({
                         type: 'children',
                         name: null,
+                        value: getVal(child, JSXElement, 'children'),
                         range: getRange(child),
-                        value: getVal(child, JSXElement, 'children')
                     });
+                    //console.log('------- ', getText(child.range));
                     template.args.push(glob.pos);
                     //s += space + 'FastReact.create(' + dom + ', d, ' + glob.pos++ + ')\n';
                     childrenPos++;
@@ -535,7 +632,9 @@ module.exports = function (code, sourceMaps) {
 
 
     var ss = '';
-    globTemplates.sort(function (a, b) {return b.globLevel - a.globLevel});
+    globTemplates.sort(function (a, b) {
+        return b.globLevel - a.globLevel
+    });
     for (var i = 0; i < globTemplates.length; i++) {
         var globTemplate = globTemplates[i];
         ss += globTemplate.templateCode + '\n';
@@ -549,17 +648,19 @@ module.exports = function (code, sourceMaps) {
     replace([0, 0], ss);
 
 
-    /*
-        var generator = SourceMapGenerator.fromSourceMap(sourcemapConsumer);
-        for (var i = 0; i < sourcemap.length; i++) {
-            generator.addMapping(sourcemap[i]);
-            //console.log(sourcemap[i].generated.line);
-        }
-        console.log(code.split('\n').length);
+    fixGenPosToLineColumn();
+    //console.log(code);
+    var generator = SourceMapGenerator.fromSourceMap(sourcemapConsumer);
+    for (var i = 0; i < sourcemaping.length; i++) {
+        //generator.addMapping(sourcemaping[i]);
+        //console.log(sourcemaping[i]);
+    }
+    //console.log(sourcemaping);
 
-    */
-    //this.callback(null, code, generator.toString());
-    this.callback(null, code, sourceMaps);
+    //printMaps();
+    this.callback(null, code, generator.toString());
+
+    //this.callback(null, code, sourceMaps);
 };
 
 
