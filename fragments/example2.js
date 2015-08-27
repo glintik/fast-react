@@ -1,4 +1,4 @@
 <div>
-    {console.log("arg1")}
-    {console.log("arg2")}
+    {log("arg1")}
+    {log("arg2")}
 </div>

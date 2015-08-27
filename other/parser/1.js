@@ -14,7 +14,6 @@ module.exports = function (code, sourceMaps) {
 
     var sourcemap = [];
     var sourcemaping = [];
-/*
     var sourcemapConsumer = new SourceMapConsumer(sourceMaps);
     sourcemapConsumer.eachMapping(function (item) {
         sourcemaping.push({
@@ -23,9 +22,11 @@ module.exports = function (code, sourceMaps) {
             generated: {line: item.generatedLine, column: item.generatedColumn}
         })
     }, null, SourceMapConsumer.ORIGINAL_ORDER);
-*/
 
-    //var origin = sourceMaps.sourcesContent[0];
+    var origin = sourceMaps.sourcesContent[0];
+
+    setPosToMappings();
+
 
     function generateMap(code) {
         var _code = code.split('\n');
@@ -52,7 +53,6 @@ module.exports = function (code, sourceMaps) {
         }
     }
 
-    setPosToMappings();
 
     function fixGenPosToLineColumn() {
         var _code = code.split('\n');
@@ -61,13 +61,25 @@ module.exports = function (code, sourceMaps) {
         for (i = 0; i < _code.length; i++) {
             var line = _code[i];
             for (var j = 0; j <= line.length; j++) {
-                codeMapPos[pos] = {line: i + 1, column: j};
+                codeMapPos[pos] = {line: i + 1, column: j, pos: pos};
                 pos++;
             }
         }
         for (var i = 0; i < sourcemaping.length; i++) {
             var map = sourcemaping[i];
-            map.generated = codeMapPos[map.generated.pos];
+            //console.log(codeMapPos[map.generated.pos]);
+            var pps = codeMapPos[map.generated.pos];
+            if (!pps) {
+                //console.log(codeMapPos);
+                //console.error('pos not found', map.generated.pos);
+                throw new Error('Pos not found:' + map.generated.pos + ', max:' + (codeMapPos.length - 1));
+            }
+            else {
+                map.generated.line = pps.line;
+                map.generated.column = pps.column;
+
+            }
+
         }
     }
 
@@ -151,53 +163,66 @@ module.exports = function (code, sourceMaps) {
         var replaced = code.substring(newRange[0], newRange[1]);
         var suffix = code.substring(newRange[1]);
 
-        //console.log(text, replaced, newRange);
+        //console.log("--- replace ---- ", text, ' #### ', replaced, newRange, '/-----');
 
         var oldLen = newRange[1] - newRange[0];
+        console.log("--- replace ---- ", newRange, 'diff:', text.length - oldLen, '/-----');
         //console.log(stack);
         //console.log(preffix, '/', text, '/', suffix, range, newRange);
         //console.log('');
         var diff = text.length - oldLen;
         stack.push({range: newRange, diff: text.length - oldLen});
         //console.log(code.length, newRange, newRange[1] + diff);
-        for (var i = 0; i < diff; i++) {
-            code += " ";
-        }
+        /*
+                for (var i = 0; i < diff; i++) {
+                    code += " ";
+                }
+        */
         //sourcemaps.shiftGenRight(sourcemap, getNewLoc(newRange[1]), getNewLoc(newRange[1] + diff));
         for (var i = 0; i < sourcemaping.length; i++) {
             var map = sourcemaping[i];
             //console.log("diff", map.pos, newRange[1]);
-            /*
-             if (map.generated.pos >= newRange[0] && map.generated.pos < newRange[1]) {
-             map.generated.pos = 0;
-             }
-             */
+            if (map.generated.pos >= newRange[0] && map.generated.pos < newRange[1]) {
+                //map.generated.pos = 0;
+            }
             if (map.generated.pos >= newRange[1]) {
                 map.generated.pos += diff;
             }
+
         }
         //console.log("replace", newRange);
         code = preffix + text + suffix;
 
+        fixGenPosToLineColumn();
+        console.log("after replace", sourcemaping);
+        console.log("after code", code);
+
+
+        //console.log("after replace ####\n", code, "\n######");
         //stack.sort(function (a, b) {return a[0] > b[0] ? 1 : -1});
     }
 
     function moveSourceMap(range, to) {
-        return;
         var diff = to - range[0];
         range = getFixedRange(range);
         to = getFixedRange([to, 0])[0];
-        console.log("move", range, to, code.substring(range[0], range[1]));
+        console.log("----- move ---- ", range, to, code.substring(range[0], range[1]), '/------');
         var start = range[0];
         var end = range[1];
         //var diff = start - to;
+        console.log("before move", sourcemaping);
+        console.log("before replaced", code);
+
+
         for (var i = 0; i < sourcemaping.length; i++) {
             var map = sourcemaping[i];
             if (map.generated.pos >= start && map.generated.pos < end) {
-                map.generated.pos -= diff;
+                map.generated.pos += diff;
                 //console.log("Diff", map);
             }
         }
+        fixGenPosToLineColumn();
+        console.log("after move", sourcemaping);
     }
 
     /*var ranges = [[0, 1], [2, 3], [4, 5], [6, 7]];
@@ -652,17 +677,16 @@ module.exports = function (code, sourceMaps) {
 
     fixGenPosToLineColumn();
     //console.log(code);
-/*
     var generator = SourceMapGenerator.fromSourceMap(sourcemapConsumer);
     for (var i = 0; i < sourcemaping.length; i++) {
         //generator.addMapping(sourcemaping[i]);
         //console.log(sourcemaping[i]);
     }
-*/
     //console.log(sourcemaping);
 
-    //printMaps();
-    this.callback(null, code/*, generator.toString()*/);
+    printMaps();
+    this.callback(null, code, generator.toString());
+
 
     //this.callback(null, code, sourceMaps);
 };
