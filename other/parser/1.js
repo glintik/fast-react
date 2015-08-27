@@ -13,16 +13,74 @@ module.exports = function (code, sourceMaps) {
     var syntax = bb.ast;
 
     var sourcemap = [];
-/*
+    var sourcemaping = [];
     var sourcemapConsumer = new SourceMapConsumer(sourceMaps);
     sourcemapConsumer.eachMapping(function (item) {
-        sourcemap.push({
+        sourcemaping.push({
             source: item.source,
             original: {line: item.originalLine, column: item.originalColumn},
             generated: {line: item.generatedLine, column: item.generatedColumn}
         })
-    });
+    }, null, SourceMapConsumer.ORIGINAL_ORDER);
+
+    var origin = sourceMaps.sourcesContent[0];
+    var originMap = [];
+    var codeMap = [];
+    var _origin = origin.split('\n');
+    var _code = code.split('\n');
+    var pos = 0;
+
+    for (var i = 0; i < _origin.length; i++) {
+        var line = _origin[i];
+        originMap[i + 1] = new Array(line.length);
+        for (var j = 0; j <= line.length; j++) {
+            originMap[i + 1][j] = pos;
+            pos++;
+        }
+    }
+    pos = 0;
+    for (i = 0; i < _code.length; i++) {
+        line = _code[i];
+        codeMap[i + 1] = new Array(line.length);
+        for (j = 0; j <= line.length; j++) {
+            codeMap[i + 1][j] = pos;
+            pos++;
+        }
+    }
+
+
+    function printMaps() {
+        var prev;
+        for (var i = 0; i < sourcemaping.length; i++) {
+            var map = sourcemaping[i];
+            if (prev) {
+                var currOriginPos = originMap[map.original.line][map.original.column];
+                var lastOriginPos = originMap[prev.original.line][prev.original.column];
+                var currCodePos = codeMap[map.generated.line][map.generated.column];
+                var lastCodePos = codeMap[prev.generated.line][prev.generated.column];
+                //console.log(lastOriginPos, currOriginPos);
+                console.log(origin.substring(lastOriginPos, currOriginPos));
+/*
+                if (currOriginPos!=null && lastOriginPos!=null && lastCodePos!=null && currCodePos!=null){
+                    console.log(origin.substring(lastOriginPos, currOriginPos), '=======',
+                        code.substring(lastCodePos, currCodePos)
+                    );
+                }
 */
+                //console.log(lastOriginPos, currOriginPos, map.original);
+
+
+                //codeMap[map.generated.line][map.generated.column] = 1;
+                //console.log(origin.substring(lastOriginPos, currOriginPos));
+            }
+            //console.log(map.original.line, map.original.column);
+            prev = map;
+        }
+        //console.log(originMap);
+    }
+
+    printMaps();
+
     //console.log(sourcemap);
 
     var stack = [];
@@ -439,7 +497,12 @@ module.exports = function (code, sourceMaps) {
                     s += space + dom + '.appendChild(document.createTextNode(' + JSON.stringify(childS) + '))\n';
                 }
                 else if (child.type == 'JSXExpressionContainer' || (child.type == 'JSXElement' && child.openingElement.name.name[0].match(/[A-Z]/))) {
-                    glob.args.push({type: 'children', name: null, range: getRange(child), value: getVal(child, JSXElement, 'children')});
+                    glob.args.push({
+                        type: 'children',
+                        name: null,
+                        range: getRange(child),
+                        value: getVal(child, JSXElement, 'children')
+                    });
                     template.args.push(glob.pos);
                     //s += space + 'FastReact.create(' + dom + ', d, ' + glob.pos++ + ')\n';
                     childrenPos++;
@@ -486,15 +549,15 @@ module.exports = function (code, sourceMaps) {
     replace([0, 0], ss);
 
 
-/*
-    var generator = SourceMapGenerator.fromSourceMap(sourcemapConsumer);
-    for (var i = 0; i < sourcemap.length; i++) {
-        generator.addMapping(sourcemap[i]);
-        //console.log(sourcemap[i].generated.line);
-    }
-    console.log(code.split('\n').length);
+    /*
+        var generator = SourceMapGenerator.fromSourceMap(sourcemapConsumer);
+        for (var i = 0; i < sourcemap.length; i++) {
+            generator.addMapping(sourcemap[i]);
+            //console.log(sourcemap[i].generated.line);
+        }
+        console.log(code.split('\n').length);
 
-*/
+    */
     //this.callback(null, code, generator.toString());
     this.callback(null, code, sourceMaps);
 };
