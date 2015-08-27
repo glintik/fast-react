@@ -14,6 +14,7 @@ module.exports = function (code, sourceMaps) {
 
     var sourcemap = [];
     var sourcemaping = [];
+/*
     var sourcemapConsumer = new SourceMapConsumer(sourceMaps);
     sourcemapConsumer.eachMapping(function (item) {
         sourcemaping.push({
@@ -22,8 +23,9 @@ module.exports = function (code, sourceMaps) {
             generated: {line: item.generatedLine, column: item.generatedColumn}
         })
     }, null, SourceMapConsumer.ORIGINAL_ORDER);
+*/
 
-    var origin = sourceMaps.sourcesContent[0];
+    //var origin = sourceMaps.sourcesContent[0];
 
     function generateMap(code) {
         var _code = code.split('\n');
@@ -650,15 +652,17 @@ module.exports = function (code, sourceMaps) {
 
     fixGenPosToLineColumn();
     //console.log(code);
+/*
     var generator = SourceMapGenerator.fromSourceMap(sourcemapConsumer);
     for (var i = 0; i < sourcemaping.length; i++) {
         //generator.addMapping(sourcemaping[i]);
         //console.log(sourcemaping[i]);
     }
+*/
     //console.log(sourcemaping);
 
     //printMaps();
-    this.callback(null, code, generator.toString());
+    this.callback(null, code/*, generator.toString()*/);
 
     //this.callback(null, code, sourceMaps);
 };
