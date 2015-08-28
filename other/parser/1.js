@@ -72,12 +72,11 @@ module.exports = function (code, sourceMaps) {
             if (!pps) {
                 //console.log(codeMapPos);
                 //console.error('pos not found', map.generated.pos);
-                throw new Error('Pos not found:' + map.generated.pos + ', max:' + (codeMapPos.length - 1));
+                throw new Error('Pos not found:' + map.generated.pos + ', max:' + (codeMapPos.length - 1) + ', i=' + i);
             }
             else {
                 map.generated.line = pps.line;
                 map.generated.column = pps.column;
-
             }
 
         }
@@ -154,75 +153,101 @@ module.exports = function (code, sourceMaps) {
         return code.substring(newRange[0], newRange[1]);
     }
 
-    function replace(range, text) {
+    function replace(range, text, movedMaps) {
         var newRange = getFixedRange(range);
         if (newRange[0] < 0 || newRange[1] > code.length) {
-            console.error('Out of range', code.length, newRange, text);
+            throw new Error('Out of range' + code.length + newRange + text);
         }
         var preffix = code.substring(0, newRange[0]);
         var replaced = code.substring(newRange[0], newRange[1]);
         var suffix = code.substring(newRange[1]);
 
-        //console.log("--- replace ---- ", text, ' #### ', replaced, newRange, '/-----');
 
         var oldLen = newRange[1] - newRange[0];
-        console.log("--- replace ---- ", newRange, 'diff:', text.length - oldLen, '/-----');
+        //console.log("--- replace ---- ", newRange, 'diff:', text.length - oldLen, '/-----');
         //console.log(stack);
         //console.log(preffix, '/', text, '/', suffix, range, newRange);
         //console.log('');
         var diff = text.length - oldLen;
+        //console.log("--- replace ---- ", newRange, diff, [newRange[0], newRange[1] + diff], text, ' #### ', replaced, '/-----');
+
         stack.push({range: newRange, diff: text.length - oldLen});
         //console.log(code.length, newRange, newRange[1] + diff);
         /*
-                for (var i = 0; i < diff; i++) {
-                    code += " ";
-                }
-        */
+         for (var i = 0; i < diff; i++) {
+         code += " ";
+         }
+         */
         //sourcemaps.shiftGenRight(sourcemap, getNewLoc(newRange[1]), getNewLoc(newRange[1] + diff));
         for (var i = 0; i < sourcemaping.length; i++) {
             var map = sourcemaping[i];
-            //console.log("diff", map.pos, newRange[1]);
-            if (map.generated.pos >= newRange[0] && map.generated.pos < newRange[1]) {
-                //map.generated.pos = 0;
+            if (map.generated.skip) {
+                continue;
             }
-            if (map.generated.pos >= newRange[1]) {
-                map.generated.pos += diff;
+            // spread
+            if (diff > 0) {
+                if (map.generated.pos >= newRange[1]) {
+                    map.generated.pos += diff;
+                }
+                if (map.generated.pos >= newRange[0] && map.generated.pos < newRange[1] + diff) {
+                    //map.generated.pos = 0;
+                }
             }
-
+            else {
+                if (map.generated.pos >= newRange[1] + diff) {
+                    map.generated.pos += diff;
+                }
+                if (map.generated.pos >= newRange[0] && map.generated.pos < newRange[1]) {
+                    //map.generated.pos = 0;
+                }
+            }
         }
         //console.log("replace", newRange);
         code = preffix + text + suffix;
 
+        //console.log('---------- new code: \n', code);
+        if (movedMaps) {
+            for (var i = 0; i < movedMaps.length; i++) {
+                movedMaps[i].generated.skip = false;
+                //sourcemaping.push(movedMaps[i]);
+            }
+        }
+
         fixGenPosToLineColumn();
-        console.log("after replace", sourcemaping);
-        console.log("after code", code);
+        //console.log("after replace", sourcemaping);
+        //console.log("after code", code);
 
 
         //console.log("after replace ####\n", code, "\n######");
         //stack.sort(function (a, b) {return a[0] > b[0] ? 1 : -1});
     }
 
-    function moveSourceMap(range, to) {
+    function moveSourceMap(movedMaps, range, to) {
         var diff = to - range[0];
         range = getFixedRange(range);
         to = getFixedRange([to, 0])[0];
-        console.log("----- move ---- ", range, to, code.substring(range[0], range[1]), '/------');
         var start = range[0];
         var end = range[1];
+        //console.log("----- move ---- ", range, [to, end + diff], diff, code.substring(range[0], range[1]), '/------');
         //var diff = start - to;
-        console.log("before move", sourcemaping);
-        console.log("before replaced", code);
-
+        //console.log("before move", sourcemaping);
+        //console.log("before replaced", code);
 
         for (var i = 0; i < sourcemaping.length; i++) {
             var map = sourcemaping[i];
+            if (map.generated.skip) {
+                continue;
+            }
             if (map.generated.pos >= start && map.generated.pos < end) {
                 map.generated.pos += diff;
+                map.generated.skip = true;
+                //sourcemaping.splice(i, 1);
+                movedMaps.push(map);
                 //console.log("Diff", map);
             }
         }
-        fixGenPosToLineColumn();
-        console.log("after move", sourcemaping);
+        //fixGenPosToLineColumn();
+        //console.log("after move", sourcemaping);
     }
 
     /*var ranges = [[0, 1], [2, 3], [4, 5], [6, 7]];
@@ -304,6 +329,8 @@ module.exports = function (code, sourceMaps) {
         var s = '[FastReact.VComponent, null, null, ' + JSXElement.openingElement.name.name + ', null, {';
         //props.join(', ') + '}, null' + (ref ? ', ' + ref : '') + (key ? ', ' + key : '') + ']';
 
+        var movedMaps = [];
+
         var attrk = 0;
         for (var i = 0; i < tag.attributes.length; i++) {
             var attr = tag.attributes[i];
@@ -321,7 +348,7 @@ module.exports = function (code, sourceMaps) {
             if (attr.type == 'JSXAttribute') {
                 if (attr.value.type == 'JSXExpressionContainer') {
                     var val = getVal(attr.value, JSXElement);
-                    moveSourceMap(attr.value.range, startPos + s.length);
+                    moveSourceMap(movedMaps, attr.value.expression.range, startPos + s.length);
                 }
                 else {
                     val = attr.value.raw;
@@ -330,7 +357,7 @@ module.exports = function (code, sourceMaps) {
             }
             if (attr.type == 'JSXSpreadAttribute') {
                 s += '...' + getVal(attr.argument, JSXElement);
-                moveSourceMap(attr.argument.range, startPos + s.length);
+                //moveSourceMap(attr.argument.range, startPos + s.length);
             }
             s += ', ';
             attrk++;
@@ -352,14 +379,14 @@ module.exports = function (code, sourceMaps) {
                 }
                 else if (child.type == 'JSXExpressionContainer') {
                     var val = getVal(child, JSXElement);
-                    moveSourceMap(child.range, startPos + s.length);
+                    moveSourceMap(movedMaps, child.expression.range, startPos + s.length);
                     s += val;
                     s += ', ';
                     childk++;
                 }
                 else if (child.type == 'JSXElement') {
                     recur(JSXElement, child, 'children');
-                    moveSourceMap(child.range, startPos + s.length);
+                    moveSourceMap(movedMaps, child.range, startPos + s.length);
                     s += getText(child.range);
                     s += ', ';
                     childk++;
@@ -374,7 +401,7 @@ module.exports = function (code, sourceMaps) {
         s += ']}, null, ';
 
         if (ref) {
-            moveSourceMap(refRange, startPos + s.length);
+            moveSourceMap(movedMaps, refRange, startPos + s.length);
             s += ref;
         }
         else {
@@ -382,7 +409,7 @@ module.exports = function (code, sourceMaps) {
         }
         s += ',';
         if (key) {
-            moveSourceMap(keyRange, startPos + s.length);
+            moveSourceMap(movedMaps, keyRange, startPos + s.length);
             s += key;
         }
         else {
@@ -390,8 +417,7 @@ module.exports = function (code, sourceMaps) {
         }
         s += ']';
 
-        replace(JSXElement.range, s);
-        //sourcemaps.move(sourcemap, getLoc(range[0]), getLoc(range[1]));
+        replace(JSXElement.range, s, movedMaps);
         return;
     }
 
@@ -400,6 +426,7 @@ module.exports = function (code, sourceMaps) {
         if (isComponent) {
             return generateComponent(JSXElement);
         }
+        var movedMaps = [];
 
         var t = '_t' + templateId++;
         globTemplates.level++;
@@ -466,7 +493,7 @@ module.exports = function (code, sourceMaps) {
             //console.log(args);
             jsx += ', ';
             //console.log("prevMove");
-            moveSourceMap(args.range, startPos + jsx.length);
+            moveSourceMap(movedMaps, args.range, startPos + jsx.length);
             aaa.push([args.range, startPos + jsx.length]);
             jsx += args.value;
         }
@@ -474,7 +501,7 @@ module.exports = function (code, sourceMaps) {
         jsx += (glob.key ? ', ' + glob.key : '');
         jsx += ']';
         glob.data = jsx;
-        replace(JSXElement.range, jsx);
+        replace(JSXElement.range, jsx, movedMaps);
         //console.log("movesss");
         for (var i = 0; i < aaa.length; i++) {
             var item = aaa[i];
@@ -620,12 +647,16 @@ module.exports = function (code, sourceMaps) {
                     s += space + dom + '.appendChild(document.createTextNode(' + JSON.stringify(childS) + '))\n';
                 }
                 else if (child.type == 'JSXExpressionContainer' || (child.type == 'JSXElement' && child.openingElement.name.name[0].match(/[A-Z]/))) {
+                    if (child.type == 'JSXElement') {
+                        recur(JSXElement, child, 'children');
+                    }
                     glob.args.push({
                         type: 'children',
                         name: null,
                         value: getVal(child, JSXElement, 'children'),
                         range: getRange(child),
                     });
+
                     //console.log('------- ', getText(child.range));
                     template.args.push(glob.pos);
                     //s += space + 'FastReact.create(' + dom + ', d, ' + glob.pos++ + ')\n';
@@ -679,12 +710,12 @@ module.exports = function (code, sourceMaps) {
     //console.log(code);
     var generator = SourceMapGenerator.fromSourceMap(sourcemapConsumer);
     for (var i = 0; i < sourcemaping.length; i++) {
-        //generator.addMapping(sourcemaping[i]);
+        generator.addMapping(sourcemaping[i]);
         //console.log(sourcemaping[i]);
     }
     //console.log(sourcemaping);
 
-    printMaps();
+    //printMaps();
     this.callback(null, code, generator.toString());
 
 
