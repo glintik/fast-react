@@ -14,16 +14,19 @@ module.exports = function (code, sourceMaps) {
 
     var sourcemap = [];
     var sourcemaping = [];
-    var sourcemapConsumer = new SourceMapConsumer(sourceMaps);
-    sourcemapConsumer.eachMapping(function (item) {
-        sourcemaping.push({
-            source: item.source,
-            original: {line: item.originalLine, column: item.originalColumn},
-            generated: {line: item.generatedLine, column: item.generatedColumn}
-        })
-    }, null, SourceMapConsumer.ORIGINAL_ORDER);
+    var origin = '';
+    if (sourceMaps) {
+        var sourcemapConsumer = new SourceMapConsumer(sourceMaps);
+        sourcemapConsumer.eachMapping(function (item) {
+            sourcemaping.push({
+                source: item.source,
+                original: {line: item.originalLine, column: item.originalColumn},
+                generated: {line: item.generatedLine, column: item.generatedColumn}
+            })
+        }, null, SourceMapConsumer.ORIGINAL_ORDER);
+        origin = sourceMaps.sourcesContent[0];
+    }
 
-    var origin = sourceMaps.sourcesContent[0];
 
     setPosToMappings();
 
@@ -223,6 +226,9 @@ module.exports = function (code, sourceMaps) {
     }
 
     function moveSourceMap(movedMaps, range, to) {
+        //todo: Broken
+        return;
+
         var diff = to - range[0];
         range = getFixedRange(range);
         to = getFixedRange([to, 0])[0];
@@ -356,7 +362,8 @@ module.exports = function (code, sourceMaps) {
                 s += attr.name.name + ': ' + val;
             }
             if (attr.type == 'JSXSpreadAttribute') {
-                s += '...' + getVal(attr.argument, JSXElement);
+                //todo: props
+                s += 'props: ' + getVal(attr.argument, JSXElement);
                 //moveSourceMap(attr.argument.range, startPos + s.length);
             }
             s += ', ';
@@ -422,8 +429,7 @@ module.exports = function (code, sourceMaps) {
     }
 
     function generateTemplate(JSXElement) {
-        var isComponent = Boolean(JSXElement.openingElement.name.name[0].match(/[A-Z]/));
-        if (isComponent) {
+        if (isComponent(JSXElement)) {
             return generateComponent(JSXElement);
         }
         var movedMaps = [];
@@ -572,6 +578,19 @@ module.exports = function (code, sourceMaps) {
         //if (str) args.push(t.literal(str));
     }
 
+    function isComponent(child) {
+        var cmp = null;
+        if (child.type == 'JSXElement') {
+            cmp = child.openingElement.name;
+            if (cmp.type == 'JSXMemberExpression') {
+                cmp = getText(cmp.range);
+            }
+            else if (!cmp.name[0].match(/[A-Z]/)) {
+                cmp = null;
+            }
+        }
+        return cmp;
+    }
 
     function templateFn(JSXElement, glob, parentTemplate) {
         var template = {args: []};
@@ -635,8 +654,11 @@ module.exports = function (code, sourceMaps) {
         var childrenPos = 0;
         if (JSXElement.children) {
             var prevChild;
+
+
             for (var i = 0; i < JSXElement.children.length; i++) {
                 var child = JSXElement.children[i];
+
                 if (child.type == 'Literal') {
                     //console.log(child);
                     var childS = cleanJSXElementLiteralChild(child);
@@ -646,7 +668,7 @@ module.exports = function (code, sourceMaps) {
                     childrenPos++;
                     s += space + dom + '.appendChild(document.createTextNode(' + JSON.stringify(childS) + '))\n';
                 }
-                else if (child.type == 'JSXExpressionContainer' || (child.type == 'JSXElement' && child.openingElement.name.name[0].match(/[A-Z]/))) {
+                else if (child.type == 'JSXExpressionContainer' || isComponent(child)) {
                     if (child.type == 'JSXElement') {
                         recur(JSXElement, child, 'children');
                     }
@@ -708,15 +730,17 @@ module.exports = function (code, sourceMaps) {
 
     fixGenPosToLineColumn();
     //console.log(code);
-    var generator = SourceMapGenerator.fromSourceMap(sourcemapConsumer);
-    for (var i = 0; i < sourcemaping.length; i++) {
-        generator.addMapping(sourcemaping[i]);
-        //console.log(sourcemaping[i]);
+    if (sourceMaps) {
+        var generator = SourceMapGenerator.fromSourceMap(sourcemapConsumer);
+        for (var i = 0; i < sourcemaping.length; i++) {
+            generator.addMapping(sourcemaping[i]);
+            //console.log(sourcemaping[i]);
+        }
     }
     //console.log(sourcemaping);
 
     //printMaps();
-    this.callback(null, code, generator.toString());
+    this.callback(null, code, sourceMaps/*, JSON.parse(generator.toString())*/);
 
 
     //this.callback(null, code, sourceMaps);
