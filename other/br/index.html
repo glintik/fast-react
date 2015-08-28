@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+</head>
+<body>
+
+<script src="babel/browser.js" type="text/javascript"></script>
+<script type="text/javascript">
+
+    var code = '<div peow={hello(123)} key={wow()} name="wow"><Abc or="am" to={Yep}>Me?</Abc>Boom</div>';
+
+    var bb = babel.transform(code, {stage: 0, sourceMaps: true});
+    console.log(bb.code);
+
+
+</script>
+
+</body>
+</html>
