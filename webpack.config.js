@@ -9,20 +9,13 @@ module.exports = {
     },
 
     module: {
-        postLoaders: [
-            {
-                test: /\.js$/,
-                loader: './other/parser/1.js'
-            }
-        ],
         loaders: [
             {
                 test: /\.js$/,
-                loader: 'babel',
+                loader: 'babel-fast-react',
                 query: {
                     stage: 0,
-                    loose: ["es6.classes"],
-                    blacklist: ["react"]
+                    loose: ["es6.classes"]
                 }
             }
         ]

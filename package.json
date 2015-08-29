@@ -18,5 +18,9 @@
     "karma-sourcemap-loader": "^0.3.5",
     "karma-webpack": "^1.5.1",
     "source-map": "^0.4.4"
+  },
+  "dependencies": {
+    "babel-fast-react-core": "^5.8.24",
+    "babel-fast-react-loader": "^5.3.3"
   }
 }
