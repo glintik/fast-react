@@ -11664,65 +11664,99 @@ exports["default"] = function (opts) {
       }
       
   //cevek
-      var args = [];
-      var array = [];
-      var callArgs = callExpr.arguments;
-      var tag = callArgs[0];
-      var attrs = callArgs[1];
-      var key = t.literal(null);
-      var argsCount = 0;
-      var isComponent = t.isIdentifier(tag);
-      array.push(t.literal(1e+303));
-      array.push(tag);
+  var args = [];
+  var array = [];
+  var callArgs = callExpr.arguments;
+  var tag = callArgs[0];
+  var attrs = callArgs[1];
+  var key = t.literal(null);
+  var ref = t.literal(null);
+  var argsCount = 0;
+  var isComponent = t.isIdentifier(tag);
+  var base = '\u2425';
+  var VT = {COMPONENT: base + 'C', TAG: base + 'T', TEXT: base + '#'}
+
+  array.push(t.literal(isComponent ? VT.COMPONENT : VT.TAG));
+  //node
+  array.push(t.literal(null));
+  array.push(tag);
+  var children = [];
+  for(var i=2; i<callArgs.length; i++){
+    var child = callArgs[i];
+    if (t.isLiteral(child)){
+      var value = (child.value == null || typeof child.value == 'boolean') ? '' : child.value + '';
+      child = t.arrayExpression([t.literal(VT.TEXT), t.literal(null), t.literal(value)]);          
+    }
+    children.push(child);
+  }
+
+
+  if (isComponent){
+      // instance
       array.push(t.literal(null));
 
-      if (isComponent){
-          var children = [];
-          array.push(t.literal(null));
-          for(var i=2; i<callArgs.length; i++){
-              children.push(callArgs[i]);
-          }
-
-          if (t.isObjectExpression(attrs)){
-              attrs.properties.push(t.Property('init', t.Identifier('children'), t.arrayExpression(children)));
-          }
-          array.push(attrs);
-          if (t.isCallExpression(attrs)){
-              array.push(t.arrayExpression(children));
-          }
-
-          array.splice(3, 0, key);
-      }
-      else {
-          if (t.isCallExpression(attrs)){
-              array.push(t.literal("spread"));
-              array.push(attrs);
-              argsCount = 1;
-          }
-          if (t.isObjectExpression(attrs)){
-              var _args = attrs.properties;
-              for(var i=0; i<_args.length; i++){
-
-                  var keyNode = _args[i].key;
-                  var valueNode = _args[i].value;
-                  if (keyNode.name == 'key'){
-                      key = valueNode;
-                      continue;
-                  }
-                  keyNode.type = "Literal";
-                  keyNode.value = keyNode.name;
-                  array.push(keyNode);
-                  array.push(valueNode);
-                  argsCount++;
+      if (t.isObjectExpression(attrs)){
+          var _attrs = attrs.properties;
+          for(var i=0; i<_attrs.length; i++){
+              var keyNode = _attrs[i].key;
+              var valueNode = _attrs[i].value;
+              if (keyNode.name == 'key'){
+                  key = valueNode;
+                  _attrs.splice(i, 1);
+              }
+              if (keyNode.name == 'ref'){
+                  ref = valueNode;
+                  _attrs.splice(i, 1);
               }
           }
-          array.splice(3, 0, key);
-          array.splice(4, 0, t.literal(argsCount));
-          for(var i=2; i<callArgs.length; i++){
-              array.push(callArgs[i]);
+          attrs.properties.push(t.Property('init', t.Identifier('children'), t.arrayExpression(children)));
+      }
+
+      array.push(attrs);
+
+      if (t.isCallExpression(attrs)){
+          array.push(t.arrayExpression(children));
+      }
+
+      array.splice(3, 0, key);
+      array.splice(4, 0, ref);
+  }
+  else {
+      var constAttrs = [];
+      var varAttrs = [];
+      //spread
+      if (t.isCallExpression(attrs)){
+          varAttrs.push(t.literal(null));
+          varAttrs.push(attrs);
+      }
+      if (t.isObjectExpression(attrs)){
+          var _attrs = attrs.properties;
+          for(var i=0; i<_attrs.length; i++){
+              var keyNode = _attrs[i].key;
+              var valueNode = _attrs[i].value;
+              if (keyNode.name == 'key'){
+                  key = valueNode;
+                  continue;
+              }
+              keyNode = t.isLiteral(keyNode) ? keyNode : t.literal(keyNode.name);
+              if (t.isLiteral(valueNode)){
+                constAttrs.push(keyNode);
+                constAttrs.push(valueNode);
+              }
+              else {
+                varAttrs.push(keyNode);
+                varAttrs.push(valueNode);                    
+              }
           }
       }
-      return t.arrayExpression(array);
+      array.push(t.literal(constAttrs.length / 2 + varAttrs.length / 2));
+      array.push(t.literal(constAttrs.length / 2));
+      array = array.concat(constAttrs);
+      array = array.concat(varAttrs);
+      array.splice(3, 0, key);
+      array = array.concat(children);
+  }
+  return t.arrayExpression(array);
       //return t.inherits(callExpr, node);
     }
   };

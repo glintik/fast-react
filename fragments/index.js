@@ -1,4 +1,188 @@
 !function (global) {
+    var constAttrs = {
+        accept: 'accept',
+        acceptCharset: 'accept-charset',
+        accessKey: 'accessKey',
+        action: 'action',
+        allowFullScreen: 'allowFullScreen',
+        allowTransparency: 'allowTransparency',
+        alt: 'alt',
+        async: 'async',
+        autoComplete: 'autoComplete',
+        autoPlay: 'autoPlay',
+        capture: 'capture',
+        cellPadding: 'cellPadding',
+        cellSpacing: 'cellSpacing',
+        charSet: 'charSet',
+        challenge: 'challenge',
+        classID: 'classID',
+        cols: 'cols',
+        colSpan: 'colSpan',
+        content: 'content',
+        contentEditable: 'contentEditable',
+        contextMenu: 'contextMenu',
+        coords: 'coords',
+        crossOrigin: 'crossOrigin',
+        data: 'data',
+        dateTime: 'dateTime',
+        defer: 'defer',
+        dir: 'dir',
+        disabled: 'disabled',
+        download: 'download',
+        draggable: 'draggable',
+        encType: 'encType',
+        form: 'form',
+        formAction: 'formAction',
+        formEncType: 'formEncType',
+        formMethod: 'formMethod',
+        formNoValidate: 'formNoValidate',
+        formTarget: 'formTarget',
+        frameBorder: 'frameBorder',
+        headers: 'headers',
+        height: 'height',
+        hidden: 'hidden',
+        high: 'high',
+        href: 'href',
+        hrefLang: 'hrefLang',
+        htmlFor: 'for',
+        httpEquiv: 'http-equiv',
+        icon: 'icon',
+        inputMode: 'inputMode',
+        is: 'is',
+        keyParams: 'keyParams',
+        keyType: 'keyType',
+        label: 'label',
+        lang: 'lang',
+        list: 'list',
+        low: 'low',
+        manifest: 'manifest',
+        marginHeight: 'marginHeight',
+        marginWidth: 'marginWidth',
+        max: 'max',
+        maxLength: 'maxLength',
+        media: 'media',
+        mediaGroup: 'mediaGroup',
+        method: 'method',
+        min: 'min',
+        minLength: 'minLength',
+        name: 'name',
+        noValidate: 'noValidate',
+        open: 'open',
+        optimum: 'optimum',
+        pattern: 'pattern',
+        placeholder: 'placeholder',
+        poster: 'poster',
+        preload: 'preload',
+        radioGroup: 'radioGroup',
+        rel: 'rel',
+        required: 'required',
+        role: 'role',
+        rows: 'rows',
+        rowSpan: 'rowSpan',
+        sandbox: 'sandbox',
+        scope: 'scope',
+        scoped: 'scoped',
+        scrolling: 'scrolling',
+        seamless: 'seamless',
+        shape: 'shape',
+        size: 'size',
+        sizes: 'sizes',
+        span: 'span',
+        spellCheck: 'spellCheck',
+        src: 'src',
+        srcSet: 'srcSet',
+        start: 'start',
+        step: 'step',
+        style: 'style',
+        tabIndex: 'tabIndex',
+        target: 'target',
+        title: 'title',
+        type: 'type',
+        useMap: 'useMap',
+        width: 'width',
+        wmode: 'wmode',
+        autoCapitalize: 'autoCapitalize',
+        autoCorrect: 'autoCorrect',
+        itemProp: 'itemProp',
+        itemScope: 'itemScope',
+        itemType: 'itemType',
+        itemID: 'itemID',
+        itemRef: 'itemRef',
+        property: 'property',
+        security: 'security',
+        unselectable: 'unselectable',
+    };
+
+    var constProps = {
+        checked: 'checked',
+        className: 'className',
+        controls: 'controls',
+        id: 'id',
+        loop: 'loop',
+        multiple: 'multiple',
+        muted: 'muted',
+        readOnly: 'readOnly',
+        selected: 'selected',
+        srcDoc: 'srcdoc',
+        value: 'value'
+    };
+
+    var isUnitlessNumber = {
+        boxFlex: true,
+        boxFlexGroup: true,
+        columnCount: true,
+        flex: true,
+        flexGrow: true,
+        flexPositive: true,
+        flexShrink: true,
+        flexNegative: true,
+        fontWeight: true,
+        lineClamp: true,
+        lineHeight: true,
+        opacity: true,
+        order: true,
+        orphans: true,
+        widows: true,
+        zIndex: true,
+        zoom: true,
+
+        // SVG-related properties
+        fillOpacity: true,
+        strokeDashoffset: true,
+        strokeOpacity: true,
+        strokeWidth: true
+    };
+
+    var constEvents = {
+        onClick: 'onclick',
+        onDblClick: 'ondblclick',
+
+        onMouseDown: 'onmousedown',
+        onMouseUp: 'onmouseup',
+        onMouseMove: 'onmousemove',
+        onMouseEnter: 'onmouseenter',
+        onMouseLeave: 'onmouseleave',
+        onMouseOver: 'onmouseover',
+        onMouseOut: 'onmouseout',
+
+        onTouchStart: 'ontouchstart',
+        onTouchEnd: 'ontouchend',
+        onTouchMove: 'ontouchmove',
+        onTouchCancel: 'ontouchcancel',
+        onTouchLeave: 'ontouchleave',
+
+        onContextMenu: 'oncontextmenu',
+
+        onInput: 'oninput',
+        onFocus: 'onfocus',
+        onChange: 'onchange',
+
+        onKeyDown: 'onkeydown',
+        onKeyPress: 'onkeypress',
+        onKeyUp: 'onkeyup'
+    };
+
+
     var baseType = '\u2425';
     var VTag = baseType + 'T';
     var VText = baseType + '#';
@@ -11,7 +195,7 @@
     // 3/*key*/
     // 4/*attrsLen*/
     // 5/*constAttrsLen*/
-    var attrsStartPos = 6;
+    // 6/*attrsStartPos*/
 
     //VTextTuple[type, node, value]
     // 0/*type*/
@@ -55,7 +239,91 @@
         return [VText, null, child];
     }
 
+    function setRef(vdom, val, topComponent) {
+        //todo:
+    }
+
+    function setStyle(node, val) {
+        //todo:
+    }
+
+    function setSpreadAttrs(node, vdom, old, topComponent) {
+        var attrs = [];
+        var newAttrs = vdom[6/*attrsStartPos*/ + 1];
+        var oldAttrs = old ? old[6/*attrsStartPos*/ + 1] : null;
+        for (var attr in newAttrs) {
+            attrs.push(attr);
+            attrs.push(newAttrs[attr]);
+        }
+        vdom[6/*attrsStartPos*/ + 1] = attrs;
+        setAttrs(node, attrs, oldAttrs, 0, attrs.length, vdom, topComponent);
+    }
+
+    function setAttrs(node, attrs, oldAttrs, startPos, endPos, vdom, topComponent) {
+        var normAttr;
+        for (var i = startPos; i < endPos; i += 2) {
+            var attr = attrs[i];
+            var val = attrs[i + 1];
+            if (oldAttrs) {
+                if (oldAttrs[i + 1] === val) {
+                    continue;
+                }
+            }
+            if (normAttr = constAttrs[attr]) {
+                if (val == null || val === false) {
+                    if (oldAttrs) {
+                        node.removeAttribute(normAttr);
+                    }
+                }
+                else {
+                    node.setAttribute(normAttr, val);
+                }
+            }
+            else if (normAttr = constProps[attr]) {
+                //todo: how to remove?
+                node[normAttr] = val;
+            }
+            else if ((normAttr = constEvents[attr]) || ((normAttr = attr.toLowerCase()) && normAttr in document)) {
+                node[normAttr] = val;
+            }
+            else if (attr == 'style') {
+                setStyle(node, val);
+            }
+            else if (attr.substring(0, 4) == 'data') {
+                if (val == null || val === false) {
+                    if (oldAttrs) {
+                        node.removeAttribute(attr);
+                    }
+                }
+                else {
+                    node.setAttribute(attr, val);
+                }
+            }
+            else if (attr == 'key') {
+                vdom[3/*key*/] = val;
+            }
+            else if (attr == 'ref') {
+                //todo:check
+                if (!oldAttrs) {
+                    setRef(vdom, val, topComponent);
+                }
+            }
+        }
+    }
+
     function create(vdom, parent, pos, rootNode, before, topComponent) {
+
+        if (vdom[0/*type*/] == VTag || vdom[0/*type*/] == VComponent) {
+            if (vdom[3/*key*/] != null) {
+                if (parent[0/*type*/] != VArray) {
+                    console.error('Keys supports only in arrays');
+                }
+                if (typeof parent[3/*keymap*/] != 'object') {
+                    parent[3/*keymap*/] = {};
+                }
+                parent[3/*keymap*/][vdom[3/*key*/]] = i;
+            }
+        }
 
         //console.log("create", vdom);
         var type = vdom[0/*type*/];
@@ -64,6 +332,38 @@
             //VTextTuple[type, node, value]
             vdom[1/*node*/] = document.createTextNode(vdom[2/*text*/]);
             rootNode.insertBefore(vdom[1/*node*/], before);
+        }
+        else if (type == VTag) {
+            //VTagTuple[type, node, tag, key, attrsLen, constAttrsLen, ...attrs, ...children]
+            // 0/*type*/
+            // 1/*node*/
+            // 2/*tag*/
+            // 3/*key*/
+            // 4/*attrsLen*/
+            // 5/*constAttrsLen*/
+            // 6/*attrsStartPos*/
+            var node = vdom[1/*node*/] = rootNode.insertBefore(document.createElement(vdom[2/*tag*/]), before);
+
+            //todo: attrs hash
+            if (vdom[4/*attrsLen*/] == 1 && vdom[6/*attrsStartPos*/] == null) {
+                setSpreadAttrs(node, vdom, null, topComponent);
+            }
+            else {
+                var attrsStart = 6/*attrsStartPos*/;
+                var attrsEnd = 6/*attrsStartPos*/ + vdom[4/*attrsLen*/] * 2;
+                if (attrsEnd - attrsStart > 0) {
+                    setAttrs(node, vdom, null, attrsStart, attrsEnd, vdom, topComponent);
+                }
+            }
+
+            for (var i = 6/*attrsStartPos*/ + vdom[4/*attrsLen*/] * 2; i < vdom.length; i++) {
+                var child = vdom[i];
+                if (!(typeof child == 'object' && child && typeof child[0] == 'string' && child[0][0] == baseType)) {
+                    child = vdom[i] = normOnly(child);
+                }
+                create(child, vdom, i, node, null, topComponent);
+            }
+
         }
         else if (type == VArray) {
             //VArrayTuple[type, node, parentNode, keyMap, sourceArray, ...values]
@@ -102,6 +402,29 @@
         else if (type == VText) {
             if (vdom[2/*text*/] !== old[2/*text*/]) {
                 old[2/*text*/] = old[1/*node*/].textContent = vdom[2/*text*/];
+            }
+        }
+        else if (type == VTag) {
+            var node = old[1/*node*/];
+            //todo: attrs hash
+            //spread
+            if (vdom[4/*attrsLen*/] == 1 && vdom[6/*attrsStartPos*/] == null) {
+                setSpreadAttrs(node, vdom, old, topComponent, true);
+            }
+            else {
+                var attrsStart = 6/*attrsStartPos*/ + (vdom[4/*attrsLen*/] - vdom[5/*constAttrsLen*/]) * 2;
+                var attrsEnd = 6/*attrsStartPos*/ + vdom[4/*attrsLen*/] * 2;
+                if (attrsEnd - attrsStart > 0) {
+                    setAttrs(node, vdom, old, attrsStart, attrsEnd, vdom, topComponent);
+                }
+            }
+
+            for (var i = 6/*attrsStartPos*/ + vdom[4/*attrsLen*/] * 2; i < vdom.length; i++) {
+                var child = vdom[i];
+                if (!(typeof child == 'object' && child && typeof child[0] == 'string' && child[0][0] == baseType)) {
+                    child = vdom[i] = normOnly(child);
+                }
+                update(old, i, old[i], child, topComponent);
             }
         }
         else if (type == VArray) {
