@@ -243,12 +243,21 @@
         return [VText, null, child];
     }
 
-    function setRef(vdom, val, topComponent, isComponent) {
-        //todo:
+    function setRef(vdom, val, topComponent) {
+        if (!topComponent.refs) {
+            topComponent.refs = {};
+        }
+        //todo: optional real node or vdom
+        if (typeof val == 'function') {
+            val(node);
+        }
+        else {
+            topComponent.refs[val] = vdom;
+        }
     }
 
     function setStyle(node, val) {
-        //todo:
+        //todo: setStyle
     }
 
     function setSpreadAttrs(node, vdom, old, topComponent) {
@@ -328,10 +337,7 @@
                 vdom[3/*key*/] = val;
             }
             else if (attr == 'ref') {
-                //todo:check
-                if (!isUpdate) {
-                    setRef(vdom, val, topComponent);
-                }
+                setRef(vdom, val, topComponent, isUpdate);
             }
         }
     }
@@ -371,7 +377,6 @@
             // 7/*attrsStartPos*/
             var node = vdom[1/*node*/] = rootNode.insertBefore(document.createElement(vdom[2/*tag*/]), before);
 
-            //todo: attrs hash
             if (vdom[5/*attrsLen*/] == 1 && vdom[7/*attrsStartPos*/] == null) {
                 setSpreadAttrs(node, vdom, null, topComponent);
             }
@@ -413,7 +418,7 @@
             vdom[3/*sourceArray*/] = null;
         }
         else if (type == VComponent) {
-            createComponent(vdom, rootNode, before);
+            createComponent(vdom, rootNode, before, topComponent);
         }
         return vdom;
     }
@@ -436,7 +441,6 @@
             if (vdom[4/*attrsHash*/] !== old[4/*attrsHash*/]) {
                 replace(oldParent, oldPos, old, vdom, topComponent);
                 console.log("Replaced cause attrs hash", vdom[4], old[4]);
-
                 return oldParent[oldPos];
             }
             //spread
@@ -518,7 +522,8 @@
             if (old.length > i && oldChild != null && typeof oldChild == 'object') {
                 oldChildType = oldChild[0/*type*/];
             }
-            if (newChildType == VTag) {
+            if (newChildType == VTag || newChildType == VComponent) {
+                //todo: what if spread
                 newKey = newChild[3/*key*/];
                 // fitPos = old.keyMap[newKey];
                 fitPos = keyMap[newKey];
@@ -535,7 +540,6 @@
                     // vdom.keymap[newKey] = i;
                     keyMap[newKey] = i;
                 }
-                //todo:check
                 vdom[i] = update(old, fitPos, old[fitPos], newChild, topComponent);
                 //after update restore old
                 //vdom[i] = old[fitPos];
@@ -564,7 +568,7 @@
                 oldChild = old[i];
                 if (oldChild) {
                     keyMap[oldChild[3/*key*/]] = null;
-                    remove(rootNode, oldChild);
+                    remove(rootNode, oldChild, true);
                     old[i] = null;
                     if (oldLenFull == ++fitCount) {
                         break;
@@ -639,27 +643,33 @@
             before = old[1/*node*/];
         }
         create(vdom, null, null, parentNode, before, topComponent);
-        remove(parentNode, old);
+        remove(parentNode, old, true);
         oldParent[oldPos] = vdom;
     }
 
-    function remove(parentNode, vdom) {
-        //todo deep remove
-        //todo componentWillUnmount
+    function remove(parentNode, vdom, removeFromDom) {
         var type = vdom[0/*type*/];
         if (type == VComponent || type == VArray) {
             if (type == VArray) {
                 //VArrayTuple[type, node, parentNode, keyMap, sourceArray, ...values]
                 for (var i = arrayStartPos; i < vdom.length; i++) {
-                    remove(vdom[1/*parentNode*/], vdom[i]);
+                    remove(vdom[1/*parentNode*/], vdom[i], removeFromDom);
                 }
             }
             else if (type == VComponent) {
-                remove(vdom[1/*parentNode*/], vdom[7/*children*/]);
+                vdom[5/*instance*/].componentWillUnmount();
+                remove(vdom[1/*parentNode*/], vdom[7/*children*/], removeFromDom);
             }
         }
         else {
-            parentNode.removeChild(vdom[1/*node*/]);
+            if (type == VTag) {
+                for (i = 7/*attrsStartPos*/ + vdom[5/*attrsLen*/] * 2; i < vdom.length; i++) {
+                    remove(vdom[1/*node*/], vdom[i], false);
+                }
+            }
+            if (removeFromDom) {
+                parentNode.removeChild(vdom[1/*node*/]);
+            }
         }
     }
 
@@ -670,6 +680,32 @@
         }
     }
 
+    function prepareComponentProps(vdom, isUpdate, topComponent) {
+        var props = vdom[6/*props*/];
+        //spread props
+        if (vdom.length == 8/*propsChildren*/ + 1) {
+            var _props = {children: vdom[8/*propsChildren*/]};
+            for (var prop in props) {
+                var val = props[prop];
+                if (prop == 'key') {
+                    vdom[3/*key*/] = val;
+                    continue;
+                }
+                if (prop == 'ref') {
+                    vdom[4/*ref*/] = val;
+                    continue;
+                }
+                _props[prop] = val;
+            }
+            props = _props;
+        }
+
+        if (vdom[4/*ref*/]) {
+            setRef(vdom, vdom[4/*ref*/], topComponent, isUpdate);
+        }
+        return props;
+    }
+
     function updateComponent(oldParent, oldPos, old, vdom, topComponent) {
         //VComponentTuple[type, node, parentNode, Ctor, instance, props, children, ref, key?]
         var component = old[5/*instance*/];
@@ -677,28 +713,7 @@
             replace(oldParent, oldPos, old, vdom, component);
         }
         else {
-            var props = vdom[6/*props*/];
-            //spread props
-            if (vdom.length == 8/*propsChildren*/ + 1) {
-                var _props = {children: vdom[8/*propsChildren*/]};
-                for (var prop in props) {
-                    var val = props[prop];
-                    if (prop == 'key') {
-                        vdom[3/*key*/] = val;
-                        continue;
-                    }
-                    if (prop == 'ref') {
-                        vdom[4/*ref*/] = val;
-                        continue;
-                    }
-                    _props[prop] = val;
-                }
-                props = _props;
-            }
-
-            if (vdom[4/*ref*/]){
-                setRef(vdom, vdom[4/*ref*/], topComponent, true);
-            }
+            var props = prepareComponentProps(vdom, true, topComponent);
             component.componentWillReceiveProps(props);
             component.props = old[6/*props*/] = props;
             component.forceUpdate();
@@ -706,12 +721,11 @@
         }
     }
 
-    function createComponent(vdom, rootNode, before) {
-        //todo: extend props
+    function createComponent(vdom, rootNode, before, topComponent) {
         var Ctor = vdom[2/*Ctor*/];
         //VComponentTuple[type, node, parentNode, Ctor, instance, props, children, ref, key?]
         vdom[1/*parentNode*/] = rootNode;
-        var props = vdom[6/*props*/];
+        var props = prepareComponentProps(vdom, false, topComponent);
         var component = vdom[5/*instance*/] = new Ctor(props);
         component.node = vdom;
         component.componentWillMount();
@@ -736,8 +750,18 @@
     ComponentProto.componentWillUpdate = function () {};
     ComponentProto.componentDidUpdate = function () {};
     ComponentProto.componentWillReceiveProps = function () {};
-    ComponentProto.componentWillUnmount = function () {}; //todo
-    ComponentProto.setState = function () {}; //todo
+    ComponentProto.componentWillUnmount = function () {};
+    ComponentProto.setState = function (state) {
+        if (this.state) {
+            for (var key in state) {
+                this.state[key] = state[key];
+            }
+        }
+        else {
+            this.state = state;
+        }
+        this.forceUpdate();
+    };
     ComponentProto.render = function () {return null};
     ComponentProto.forceUpdate = function () {
         //VComponentTuple[type, node, parentNode, Ctor, instance, props, children, ref, key?]
