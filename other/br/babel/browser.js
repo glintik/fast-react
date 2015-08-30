@@ -11652,7 +11652,9 @@ exports["default"] = function (opts) {
   /**
    * [Please add a description.]
    */
-
+var hashCode = function(s){
+  return s.split("").reduce(function(a,b){a=((a<<5)-a)+b.charCodeAt(0);return a&a},0);              
+};
   visitor.JSXElement = {
     exit: function exit(node) {
       var callExpr = node.openingElement;
@@ -11724,10 +11726,12 @@ exports["default"] = function (opts) {
   else {
       var constAttrs = [];
       var varAttrs = [];
+      var hash = [];
       //spread
       if (t.isCallExpression(attrs)){
           varAttrs.push(t.literal(null));
           varAttrs.push(attrs);
+          hash.push("&spread");
       }
       if (t.isObjectExpression(attrs)){
           var _attrs = attrs.properties;
@@ -11738,18 +11742,23 @@ exports["default"] = function (opts) {
                   key = valueNode;
                   continue;
               }
+          
               keyNode = t.isLiteral(keyNode) ? keyNode : t.literal(keyNode.name);
+
               if (t.isLiteral(valueNode)){
                 constAttrs.push(keyNode);
                 constAttrs.push(valueNode);
+                hash.push(keyNode.value);
               }
               else {
                 varAttrs.push(keyNode);
                 varAttrs.push(valueNode);                    
-              }
+                hash.push('&'+keyNode.value);
+            }
           }
       }
-      array.push(t.literal(constAttrs.length / 2 + varAttrs.length / 2));
+      array.push(t.literal(hash.join()));
+      array.push(t.literal(varAttrs.length / 2 + constAttrs.length / 2));
       array.push(t.literal(constAttrs.length / 2));
       array = array.concat(constAttrs);
       array = array.concat(varAttrs);

@@ -110,7 +110,7 @@
         itemRef: 'itemRef',
         property: 'property',
         security: 'security',
-        unselectable: 'unselectable',
+        unselectable: 'unselectable'
     };
 
     var constProps = {
@@ -127,6 +127,7 @@
         value: 'value'
     };
 
+    //noinspection JSUnusedLocalSymbols
     var isUnitlessNumber = {
         boxFlex: true,
         boxFlexGroup: true,
@@ -188,14 +189,17 @@
     var VText = baseType + '#';
     var VComponent = baseType + 'C';
     var VArray = baseType + 'A';
-    //VTagTuple[type, node, tag, key, attrsLen, constAttrsLen, ...attrs, ...children]
+
+    //a.match(/\d+\/\*\w+\*\//g).filter(function(value, index, self) {return self.indexOf(value) === index})
+    //VTagTuple[type, node, tag, key, attrsHash, attrsLen, constAttrsLen, ...attrs, ...children]
     // 0/*type*/
     // 1/*node*/
     // 2/*tag*/
     // 3/*key*/
-    // 4/*attrsLen*/
-    // 5/*constAttrsLen*/
-    // 6/*attrsStartPos*/
+    // 4/*attrsHash*/
+    // 5/*attrsLen*/
+    // 6/*constAttrsLen*/
+    // 7/*attrsStartPos*/
 
     //VTextTuple[type, node, value]
     // 0/*type*/
@@ -217,10 +221,10 @@
     // 3/*key*/
     // 4/*ref*/
     // 5/*instance*/
-    // 5/*props*/
+    // 6/*props*/
     // 7/*children*/
     // 8/*propsChildren*/
-    var hasPropsChildrenLen = 9;
+    //var hasPropsChildrenLen = 9;
 
     function normOnly(child) {
         if (child == null) {
@@ -249,13 +253,13 @@
 
     function setSpreadAttrs(node, vdom, old, topComponent) {
         var attrs = [];
-        var newAttrs = vdom[6/*attrsStartPos*/ + 1];
-        var oldAttrs = old ? old[6/*attrsStartPos*/ + 1] : null;
+        var newAttrs = vdom[7/*attrsStartPos*/ + 1];
+        var oldAttrs = old ? old[7/*attrsStartPos*/ + 1] : null;
         for (var attr in newAttrs) {
             attrs.push(attr);
             attrs.push(newAttrs[attr]);
         }
-        vdom[6/*attrsStartPos*/ + 1] = attrs;
+        vdom[7/*attrsStartPos*/ + 1] = attrs;
         setAttrs(node, attrs, oldAttrs, 0, attrs.length, vdom, topComponent);
     }
 
@@ -264,10 +268,12 @@
         for (var i = startPos; i < endPos; i += 2) {
             var attr = attrs[i];
             var val = attrs[i + 1];
+
             if (oldAttrs) {
                 if (oldAttrs[i + 1] === val) {
                     continue;
                 }
+                oldAttrs[i + 1] = val;
             }
             if (normAttr = constAttrs[attr]) {
                 if (val == null || val === false) {
@@ -318,15 +324,17 @@
                 if (parent[0/*type*/] != VArray) {
                     console.error('Keys supports only in arrays');
                 }
-                if (typeof parent[3/*keymap*/] != 'object') {
-                    parent[3/*keymap*/] = {};
+                if (typeof parent[2/*keymap*/] != 'object') {
+                    parent[2/*keymap*/] = {};
                 }
-                parent[3/*keymap*/][vdom[3/*key*/]] = i;
+                parent[2/*keymap*/][vdom[3/*key*/]] = pos;
             }
         }
 
         //console.log("create", vdom);
         var type = vdom[0/*type*/];
+        var child;
+        var i;
 
         if (type == VText) {
             //VTextTuple[type, node, value]
@@ -339,25 +347,25 @@
             // 1/*node*/
             // 2/*tag*/
             // 3/*key*/
-            // 4/*attrsLen*/
-            // 5/*constAttrsLen*/
-            // 6/*attrsStartPos*/
+            // 5/*attrsLen*/
+            // 6/*constAttrsLen*/
+            // 7/*attrsStartPos*/
             var node = vdom[1/*node*/] = rootNode.insertBefore(document.createElement(vdom[2/*tag*/]), before);
 
             //todo: attrs hash
-            if (vdom[4/*attrsLen*/] == 1 && vdom[6/*attrsStartPos*/] == null) {
+            if (vdom[5/*attrsLen*/] == 1 && vdom[7/*attrsStartPos*/] == null) {
                 setSpreadAttrs(node, vdom, null, topComponent);
             }
             else {
-                var attrsStart = 6/*attrsStartPos*/;
-                var attrsEnd = 6/*attrsStartPos*/ + vdom[4/*attrsLen*/] * 2;
+                var attrsStart = 7/*attrsStartPos*/;
+                var attrsEnd = 7/*attrsStartPos*/ + vdom[5/*attrsLen*/] * 2;
                 if (attrsEnd - attrsStart > 0) {
                     setAttrs(node, vdom, null, attrsStart, attrsEnd, vdom, topComponent);
                 }
             }
 
-            for (var i = 6/*attrsStartPos*/ + vdom[4/*attrsLen*/] * 2; i < vdom.length; i++) {
-                var child = vdom[i];
+            for (i = 7/*attrsStartPos*/ + vdom[5/*attrsLen*/] * 2; i < vdom.length; i++) {
+                child = vdom[i];
                 if (!(typeof child == 'object' && child && typeof child[0] == 'string' && child[0][0] == baseType)) {
                     child = vdom[i] = normOnly(child);
                 }
@@ -372,11 +380,11 @@
             //vdom[1/*node*/] = rootNode.insertBefore(document.createComment('array'), before);
             //iterate source array
             var sourceArray = vdom[3/*sourceArray*/];
-            for (var i = 0; i < sourceArray.length; i++) {
+            for (i = 0; i < sourceArray.length; i++) {
                 var vdomPos = i + arrayStartPos;
                 var _child = sourceArray[i];
                 if (typeof _child == 'object' && _child && typeof _child[0] == 'string' && _child[0][0] == baseType) {
-                    var child = vdom[vdomPos] = _child;
+                    child = vdom[vdomPos] = _child;
                 }
                 else {
                     child = vdom[vdomPos] = normOnly(_child);
@@ -406,20 +414,25 @@
         }
         else if (type == VTag) {
             var node = old[1/*node*/];
-            //todo: attrs hash
+            if (vdom[4/*attrsHash*/] !== old[4/*attrsHash*/]) {
+                replace(oldParent, oldPos, old, vdom, topComponent);
+                console.log("Replaced cause attrs hash", vdom[4], old[4]);
+
+                return oldParent[oldPos];
+            }
             //spread
-            if (vdom[4/*attrsLen*/] == 1 && vdom[6/*attrsStartPos*/] == null) {
+            if (vdom[5/*attrsLen*/] == 1 && vdom[7/*attrsStartPos*/] == null) {
                 setSpreadAttrs(node, vdom, old, topComponent, true);
             }
             else {
-                var attrsStart = 6/*attrsStartPos*/ + (vdom[4/*attrsLen*/] - vdom[5/*constAttrsLen*/]) * 2;
-                var attrsEnd = 6/*attrsStartPos*/ + vdom[4/*attrsLen*/] * 2;
+                var attrsStart = 7/*attrsStartPos*/ + vdom[6/*constAttrsLen*/] * 2;
+                var attrsEnd = 7/*attrsStartPos*/ + vdom[5/*attrsLen*/] * 2;
                 if (attrsEnd - attrsStart > 0) {
                     setAttrs(node, vdom, old, attrsStart, attrsEnd, vdom, topComponent);
                 }
             }
 
-            for (var i = 6/*attrsStartPos*/ + vdom[4/*attrsLen*/] * 2; i < vdom.length; i++) {
+            for (var i = 7/*attrsStartPos*/ + vdom[5/*attrsLen*/] * 2; i < vdom.length; i++) {
                 var child = vdom[i];
                 if (!(typeof child == 'object' && child && typeof child[0] == 'string' && child[0][0] == baseType)) {
                     child = vdom[i] = normOnly(child);
@@ -489,7 +502,7 @@
                 fitPos = keyMap[newKey];
             }
             else {
-                if (oldChildType && (oldChildType.constructor !== VTemplate || oldChildType.keyPos == -1)) {
+                if (oldChildType && ((oldChild != VTag && oldChild != VComponent) || oldChild[3/*key*/] == null)) {
                     fitPos = i;
                 }
             }
@@ -642,9 +655,9 @@
             replace(oldParent, oldPos, old, vdom, component);
         }
         else {
-            var props = vdom[5/*props*/];
+            var props = vdom[6/*props*/];
             component.componentWillReceiveProps(props);
-            component.props = old[5/*props*/] = props;
+            component.props = old[6/*props*/] = props;
             component.forceUpdate();
             //destroy(newNode);
         }
@@ -655,11 +668,10 @@
         var Ctor = vdom[2/*Ctor*/];
         //VComponentTuple[type, node, parentNode, Ctor, instance, props, children, ref, key?]
         vdom[1/*parentNode*/] = rootNode;
-        var props = vdom[5/*props*/];
+        var props = vdom[6/*props*/];
         var component = vdom[5/*instance*/] = new Ctor(props);
         component.node = vdom;
         component.componentWillMount();
-        //todo: maybe norm?
         vdom[7/*children*/] = component.render();
         var prevComponent = globs.component;
         globs.component = component;
@@ -689,7 +701,6 @@
         this.componentWillUpdate();
         var prevComponent = globs.component;
         globs.component = this;
-        //todo: maybe norm?
         update(this.node, 7/*children*/, this.node[7/*children*/], this.render(), this);
         globs.component = prevComponent;
         this.componentDidUpdate();
@@ -702,11 +713,10 @@
         render: function (vdom, rootNode) {
             if (typeof rootNode._vdom == 'undefined') {
                 rootNode._vdom = vdom;
-                //todo: maybe norm?
                 return create(vdom, null, null, rootNode, null);
             }
             var old = rootNode._vdom;
-            return rootNode._vdom = update([VTag, null, old], 2/*templateFirstValue*/, old, vdom, null);
+            return rootNode._vdom = update([old], 0, old, vdom, null);
         }
     };
 }(window);

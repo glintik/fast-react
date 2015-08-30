@@ -42,16 +42,10 @@ module.exports = function (config) {
          */
         webpack: {
             module: {
-                preLoaders: [
-                    {
-                        test: /\.js$/,
-                        loader: '../../other/parser/1.js'
-                    }
-                ],
                 loaders: [
                     {
                         test: /\.js$/,
-                        loader: 'babel',
+                        loader: 'babel-fast-react',
                         query: {
                             stage: 0,
                             loose: ["es6.classes"]
