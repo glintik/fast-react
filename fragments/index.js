@@ -243,7 +243,7 @@
         return [VText, null, child];
     }
 
-    function setRef(vdom, val, topComponent) {
+    function setRef(vdom, val, topComponent, isComponent) {
         //todo:
     }
 
@@ -464,7 +464,7 @@
             updateChildren(oldParent, oldPos, old, vdom, topComponent);
         }
         else if (type == VComponent) {
-            updateComponent(oldParent, oldPos, old, vdom);
+            updateComponent(oldParent, oldPos, old, vdom, topComponent);
         }
         return oldParent[oldPos];
     }
@@ -670,15 +670,35 @@
         }
     }
 
-    function updateComponent(oldParent, oldPos, old, vdom) {
+    function updateComponent(oldParent, oldPos, old, vdom, topComponent) {
         //VComponentTuple[type, node, parentNode, Ctor, instance, props, children, ref, key?]
-        //todo: extend props
         var component = old[5/*instance*/];
         if (old[2/*Ctor*/] !== vdom[2/*Ctor*/]) {
             replace(oldParent, oldPos, old, vdom, component);
         }
         else {
             var props = vdom[6/*props*/];
+            //spread props
+            if (vdom.length == 8/*propsChildren*/ + 1) {
+                var _props = {children: vdom[8/*propsChildren*/]};
+                for (var prop in props) {
+                    var val = props[prop];
+                    if (prop == 'key') {
+                        vdom[3/*key*/] = val;
+                        continue;
+                    }
+                    if (prop == 'ref') {
+                        vdom[4/*ref*/] = val;
+                        continue;
+                    }
+                    _props[prop] = val;
+                }
+                props = _props;
+            }
+
+            if (vdom[4/*ref*/]){
+                setRef(vdom, vdom[4/*ref*/], topComponent, true);
+            }
             component.componentWillReceiveProps(props);
             component.props = old[6/*props*/] = props;
             component.forceUpdate();
