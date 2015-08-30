@@ -11696,27 +11696,31 @@ var hashCode = function(s){
   if (isComponent){
       // instance
       array.push(t.literal(null));
-
-      if (t.isObjectExpression(attrs)){
-          var _attrs = attrs.properties;
-          for(var i=0; i<_attrs.length; i++){
-              var keyNode = _attrs[i].key;
-              var valueNode = _attrs[i].value;
-              if (keyNode.name == 'key'){
-                  key = valueNode;
-                  _attrs.splice(i, 1);
-              }
-              if (keyNode.name == 'ref'){
-                  ref = valueNode;
-                  _attrs.splice(i, 1);
-              }
-          }
-          attrs.properties.push(t.Property('init', t.Identifier('children'), t.arrayExpression(children)));
+      var isObject = !t.isCallExpression(attrs) && !t.isIdentifier(attrs);
+      if (isObject){
+        if (t.isObjectExpression(attrs)){
+            var _attrs = attrs.properties;
+            for(var i=0; i<_attrs.length; i++){
+                var keyNode = _attrs[i].key;
+                var valueNode = _attrs[i].value;
+                if (keyNode.name == 'key'){
+                    key = valueNode;
+                    _attrs.splice(i, 1);
+                }
+                if (keyNode.name == 'ref'){
+                    ref = valueNode;
+                    _attrs.splice(i, 1);
+                }
+            }
+        }
+        else  {
+          attrs = t.objectExpression([]);
+        }
+        attrs.properties.push(t.Property('init', t.Identifier('children'), t.arrayExpression(children)));
       }
-
       array.push(attrs);
 
-      if (t.isCallExpression(attrs)){
+      if (!isObject){
           array.push(t.arrayExpression(children));
       }
 

@@ -17,3 +17,6 @@ var attrs = {id: "test", title: "Who", className: "Peop", "data-be": 456};
 var item = <div title={console.log('hoy')} data-hey="asdf" {...attrs} onClick={click} className="wow">Hello {value}</div>;
 FastReact.render(item, document.body);
 
+var item = <FF {...attrs}>Hello {value}</FF>;
+var item = <FF>Hello {value}</FF>;
+var item = <FF name="adsf">Hello {value}</FF>;

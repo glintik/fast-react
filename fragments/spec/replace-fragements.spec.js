@@ -65,12 +65,12 @@ describe("Replace Components", () => {
 
     it('component <=> array', () => {
         new Test()
-            .create(<MyNameIs name={[1,[2],3]}/>, `<div>My name is 123</div>`)
-            .update(<MyNameIs name={[[4,5,6]]}/>, `<div>My name is 456</div>`)
-            .update(<MyNameIs name={[3,[4,[5],6],7]}/>, `<div>My name is 34567</div>`)
-            .update(<MyNameIs name={[1,[<MyNameIs name={[2,3,4]}/>],5]}/>, `<div>My name is 1<div>My name is 234</div>5</div>`)
-            .update(<MyNameIs name={[1,<Foo text="wow">Foo {123} {456}</Foo>, 7]}/>, `<div>My name is 1<div>Bar Foo 123 456 wow</div>7</div>`)
-            .update(<MyNameIs name={[1,[2,[3,[4]]],5]}/>, `<div>My name is 12345</div>`)
-            .update(<MyNameIs name={[1,2,3,4]}/>, `<div>My name is 1234</div>`)
+            .create(<MyNameIs name={[[],1,[2],3]}/>, `<div>My name is 123</div>`)
+            .update(<MyNameIs name={[[[],4,[],5,6]]}/>, `<div>My name is 456</div>`)
+            .update(<MyNameIs name={[3,[],[4,[5],6],7]}/>, `<div>My name is 34567</div>`)
+            .update(<MyNameIs name={[1,[[],<MyNameIs name={[[],2,3,[],4]}/>],5]}/>, `<div>My name is 1<div>My name is 234</div>5</div>`)
+            .update(<MyNameIs name={[1,[[],<Foo text="wow">Foo {123} {456}</Foo>, 7]]}/>, `<div>My name is 1<div>Bar Foo 123 456 wow</div>7</div>`)
+            .update(<MyNameIs name={[[1],[2,[],[3,[4]]],5]}/>, `<div>My name is 12345</div>`)
+            .update(<MyNameIs name={[1,[],2,[],3,4]}/>, `<div>My name is 1234</div>`)
     });
 });

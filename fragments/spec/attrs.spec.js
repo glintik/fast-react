@@ -1,7 +1,7 @@
 import {Test} from './helper';
 
 
-fdescribe("Attrs", () => {
+describe("Attrs", () => {
     var onClick = ()=>null;
     var onClick2 = ()=>null;
     var onMouseDown = ()=>null;

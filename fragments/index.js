@@ -470,6 +470,7 @@
     }
 
     function updateChildren(oldParent, oldPos, old, vdom, topComponent) {
+        //var originalOld = old.slice();
         //VArrayTuple[type, node, parentNode, keyMap, sourceArray, ...values]
         var rootNode = old[1/*parentNode*/];
         vdom[1/*parentNode*/] = rootNode;
@@ -477,7 +478,8 @@
         vdom[2/*keymap*/] = keyMap;
         var oldLen = old.length;
         var sourceArray = vdom[3/*sourceArray*/];
-        var lastNode = old[old.length - 1];
+        //todo:maybe slow speed
+        var lastNextNode = getLastNode(old).nextSibling;
         /*if (oldLen == arrayStartPos) {
          for (var i = arrayStartPos; i < sourceArray.length + arrayStartPos; i++) {
          create(vdom[i] = norm(sourceArray[i - arrayStartPos], vdom, i), vdom, i, rootNode, null);
@@ -507,6 +509,7 @@
             }
 
 
+            //todo: maybe read unexist val
             var oldChild = old[i];
             var fitPos = null;
             var newKey = null;
@@ -545,6 +548,7 @@
                 old[fitPos] = null;
             }
             else {
+                //todo: newKey maybe null
                 keyMap[newKey] = i;
                 if (inserts == null) {
                     inserts = [];
@@ -575,7 +579,7 @@
                 var child = vdom[pos];
 
                 if (pos == vdom.length - 1) {
-                    var beforeChild = getLastNode(lastNode).nextSibling;
+                    var beforeChild = lastNextNode;
                 }
                 else {
                     beforeChild = getFirstNode(vdom[pos + 1]);
