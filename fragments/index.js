@@ -252,24 +252,43 @@
     }
 
     function setSpreadAttrs(node, vdom, old, topComponent) {
-        var attrs = [];
         var newAttrs = vdom[7/*attrsStartPos*/ + 1];
         var oldAttrs = old ? old[7/*attrsStartPos*/ + 1] : null;
+        var changed = [];
+        var removed = [];
         for (var attr in newAttrs) {
-            attrs.push(attr);
-            attrs.push(newAttrs[attr]);
+            if (oldAttrs && oldAttrs[attr] === newAttrs[attr]) {
+                continue;
+            }
+            changed.push(attr);
+            changed.push(newAttrs[attr]);
         }
-        vdom[7/*attrsStartPos*/ + 1] = attrs;
-        setAttrs(node, attrs, oldAttrs, 0, attrs.length, vdom, topComponent);
+        if (oldAttrs) {
+            for (attr in oldAttrs) {
+                if (!(attr in newAttrs)) {
+                    removed.push(attr);
+                    removed.push(null);
+                }
+            }
+            old[7/*attrsStartPos*/ + 1] = newAttrs;
+        }
+
+        var isUpdate = old ? true : false;
+        if (removed.length) {
+            setAttrs(isUpdate, node, removed, null, 0, removed.length, vdom, topComponent);
+        }
+        if (changed.length) {
+            setAttrs(isUpdate, node, changed, null, 0, changed.length, vdom, topComponent);
+        }
     }
 
-    function setAttrs(node, attrs, oldAttrs, startPos, endPos, vdom, topComponent) {
+    function setAttrs(isUpdate, node, attrs, oldAttrs, startPos, endPos, vdom, topComponent) {
         var normAttr;
         for (var i = startPos; i < endPos; i += 2) {
             var attr = attrs[i];
             var val = attrs[i + 1];
 
-            if (oldAttrs) {
+            if (isUpdate && oldAttrs) {
                 if (oldAttrs[i + 1] === val) {
                     continue;
                 }
@@ -277,7 +296,7 @@
             }
             if (normAttr = constAttrs[attr]) {
                 if (val == null || val === false) {
-                    if (oldAttrs) {
+                    if (isUpdate) {
                         node.removeAttribute(normAttr);
                     }
                 }
@@ -297,7 +316,7 @@
             }
             else if (attr.substring(0, 4) == 'data') {
                 if (val == null || val === false) {
-                    if (oldAttrs) {
+                    if (isUpdate) {
                         node.removeAttribute(attr);
                     }
                 }
@@ -310,7 +329,7 @@
             }
             else if (attr == 'ref') {
                 //todo:check
-                if (!oldAttrs) {
+                if (!isUpdate) {
                     setRef(vdom, val, topComponent);
                 }
             }
@@ -360,7 +379,7 @@
                 var attrsStart = 7/*attrsStartPos*/;
                 var attrsEnd = 7/*attrsStartPos*/ + vdom[5/*attrsLen*/] * 2;
                 if (attrsEnd - attrsStart > 0) {
-                    setAttrs(node, vdom, null, attrsStart, attrsEnd, vdom, topComponent);
+                    setAttrs(false, node, vdom, null, attrsStart, attrsEnd, vdom, topComponent);
                 }
             }
 
@@ -428,7 +447,7 @@
                 var attrsStart = 7/*attrsStartPos*/ + vdom[6/*constAttrsLen*/] * 2;
                 var attrsEnd = 7/*attrsStartPos*/ + vdom[5/*attrsLen*/] * 2;
                 if (attrsEnd - attrsStart > 0) {
-                    setAttrs(node, vdom, old, attrsStart, attrsEnd, vdom, topComponent);
+                    setAttrs(true, node, vdom, old, attrsStart, attrsEnd, vdom, topComponent);
                 }
             }
 
