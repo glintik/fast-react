@@ -11696,6 +11696,8 @@ var hashCode = function(s){
   if (isComponent){
       // instance
       array.push(t.literal(null));
+      // children
+      array.push(t.literal(null));
       var isObject = !t.isCallExpression(attrs) && !t.isIdentifier(attrs);
       if (isObject){
         if (t.isObjectExpression(attrs)){

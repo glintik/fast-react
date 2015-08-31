@@ -189,6 +189,7 @@
     var VText = baseType + '#';
     var VComponent = baseType + 'C';
     var VArray = baseType + 'A';
+    var spreadType = null;
 
     //a.match(/\d+\/\*\w+\*\//g).filter(function(value, index, self) {return self.indexOf(value) === index})
     //VTagTuple[type, node, tag, key, attrsHash, attrsLen, constAttrsLen, ...attrs, ...children]
@@ -221,8 +222,8 @@
     // 3/*key*/
     // 4/*ref*/
     // 5/*instance*/
-    // 6/*props*/
-    // 7/*children*/
+    // 6/*children*/
+    // 7/*props*/
     // 8/*propsChildren*/
     //var hasPropsChildrenLen = 9;
 
@@ -249,7 +250,7 @@
         }
         //todo: optional real node or vdom
         if (typeof val == 'function') {
-            val(node);
+            val(vdom);
         }
         else {
             topComponent.refs[val] = vdom;
@@ -377,7 +378,7 @@
             // 7/*attrsStartPos*/
             var node = vdom[1/*node*/] = rootNode.insertBefore(document.createElement(vdom[2/*tag*/]), before);
 
-            if (vdom[5/*attrsLen*/] == 1 && vdom[7/*attrsStartPos*/] == null) {
+            if (vdom[5/*attrsLen*/] == 1 && vdom[7/*attrsStartPos*/] == spreadType) {
                 setSpreadAttrs(node, vdom, null, topComponent);
             }
             else {
@@ -418,7 +419,7 @@
             vdom[3/*sourceArray*/] = null;
         }
         else if (type == VComponent) {
-            createComponent(vdom, rootNode, before, topComponent);
+            createComponent(parent, pos, vdom, rootNode, before, topComponent);
         }
         return vdom;
     }
@@ -443,8 +444,13 @@
                 console.log("Replaced cause attrs hash", vdom[4], old[4]);
                 return oldParent[oldPos];
             }
+            if (vdom.length !== old.length) {
+                replace(oldParent, oldPos, old, vdom, topComponent);
+                console.log("Replaced cause different length", vdom, old);
+                return oldParent[oldPos];
+            }
             //spread
-            if (vdom[5/*attrsLen*/] == 1 && vdom[7/*attrsStartPos*/] == null) {
+            if (vdom[5/*attrsLen*/] == 1 && vdom[7/*attrsStartPos*/] == spreadType) {
                 setSpreadAttrs(node, vdom, old, topComponent, true);
             }
             else {
@@ -610,7 +616,7 @@
                 vdom = vdom[4/*arrayFirstNode*/];
             }
             else if (type == VComponent) {
-                vdom = vdom[7/*children*/];
+                vdom = vdom[6/*children*/];
             }
         }
         return vdom[1/*node*/];
@@ -626,7 +632,7 @@
                 vdom = vdom[vdom.length - 1];
             }
             else if (type == VComponent) {
-                vdom = vdom[7/*children*/];
+                vdom = vdom[6/*children*/];
             }
         }
         return vdom[1/*node*/];
@@ -658,7 +664,7 @@
             }
             else if (type == VComponent) {
                 vdom[5/*instance*/].componentWillUnmount();
-                remove(vdom[1/*parentNode*/], vdom[7/*children*/], removeFromDom);
+                remove(vdom[1/*parentNode*/], vdom[6/*children*/], removeFromDom);
             }
         }
         else {
@@ -681,7 +687,7 @@
     }
 
     function prepareComponentProps(vdom, isUpdate, topComponent) {
-        var props = vdom[6/*props*/];
+        var props = vdom[7/*props*/];
         //spread props
         if (vdom.length == 8/*propsChildren*/ + 1) {
             var _props = {children: vdom[8/*propsChildren*/]};
@@ -706,8 +712,28 @@
         return props;
     }
 
+    function convertComponentToTag(vdom) {
+        var props = vdom[7/*props*/];
+        var children = props.children || vdom[8/*propsChildren*/];
+        props.children = null;
+        var tagTuple = [VTag, null, vdom[2/*Ctor*/], null, '&', 1, 0, null, props];
+        for (var i = 0; i < children.length; i++) {
+            var child = children[i];
+            tagTuple.push(child);
+        }
+        console.log("convertComponentToTag", vdom, tagTuple);
+        return tagTuple;
+    }
+
     function updateComponent(oldParent, oldPos, old, vdom, topComponent) {
         //VComponentTuple[type, node, parentNode, Ctor, instance, props, children, ref, key?]
+        var Ctor = vdom[2/*Ctor*/];
+        if (typeof Ctor == 'string') {
+            vdom = convertComponentToTag(vdom);
+            update(oldParent, oldPos, old, vdom, topComponent);
+            return;
+        }
+
         var component = old[5/*instance*/];
         if (old[2/*Ctor*/] !== vdom[2/*Ctor*/]) {
             replace(oldParent, oldPos, old, vdom, component);
@@ -715,24 +741,32 @@
         else {
             var props = prepareComponentProps(vdom, true, topComponent);
             component.componentWillReceiveProps(props);
-            component.props = old[6/*props*/] = props;
+            component.props = old[7/*props*/] = props;
             component.forceUpdate();
             //destroy(newNode);
         }
     }
 
-    function createComponent(vdom, rootNode, before, topComponent) {
+    function createComponent(parent, pos, vdom, rootNode, before, topComponent) {
         var Ctor = vdom[2/*Ctor*/];
+        if (typeof Ctor == 'string') {
+            vdom = convertComponentToTag(vdom);
+            if (parent) {
+                parent[pos] = vdom;
+            }
+            create(vdom, parent, pos, rootNode, before, topComponent);
+            return;
+        }
         //VComponentTuple[type, node, parentNode, Ctor, instance, props, children, ref, key?]
         vdom[1/*parentNode*/] = rootNode;
         var props = prepareComponentProps(vdom, false, topComponent);
         var component = vdom[5/*instance*/] = new Ctor(props);
         component.node = vdom;
         component.componentWillMount();
-        vdom[7/*children*/] = component.render();
+        vdom[6/*children*/] = component.render();
         var prevComponent = globs.component;
         globs.component = component;
-        create(vdom[7/*children*/], null, null, vdom[1/*parentNode*/], before, component);
+        create(vdom[6/*children*/], null, null, vdom[1/*parentNode*/], before, component);
         globs.component = prevComponent;
         component.componentDidMount();
     }
@@ -768,7 +802,7 @@
         this.componentWillUpdate();
         var prevComponent = globs.component;
         globs.component = this;
-        update(this.node, 7/*children*/, this.node[7/*children*/], this.render(), this);
+        update(this.node, 6/*children*/, this.node[6/*children*/], this.render(), this);
         globs.component = prevComponent;
         this.componentDidUpdate();
     };
