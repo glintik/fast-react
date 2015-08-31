@@ -10,7 +10,17 @@
 <script type="text/javascript">
 
     var attrs = {hey: true};
-    var code = `<FF key="key">Hello {value}</FF>`;
+    var code = `
+
+    var a = <Cmp {...{hello: true}}/>
+    var a = <Cmp {...this.props} />
+    var a = <Cmp {...props}/>
+    var a = <Cmp a="1" {...props}/>
+    var a = <Cmp a="1" {...this.props}/>
+    var a = <Cmp a="1" {...{b: 123}}/>
+    var a = <Cmp a="1"/>
+    var a = <Cmp/>
+    `;
 
     var bb = babel.transform(code, {stage: 0, sourceMaps: true});
     console.log(bb.code);

@@ -11698,25 +11698,24 @@ var hashCode = function(s){
       array.push(t.literal(null));
       // children
       array.push(t.literal(null));
-      var isObject = !t.isCallExpression(attrs) && !t.isIdentifier(attrs);
-      if (isObject){
-        if (t.isObjectExpression(attrs)){
-            var _attrs = attrs.properties;
-            for(var i=0; i<_attrs.length; i++){
-                var keyNode = _attrs[i].key;
-                var valueNode = _attrs[i].value;
-                if (keyNode.name == 'key'){
-                    key = valueNode;
-                    _attrs.splice(i, 1);
-                }
-                if (keyNode.name == 'ref'){
-                    ref = valueNode;
-                    _attrs.splice(i, 1);
-                }
-            }
-        }
-        else  {
+
+      if (t.isLiteral(attrs)){
           attrs = t.objectExpression([]);
+      }
+      var isObject = t.isObjectExpression(attrs)
+      if (isObject){
+        var _attrs = attrs.properties;
+        for(var i=0; i<_attrs.length; i++){
+            var keyNode = _attrs[i].key;
+            var valueNode = _attrs[i].value;
+            if (keyNode.name == 'key'){
+                key = valueNode;
+                _attrs.splice(i, 1);
+            }
+            if (keyNode.name == 'ref'){
+                ref = valueNode;
+                _attrs.splice(i, 1);
+            }
         }
         attrs.properties.push(t.Property('init', t.Identifier('children'), t.arrayExpression(children)));
       }
