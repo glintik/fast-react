@@ -530,14 +530,14 @@
             if (old.length > i && oldChild != null && typeof oldChild == 'object') {
                 oldChildType = oldChild[0/*type*/];
             }
-            if (newChildType == VTag || newChildType == VComponent) {
-                //todo: what if spread
+            //todo: what if spread
+            if ((newChildType == VTag || newChildType == VComponent) && newChild[3/*key*/] != null) {
                 newKey = newChild[3/*key*/];
                 // fitPos = old.keyMap[newKey];
                 fitPos = keyMap[newKey];
             }
             else {
-                if (oldChildType && ((oldChild != VTag && oldChild != VComponent) || oldChild[3/*key*/] == null)) {
+                if (oldChildType && ((oldChildType != VTag && oldChildType != VComponent) || oldChild[3/*key*/] == null)) {
                     fitPos = i;
                 }
             }

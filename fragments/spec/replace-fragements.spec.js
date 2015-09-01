@@ -73,4 +73,6 @@ describe("Replace Components", () => {
             .update(<MyNameIs name={[[1],[2,[],[3,[4]]],5]}/>, `<div>My name is 12345</div>`)
             .update(<MyNameIs name={[1,[],2,[],3,4]}/>, `<div>My name is 1234</div>`)
     });
+    //todo: component <=> tag
+    //todo: component as tag
 });
