@@ -396,7 +396,7 @@
                 if (!(typeof child == 'object' && child && typeof child[0] == 'string' && child[0][0] == baseType)) {
                     child = vdom[i] = normOnly(child);
                 }
-                vdom = create(child, vdom, i, node, null, topComponent);
+                child = create(child, vdom, i, node, null, topComponent);
             }
 
         }
@@ -416,7 +416,7 @@
                 else {
                     child = vdom[vdomPos] = normOnly(_child);
                 }
-                vdom = create(child, vdom, vdomPos, rootNode, before, topComponent);
+                child = create(child, vdom, vdomPos, rootNode, before, topComponent);
             }
             vdom[3/*sourceArray*/] = null;
         }
@@ -599,7 +599,7 @@
                     move(rootNode, child, beforeChild);
                 }
                 else {
-                    vdom = create(child, vdom, pos, rootNode, beforeChild, topComponent);
+                    child = create(child, vdom, pos, rootNode, beforeChild, topComponent);
                 }
             }
         }
@@ -774,7 +774,7 @@
         var children = vdom[6/*children*/] = component.render() || normOnly(null);
         var prevComponent = globs.component;
         globs.component = component;
-        vdom = create(children, vdom, 6/*children*/, vdom[1/*parentNode*/], before, component);
+        children = create(children, vdom, 6/*children*/, vdom[1/*parentNode*/], before, component);
         globs.component = prevComponent;
         component.componentDidMount();
         return vdom;
@@ -823,8 +823,7 @@
         findDOMNode: findDOMNode,
         render: function (vdom, rootNode) {
             if (typeof rootNode._vdom == 'undefined') {
-                rootNode._vdom = vdom;
-                return create(vdom, [vdom], 0, rootNode, null);
+                return rootNode._vdom = create(vdom, [vdom], 0, rootNode, null);
             }
             var old = rootNode._vdom;
             return rootNode._vdom = update([old], 0, old, [vdom], 0, vdom, null);
