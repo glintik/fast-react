@@ -360,16 +360,15 @@
         }
 
         //console.log("create", vdom);
-        var type = vdom[0/*type*/];
         var child;
         var i;
 
-        if (type == VText) {
+        if (vdom[0/*type*/] == VText) {
             //VTextTuple[type, node, value]
             vdom[1/*node*/] = document.createTextNode(vdom[2/*text*/]);
             rootNode.insertBefore(vdom[1/*node*/], before);
         }
-        else if (type == VTag) {
+        else if (vdom[0/*type*/] == VTag) {
             //VTagTuple[type, node, tag, key, attrsLen, constAttrsLen, ...attrs, ...children]
             // 0/*type*/
             // 1/*node*/
@@ -400,7 +399,7 @@
             }
 
         }
-        else if (type == VArray) {
+        else if (vdom[0/*type*/] == VArray) {
             //VArrayTuple[type, node, parentNode, keyMap, sourceArray, ...values]
             vdom[1/*parentNode*/] = rootNode;
             vdom[2/*keymap*/] = {};
@@ -420,7 +419,7 @@
             }
             vdom[3/*sourceArray*/] = null;
         }
-        else if (type == VComponent) {
+        else if (vdom[0/*type*/] == VComponent) {
             vdom = createComponent(parent, pos, vdom, rootNode, before, topComponent);
         }
         return vdom;
@@ -429,17 +428,16 @@
     function update(oldParent, oldPos, old, newParent, vdomPos, vdom, topComponent) {
         //vdom = norm(vdom, parent, pos);
         //console.log("update", old, vdom);
-        var type = vdom[0/*type*/];
         //console.log("Update", vdom);
-        if (type !== old[0/*type*/]) {
+        if (vdom[0/*type*/] !== old[0/*type*/]) {
             old = replace(oldParent, oldPos, old, newParent, vdomPos, vdom, topComponent);
         }
-        else if (type == VText) {
+        else if (vdom[0/*type*/] == VText) {
             if (vdom[2/*text*/] !== old[2/*text*/]) {
                 old[2/*text*/] = old[1/*node*/].textContent = vdom[2/*text*/];
             }
         }
-        else if (type == VTag) {
+        else if (vdom[0/*type*/] == VTag) {
             var node = old[1/*node*/];
             if (vdom[4/*attrsHash*/] !== old[4/*attrsHash*/]) {
                 console.log("Replaced cause attrs hash", vdom[4], old[4]);
@@ -469,11 +467,11 @@
                 old[i] = update(old, i, old[i], vdom, i, child, topComponent);
             }
         }
-        else if (type == VArray) {
+        else if (vdom[0/*type*/] == VArray) {
             //replace old child with new
             old = updateChildren(oldParent, oldPos, old, newParent, vdomPos, vdom, topComponent);
         }
-        else if (type == VComponent) {
+        else if (vdom[0/*type*/] == VComponent) {
             old = updateComponent(oldParent, oldPos, old, newParent, vdomPos, vdom, topComponent);
         }
         return old;
