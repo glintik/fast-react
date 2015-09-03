@@ -11766,7 +11766,7 @@ var hashCode = function(s){
       else {
           isSpread = true;
       }
-      if (isSpread){
+      if (isSpread && !t.isLiteral(attrs)){
           var prop = t.Property('init', t.Identifier('$refComponent'), t.thisExpression());
           var obj = t.ObjectExpression([prop]);
           if (t.isObjectExpression(attrs)){
@@ -11775,8 +11775,9 @@ var hashCode = function(s){
           else if (t.isCallExpression(attrs)){
             attrs.arguments.push(obj);
           }
-          else {
-            attrs = t.callExpression(t.identifier('_extends'), [t.objectExpression([]), attrs, obj]);
+          else if (t.isIdentifier(attrs) || t.isMemberExpression(attrs)){
+            //todo
+            attrs = attrs;//t.callExpression(t.identifier('_extends'), [t.objectExpression([]), attrs, obj]);
           }
           varAttrs.push(t.literal(null));
           varAttrs.push(attrs);

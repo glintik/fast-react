@@ -103,12 +103,12 @@ describe("Movings", () => {
     it('spread mix', () => {
         function dk(value) {
             var props = {key: value, ref: onMount};
-            return <div {...props} ref={onMount}>{value}</div>;
+            return <div {...props}>{value}</div>;
         }
 
         function d(value) {
             var props = {ref: onMount};
-            return <div {...props} ref={onMount}>{value}</div>;
+            return <div {...props}>{value}</div>;
         }
 
         function ck(value) {

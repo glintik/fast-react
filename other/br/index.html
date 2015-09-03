@@ -36,7 +36,6 @@
     var a = <Cmp/>
     `;
 
-//    var code = `class A{render(){return ()=><div {...props}></div>}}`;
     var bb = babel.transform(code, {stage: 0, sourceMaps: true});
     console.log(bb.code);
 
