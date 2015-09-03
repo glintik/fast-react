@@ -11692,7 +11692,7 @@ var hashCode = function(s){
     children.push(child);
   }
 
-
+  var isSpread = false;
   if (isComponent){
       // instance
       array.push(t.literal(null));
@@ -11732,35 +11732,55 @@ var hashCode = function(s){
       var constAttrs = [];
       var varAttrs = [];
       var hash = [];
-      //spread
-      if (t.isCallExpression(attrs)){
-          varAttrs.push(t.literal(null));
-          varAttrs.push(attrs);
-          hash.push("&spread");
-      }
       if (t.isObjectExpression(attrs)){
           var _attrs = attrs.properties;
           for(var i=0; i<_attrs.length; i++){
-              var keyNode = _attrs[i].key;
-              var valueNode = _attrs[i].value;
-              if (keyNode.name == 'key'){
-                  key = valueNode;
-                  continue;
-              }
-          
-              keyNode = t.isLiteral(keyNode) ? keyNode : t.literal(keyNode.name);
-
-              if (t.isLiteral(valueNode)){
-                constAttrs.push(keyNode);
-                constAttrs.push(valueNode);
-                hash.push(keyNode.value);
-              }
-              else {
-                varAttrs.push(keyNode);
-                varAttrs.push(valueNode);                    
-                hash.push('&'+keyNode.value);
+            if (_attrs[i].key.name == 'ref'){
+              isSpread = true;
+              break;
             }
           }
+          if (!isSpread){
+            for(var i=0; i<_attrs.length; i++){
+                var keyNode = _attrs[i].key;
+                var valueNode = _attrs[i].value;
+                if (keyNode.name == 'key'){
+                    key = valueNode;
+                    continue;
+                }
+                keyNode = t.isLiteral(keyNode) ? keyNode : t.literal(keyNode.name);
+
+                if (t.isLiteral(valueNode)){
+                  constAttrs.push(keyNode);
+                  constAttrs.push(valueNode);
+                  hash.push(keyNode.value);
+                }
+                else {
+                  varAttrs.push(keyNode);
+                  varAttrs.push(valueNode);                    
+                  hash.push('&'+keyNode.value);
+              }
+            }
+          }
+      }
+      else {
+          isSpread = true;
+      }
+      if (isSpread){
+          var prop = t.Property('init', t.Identifier('$refComponent'), t.thisExpression());
+          var obj = t.ObjectExpression([prop]);
+          if (t.isObjectExpression(attrs)){
+            attrs.properties.push(prop);
+          }
+          else if (t.isCallExpression(attrs)){
+            attrs.arguments.push(obj);
+          }
+          else {
+            attrs = t.callExpression(t.identifier('_extends'), [t.objectExpression([]), attrs, obj]);
+          }
+          varAttrs.push(t.literal(null));
+          varAttrs.push(attrs);
+          hash.push("&spread");
       }
       array.push(t.literal(hash.join()));
       array.push(t.literal(varAttrs.length / 2 + constAttrs.length / 2));
@@ -11769,7 +11789,7 @@ var hashCode = function(s){
       array = array.concat(varAttrs);
       array.splice(3, 0, key);
       array = array.concat(children);
-  }
+    }
   return t.arrayExpression(array);
       //return t.inherits(callExpr, node);
     }

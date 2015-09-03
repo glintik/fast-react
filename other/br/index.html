@@ -12,16 +12,31 @@
     var attrs = {hey: true};
     var code = `
 
+    var a = <div {...{hello: true}}/>
+    var a = <div {...{hello: true, ref: 'rf'}}/>
+    var a = <div {...this.props} />
+    var a = <div {...props}/>
+    var a = <div a="1" {...props}/>
+    var a = <div a="1" {...this.props}/>
+    var a = <div a="1" {...{b: 123}}/>
+    var a = <div a="1"/>
+    var a = <div a="1" ref="rf"/>
+    var a = <div ref="rf"/>
+    var a = <div/>
+
     var a = <Cmp {...{hello: true}}/>
     var a = <Cmp {...this.props} />
     var a = <Cmp {...props}/>
     var a = <Cmp a="1" {...props}/>
     var a = <Cmp a="1" {...this.props}/>
     var a = <Cmp a="1" {...{b: 123}}/>
+    var a = <Cmp a="1" ref="rf"/>
     var a = <Cmp a="1"/>
+    var a = <Cmp ref="rf"/>
     var a = <Cmp/>
     `;
 
+//    var code = `class A{render(){return ()=><div {...props}></div>}}`;
     var bb = babel.transform(code, {stage: 0, sourceMaps: true});
     console.log(bb.code);
 
