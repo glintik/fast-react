@@ -339,7 +339,7 @@
                 vdom[3/*key*/] = val;
             }
             else if (attr == 'ref') {
-                setRef(vdom, val, topComponent, isUpdate);
+                vdom.ref = val;
             }
         }
     }
@@ -397,6 +397,10 @@
                 child = create(child, vdom, i, node, null, topComponent);
             }
 
+
+            if (typeof vdom.ref != 'undefined'){
+                setRef(vdom, vdom.ref, topComponent, false);
+            }
         }
         else if (vdom[0/*type*/] == VArray) {
             //VArrayTuple[type, node, parentNode, keyMap, sourceArray, ...values]
@@ -480,7 +484,7 @@
         if (vdom[0/*type*/] == VTag) {
             if (vdom[3/*key*/] == null && vdom[5/*attrsLen*/] == 1 && vdom[7/*attrsStartPos*/] == null) {
                 var spread = vdom[7/*attrsStartPos*/ + 1];
-                if (typeof spread.key != 'undefined' && spread.key) {
+                if (typeof spread.key != 'undefined' && spread.key != null) {
                     vdom[3/*key*/] = spread.key;
                 }
             }
@@ -489,7 +493,7 @@
         else if (vdom[0/*type*/] == VComponent) {
             if (vdom[3/*key*/] == null && vdom.length - 1 == 8/*propsChildren*/) {
                 spread = vdom[7/*props*/];
-                if (typeof spread.key != 'undefined' && spread.key) {
+                if (typeof spread.key != 'undefined' && spread.key != null) {
                     vdom[3/*key*/] = spread.key;
                 }
             }
