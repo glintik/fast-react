@@ -347,16 +347,15 @@
     var id = 0;
     function create(vdom, parent, pos, rootNode, before, topComponent) {
         vdom.id = id++;
-        if (vdom[0/*type*/] == VTag || vdom[0/*type*/] == VComponent) {
-            if (vdom[3/*key*/] != null) {
-                if (parent[0/*type*/] != VArray) {
-                    console.error('Keys supports only in arrays');
-                }
-                if (typeof parent[2/*keymap*/] != 'object') {
-                    parent[2/*keymap*/] = {};
-                }
-                parent[2/*keymap*/][vdom[3/*key*/]] = pos;
+        var key = getKey(vdom);
+        if (key != null) {
+            if (parent[0/*type*/] != VArray) {
+                console.error('Keys supports only in arrays');
             }
+            if (typeof parent[2/*keymap*/] != 'object') {
+                parent[2/*keymap*/] = {};
+            }
+            parent[2/*keymap*/][key] = pos;
         }
 
         //console.log("create", vdom);
@@ -477,6 +476,28 @@
         return old;
     }
 
+    function getKey(vdom) {
+        if (vdom[0/*type*/] == VTag) {
+            if (vdom[3/*key*/] == null && vdom[5/*attrsLen*/] == 1 && vdom[7/*attrsStartPos*/] == null) {
+                var spread = vdom[7/*attrsStartPos*/ + 1];
+                if (typeof spread.key != 'undefined' && spread.key) {
+                    vdom[3/*key*/] = spread.key;
+                }
+            }
+            return vdom[3/*key*/];
+        }
+        else if (vdom[0/*type*/] == VComponent) {
+            if (vdom[3/*key*/] == null && vdom.length - 1 == 8/*propsChildren*/) {
+                spread = vdom[7/*props*/];
+                if (typeof spread.key != 'undefined' && spread.key) {
+                    vdom[3/*key*/] = spread.key;
+                }
+            }
+            return vdom[3/*key*/];
+        }
+        return null;
+    }
+
     function updateChildren(oldParent, oldPos, old, newParent, vdomPos, vdom, topComponent) {
         //var originalOld = old.slice();
         //VArrayTuple[type, node, parentNode, keyMap, sourceArray, ...values]
@@ -488,21 +509,6 @@
         var sourceArray = vdom[3/*sourceArray*/];
         //todo:maybe slow speed
         var lastNextNode = getLastNode(old).nextSibling;
-        /*if (oldLen == arrayStartPos) {
-         for (var i = arrayStartPos; i < sourceArray.length + arrayStartPos; i++) {
-         create(vdom[i] = norm(sourceArray[i - arrayStartPos], vdom, i), vdom, i, rootNode, null);
-         }
-         oldParent[oldPos] = vdom;
-         return;
-         }
-         if (vdom.length == arrayStartPos) {
-         for (var i = arrayStartPos; i < old.length; i++) {
-         remove(rootNode, old[i]);
-         }
-         oldParent[oldPos] = vdom;
-         return;
-         }
-         */
         var inserts = null;
 
         var fitCount = 0;
@@ -517,36 +523,26 @@
             }
 
 
-            //todo: maybe read unexist val
-            var oldChild = old[i];
-            var fitPos = null;
-            var newKey = null;
-            var oldChildType = null;
-            var newChildType = newChild[0/*type*/];
-            if (old.length > i && oldChild != null && typeof oldChild == 'object') {
-                oldChildType = oldChild[0/*type*/];
-            }
-            //todo: what if spread
-            if ((newChildType == VTag || newChildType == VComponent) && newChild[3/*key*/] != null) {
-                newKey = newChild[3/*key*/];
-                // fitPos = old.keyMap[newKey];
-                fitPos = keyMap[newKey];
+            var oldChild = oldLen > i ? old[i] : null;
+            var newKey = getKey(newChild);
+            if (newKey != null) {
+                var fitPos = keyMap[newKey];
             }
             else {
-                if (oldChildType && ((oldChildType != VTag && oldChildType != VComponent) || oldChild[3/*key*/] == null)) {
+                if (oldChild && getKey(oldChild) == null) {
                     fitPos = i;
+                }
+                else {
+                    fitPos = null;
                 }
             }
 
             if (fitPos != null) {
                 fitCount++;
                 if (newKey != null) {
-                    // vdom.keymap[newKey] = i;
                     keyMap[newKey] = i;
                 }
                 vdom[i] = update(old, fitPos, old[fitPos], vdom, i, newChild, topComponent);
-                //after update restore old
-                //vdom[i] = old[fitPos];
                 if (fitPos !== i) {
                     if (inserts == null) {
                         inserts = [];
@@ -556,23 +552,28 @@
                 old[fitPos] = null;
             }
             else {
-                //todo: newKey maybe null
-                keyMap[newKey] = i;
+                if (newKey != null) {
+                    keyMap[newKey] = i;
+                }
                 if (inserts == null) {
                     inserts = [];
                 }
                 inserts.push(i);
             }
         }
-        vdom[3/*sourceArray*/] = null; // clear source array
+        vdom[3/*sourceArray*/] = null;
 
         var oldLenFull = oldLen - arrayStartPos;
         if (oldLenFull > fitCount) {
             for (i = arrayStartPos; i < oldLen; i++) {
                 oldChild = old[i];
                 if (oldChild) {
-                    keyMap[oldChild[3/*key*/]] = null;
+                    var key = getKey(oldChild);
+                    if (key != null) {
+                        keyMap[key] = null;
+                    }
                     remove(rootNode, oldChild, true);
+                    //todo: do not need
                     old[i] = null;
                     if (oldLenFull == ++fitCount) {
                         break;
@@ -601,6 +602,7 @@
                 }
             }
         }
+        //replace old
         return oldParent[oldPos] = vdom;
     }
 
