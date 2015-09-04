@@ -345,17 +345,23 @@
     }
 
     var id = 0;
-    function create(vdom, parent, pos, rootNode, before, topComponent) {
+    function create(vdom, newParent, vdomPos, rootNode, before, topComponent) {
         vdom.id = id++;
+        if (vdom[0/*type*/] == VComponent){
+            if (typeof vdom[2/*Ctor*/] == 'string') {
+                vdom = newParent[vdomPos] = convertComponentToTag(vdom, newParent, vdomPos);
+            }
+        }
+
         var key = getKey(vdom);
         if (key != null) {
-            if (parent[0/*type*/] != VArray) {
+            if (newParent[0/*type*/] != VArray) {
                 console.error('Keys supports only in arrays');
             }
-            if (typeof parent[2/*keymap*/] != 'object') {
-                parent[2/*keymap*/] = {};
+            if (typeof newParent[2/*keymap*/] != 'object') {
+                newParent[2/*keymap*/] = {};
             }
-            parent[2/*keymap*/][key] = pos;
+            newParent[2/*keymap*/][key] = vdomPos;
         }
 
         //console.log("create", vdom);
@@ -423,7 +429,7 @@
             vdom[3/*sourceArray*/] = null;
         }
         else if (vdom[0/*type*/] == VComponent) {
-            vdom = createComponent(parent, pos, vdom, rootNode, before, topComponent);
+            vdom = createComponent(newParent, vdomPos, vdom, rootNode, before, topComponent);
         }
         return vdom;
     }
@@ -432,6 +438,11 @@
         //vdom = norm(vdom, parent, pos);
         //console.log("update", old, vdom);
         //console.log("Update", vdom);
+        if (vdom[0/*type*/] == VComponent){
+            if (typeof vdom[2/*Ctor*/] == 'string') {
+                vdom = newParent[vdomPos] = convertComponentToTag(vdom, newParent, vdomPos);
+            }
+        }
         if (vdom[0/*type*/] !== old[0/*type*/]) {
             old = replace(oldParent, oldPos, old, newParent, vdomPos, vdom, topComponent);
         }
@@ -744,11 +755,6 @@
     function updateComponent(oldParent, oldPos, old, newParent, vdomPos, vdom, topComponent) {
         //VComponentTuple[type, node, parentNode, Ctor, instance, props, children, ref, key?]
         var Ctor = vdom[2/*Ctor*/];
-        if (typeof Ctor == 'string') {
-            vdom = newParent[vdomPos] = convertComponentToTag(vdom, newParent, vdomPos);
-            return update(oldParent, oldPos, old, newParent, vdomPos, vdom, topComponent);
-        }
-
         var component = old[5/*instance*/];
         if (old[2/*Ctor*/] !== vdom[2/*Ctor*/]) {
             old = replace(oldParent, oldPos, old, newParent, vdomPos, vdom, component);
@@ -765,10 +771,6 @@
 
     function createComponent(parent, pos, vdom, rootNode, before, topComponent) {
         var Ctor = vdom[2/*Ctor*/];
-        if (typeof Ctor == 'string') {
-            vdom = parent[pos] = convertComponentToTag(vdom, true);
-            return create(vdom, parent, pos, rootNode, before, topComponent);
-        }
         //VComponentTuple[type, node, parentNode, Ctor, instance, props, children, ref, key?]
         vdom[1/*parentNode*/] = rootNode;
         var props = prepareComponentProps(vdom, false, topComponent);
@@ -822,9 +824,10 @@
     };
 
     var globs = {component: null};
-    global.FastReact = {
+    global.React = global.FastReact = {
         Component: Component,
         findDOMNode: findDOMNode,
+        cloneElement: function(el){return el.slice()},
         render: function (vdom, rootNode) {
             if (typeof rootNode._vdom == 'undefined') {
                 return rootNode._vdom = create(vdom, [vdom], 0, rootNode, null);
