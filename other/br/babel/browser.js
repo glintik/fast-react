@@ -11676,7 +11676,7 @@ var hashCode = function(s){
   var argsCount = 0;
   var isComponent = t.isIdentifier(tag);
   var base = '\u2425';
-  var VT = {COMPONENT: base + 'C', TAG: base + 'T', TEXT: base + '#'}
+  var VT = {COMPONENT: base + 'C', TAG: base + 'T', TEXT: base + '#', COMPONENT_CHILDREN: base + 'F'}
 
   array.push(t.literal(isComponent ? VT.COMPONENT : VT.TAG));
   //node
@@ -11694,6 +11694,16 @@ var hashCode = function(s){
 
   var isSpread = false;
   if (isComponent){
+      if (children.length > 0){
+        children.unshift(t.thisExpression());
+        //parentNode
+        children.unshift(t.literal(null));
+        children.unshift(t.literal(VT.COMPONENT_CHILDREN));
+        var childrenExpr = t.arrayExpression(children);
+      } 
+      else {
+        childrenExpr = t.arrayExpression([t.literal(VT.TEXT), t.literal(null), t.literal('')]);
+      }
       // instance
       array.push(t.literal(null));
       // children
@@ -11717,16 +11727,17 @@ var hashCode = function(s){
                 _attrs.splice(i, 1);
             }
         }
-        attrs.properties.push(t.Property('init', t.Identifier('children'), t.arrayExpression(children)));
+        attrs.properties.push(t.Property('init', t.Identifier('children'), childrenExpr));
       }
       array.push(attrs);
 
       if (!isObject){
-          array.push(t.arrayExpression(children));
+          array.push(childrenExpr);
       }
 
       array.splice(3, 0, key);
       array.splice(4, 0, ref);
+      
   }
   else {
       var constAttrs = [];
@@ -11770,18 +11781,18 @@ var hashCode = function(s){
           var prop = t.Property('init', t.Identifier('$refComponent'), t.thisExpression());
           var obj = t.ObjectExpression([prop]);
           if (t.isObjectExpression(attrs)){
-            attrs.properties.push(prop);
+            //attrs.properties.push(prop);
           }
           else if (t.isCallExpression(attrs)){
-            attrs.arguments.push(obj);
+            //attrs.arguments.push(obj);
           }
           else if (t.isIdentifier(attrs) || t.isMemberExpression(attrs)){
             //todo
-            attrs = attrs;//t.callExpression(t.identifier('_extends'), [t.objectExpression([]), attrs, obj]);
+            //attrs = attrs;//t.callExpression(t.identifier('_extends'), [t.objectExpression([]), attrs, obj]);
           }
           varAttrs.push(t.literal(null));
           varAttrs.push(attrs);
-          hash.push("&spread");
+          hash.push("~");
       }
       array.push(t.literal(hash.join()));
       array.push(t.literal(varAttrs.length / 2 + constAttrs.length / 2));

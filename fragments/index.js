@@ -447,7 +447,7 @@
                 if (!(typeof child == 'object' && child && typeof child[0] == 'string' && child[0][0] == baseType)) {
                     child = vdom[i] = normOnly(child);
                 }
-                create(child, vdom, i, rootNode, null, vdom[2/*refComponent*/]);
+                create(child, vdom, i, rootNode, before, vdom[2/*refComponent*/]);
             }
         }
         return vdom;
@@ -709,7 +709,7 @@
             }
             else if(type == VChildren){
                 //todo
-                for (var i = arrayStartPos; i < vdom.length; i++) {
+                for (var i = 3/*VChildrenFirstNode*/; i < vdom.length; i++) {
                     remove(vdom[1/*parentNode*/], vdom[i], removeFromDom);
                 }
             }
@@ -776,7 +776,7 @@
         newVdom[7/*attrsStartPos*/] = null;
         newVdom[7/*attrsStartPos*/ + 1] = props;
         if (children) {
-            for (var i = 0; i < children.length; i++) {
+            for (var i = 3/*VChildrenFirstNode*/; i < children.length; i++) {
                 newVdom.push(children[i]);
             }
         }

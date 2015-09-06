@@ -34,7 +34,15 @@
     var a = <Cmp a="1"/>
     var a = <Cmp ref="rf"/>
     var a = <Cmp/>
+    var a = <Cmp>1,2,{123}</Cmp>
+
     `;
+/*
+    var code = `var a = <div a="1" {...{c:3}} b="2"></div>;
+    var a = <Cmp>1,2,{123}</Cmp>;
+    `;
+*/
+
 
     var bb = babel.transform(code, {stage: 0, sourceMaps: true});
     console.log(bb.code);
