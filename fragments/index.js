@@ -241,7 +241,7 @@
         }
         if (child.constructor == Array) {
             if (child.length == 0) {
-                child = [null];
+                return [VText, null, ''];
             }
             var p = new Array(child.length + arrayStartPos);
             p.id == id++ + 10000;
