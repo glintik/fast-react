@@ -491,7 +491,7 @@
         }
         else if (vdom[0/*type*/] == VArray) {
             //replace old child with new
-            old = updateChildren(oldParent, oldPos, old, newParent, vdomPos, vdom, topComponent);
+            old = updateChildren(old, vdom, topComponent);
         }
         else if (vdom[0/*type*/] == VComponent) {
             old = updateComponent(old, vdom, topComponent);
@@ -539,7 +539,7 @@
         return null;
     }
 
-    function updateChildren(oldParent, oldPos, old, newParent, vdomPos, vdom, topComponent) {
+    function updateChildren(old, vdom, topComponent) {
         //var originalOld = old.slice();
         //VArrayTuple[type, node, parentNode, keyMap, sourceArray, ...values]
         var rootNode = old[1/*parentNode*/];
@@ -632,7 +632,7 @@
             }
         }
         //replace old
-        return oldParent[oldPos] = vdom;
+        return vdom;
     }
 
     function getChildNode(vdom, isLast) {
