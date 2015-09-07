@@ -446,7 +446,7 @@
         return vdom;
     }
 
-    function update(oldParent, oldPos, old, newParent, vdomPos, vdom, topComponent) {
+    function update(old, vdom, topComponent) {
         //vdom = norm(vdom, parent, pos);
         //console.log("update", old, vdom);
         //console.log("Update", vdom);
@@ -482,7 +482,7 @@
 
             for (var i = 7/*attrsStartPos*/ + vdom[5/*attrsLen*/] * 2; i < vdom.length; i++) {
                 var child = norm(vdom, i, vdom[i]);
-                old[i] = update(old, i, old[i], vdom, i, child, topComponent);
+                old[i] = update(old[i], child, topComponent);
             }
             if (typeof vdom.ref != 'undefined') {
                 //todo: what the old, vdom?
@@ -512,7 +512,7 @@
         old[2/*refComponent*/] = vdom[2/*refComponent*/];
         for (var i = 3/*VChildrenFirstNode*/; i < vdom.length; i++) {
             var child = norm(vdom, i, vdom[i]);
-            update(old, i, old[i], vdom, i, child, old[2/*refComponent*/]);
+            old[i] = update(old[i], child, old[2/*refComponent*/]);
         }
         return old;
     }
@@ -571,7 +571,7 @@
 
             if (fitPos != null) {
                 fitCount++;
-                vdom[i] = update(old, fitPos, old[fitPos], vdom, i, newChild, topComponent);
+                vdom[i] = update(old[fitPos], newChild, topComponent);
                 if (fitPos !== i) {
                     if (inserts == null) {
                         inserts = [];
@@ -839,7 +839,7 @@
         //VComponentTuple[type, node, parentNode, Ctor, instance, props, children, ref, key?]
         this.componentWillUpdate();
         var children = this.render() || normOnly(null);
-        update(this.node, 6/*children*/, this.node[6/*children*/], [children], 0, children, this);
+        update(this.node[6/*children*/], children, this);
         this.componentDidUpdate();
     };
 
@@ -852,13 +852,12 @@
             return el.slice()
         },
         render: function (vdom, rootNode) {
-            var parent = [vdom];
             var child = norm([vdom], 0, vdom);
             if (typeof rootNode._vdom == 'undefined') {
                 return rootNode._vdom = create(child, rootNode, null, null);
             }
             var old = rootNode._vdom;
-            return rootNode._vdom = update([old], 0, old, parent, 0, child, null);
+            return rootNode._vdom = update(old, child, null);
         }
     };
 }(window);
