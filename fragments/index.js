@@ -494,7 +494,7 @@
             old = updateChildren(oldParent, oldPos, old, newParent, vdomPos, vdom, topComponent);
         }
         else if (vdom[0/*type*/] == VComponent) {
-            old = updateComponent(oldParent, oldPos, old, newParent, vdomPos, vdom, topComponent);
+            old = updateComponent(old, vdom, topComponent);
         }
         else if (vdom[0/*type*/] == VChildren) {
             old = updateComponentChildren(oldParent, oldPos, old, newParent, vdomPos, vdom, topComponent);
@@ -754,7 +754,7 @@
         return newVdom;
     }
 
-    function updateComponent(oldParent, oldPos, old, newParent, vdomPos, vdom, topComponent) {
+    function updateComponent(old, vdom, topComponent) {
         //VComponentTuple[type, node, parentNode, Ctor, instance, props, children, ref, key?]
         var component = old[5/*instance*/];
         if (old[2/*Ctor*/] !== vdom[2/*Ctor*/]) {
