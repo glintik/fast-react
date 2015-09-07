@@ -257,7 +257,6 @@
                 return [VText, null, ''];
             }
             var p = new Array(child.length + arrayStartPos);
-            p.id == id++ + 10000;
             p[0/*type*/] = VArray;
             p[2/*keymap*/] = {};
             p[3/*sourceArray*/] = child;
@@ -288,7 +287,7 @@
         //todo: setStyle
     }
 
-    function setSpreadAttrs(node, vdom, old, topComponent) {
+    function setSpreadAttrs(node, vdom, old) {
         var newAttrs = vdom[7/*attrsStartPos*/ + 1];
         var oldAttrs = old ? old[7/*attrsStartPos*/ + 1] : null;
         var changed = [];
@@ -312,14 +311,14 @@
 
         var isUpdate = old ? true : false;
         if (removed.length) {
-            setAttrs(isUpdate, node, removed, null, 0, removed.length, vdom, topComponent);
+            setAttrs(isUpdate, node, removed, null, 0, removed.length, vdom);
         }
         if (changed.length) {
-            setAttrs(isUpdate, node, changed, null, 0, changed.length, vdom, topComponent);
+            setAttrs(isUpdate, node, changed, null, 0, changed.length, vdom);
         }
     }
 
-    function setAttrs(isUpdate, node, attrs, oldAttrs, startPos, endPos, vdom, topComponent) {
+    function setAttrs(isUpdate, node, attrs, oldAttrs, startPos, endPos, vdom) {
         var normAttr;
         for (var i = startPos; i < endPos; i += 2) {
             var attr = attrs[i];
@@ -395,13 +394,13 @@
             var node = vdom[1/*node*/] = rootNode.insertBefore(document.createElement(vdom[2/*tag*/]), before);
 
             if (vdom[5/*attrsLen*/] == 1 && vdom[7/*attrsStartPos*/] == spreadType) {
-                setSpreadAttrs(node, vdom, null, topComponent);
+                setSpreadAttrs(node, vdom, null, false);
             }
             else {
                 var attrsStart = 7/*attrsStartPos*/;
                 var attrsEnd = 7/*attrsStartPos*/ + vdom[5/*attrsLen*/] * 2;
                 if (attrsEnd - attrsStart > 0) {
-                    setAttrs(false, node, vdom, null, attrsStart, attrsEnd, vdom, topComponent);
+                    setAttrs(false, node, vdom, null, attrsStart, attrsEnd, vdom);
                 }
             }
 
@@ -470,13 +469,13 @@
             }
             //spread
             if (vdom[5/*attrsLen*/] == 1 && vdom[7/*attrsStartPos*/] == spreadType) {
-                setSpreadAttrs(node, vdom, old, topComponent, true);
+                setSpreadAttrs(node, vdom, old, true);
             }
             else {
                 var attrsStart = 7/*attrsStartPos*/ + vdom[6/*constAttrsLen*/] * 2;
                 var attrsEnd = 7/*attrsStartPos*/ + vdom[5/*attrsLen*/] * 2;
                 if (attrsEnd - attrsStart > 0) {
-                    setAttrs(true, node, vdom, old, attrsStart, attrsEnd, vdom, topComponent);
+                    setAttrs(true, node, vdom, old, attrsStart, attrsEnd, vdom);
                 }
             }
 
@@ -685,7 +684,7 @@
             }
             else if (type == VChildren) {
                 //todo
-                for (var i = 3/*VChildrenFirstNode*/; i < vdom.length; i++) {
+                for (i = 3/*VChildrenFirstNode*/; i < vdom.length; i++) {
                     remove(vdom[1/*parentNode*/], vdom[i], removeFromDom);
                 }
             }
@@ -709,7 +708,7 @@
         }
     }
 
-    function prepareComponentProps(vdom, isUpdate, topComponent) {
+    function prepareComponentProps(vdom) {
         var props = vdom[7/*props*/];
         //spread props
         if (vdom.length == 8/*propsChildren*/ + 1) {
@@ -757,7 +756,6 @@
 
     function updateComponent(oldParent, oldPos, old, newParent, vdomPos, vdom, topComponent) {
         //VComponentTuple[type, node, parentNode, Ctor, instance, props, children, ref, key?]
-        var Ctor = vdom[2/*Ctor*/];
         var component = old[5/*instance*/];
         if (old[2/*Ctor*/] !== vdom[2/*Ctor*/]) {
             old = replace(oldParent, oldPos, old, newParent, vdomPos, vdom, component);
@@ -846,6 +844,7 @@
     };
 
     var globs = {component: null};
+    //noinspection JSUnusedGlobalSymbols
     global.React = global.FastReact = {
         Component: Component,
         findDOMNode: findDOMNode,
