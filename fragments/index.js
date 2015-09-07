@@ -421,13 +421,14 @@
             //vdom[1/*node*/] = rootNode.insertBefore(document.createComment('array'), before);
             //iterate source array
             var sourceArray = vdom[3/*sourceArray*/];
+            var keyMap = vdom[2/*keymap*/];
             for (i = 0; i < sourceArray.length; i++) {
                 var vdomPos = i + arrayStartPos;
                 child = norm(vdom, vdomPos, sourceArray[i]);
                 child = vdom[vdomPos] = create(child, rootNode, before, topComponent);
                 var key = getKey(child);
                 if (key != null) {
-                    vdom[2/*keymap*/][key] = vdomPos;
+                    keyMap[key] = vdomPos;
                 }
             }
             vdom[3/*sourceArray*/] = null;
@@ -450,7 +451,7 @@
         //console.log("update", old, vdom);
         //console.log("Update", vdom);
         if (vdom[0/*type*/] !== old[0/*type*/]) {
-            old = replace(oldParent, oldPos, old, newParent, vdomPos, vdom, topComponent);
+            old = replace(old, vdom, topComponent);
         }
         else if (vdom[0/*type*/] == VText) {
             if (vdom[2/*text*/] !== old[2/*text*/]) {
@@ -461,11 +462,11 @@
             var node = old[1/*node*/];
             if (vdom[4/*attrsHash*/] !== old[4/*attrsHash*/]) {
                 console.log("Replaced cause attrs hash", vdom[4], old[4]);
-                return replace(oldParent, oldPos, old, newParent, vdomPos, vdom, topComponent);
+                return replace(old, vdom, topComponent);
             }
             if (vdom.length !== old.length) {
                 console.log("Replaced cause different length", vdom, old);
-                return replace(oldParent, oldPos, old, newParent, vdomPos, vdom, topComponent);
+                return replace(old, vdom, topComponent);
             }
             //spread
             if (vdom[5/*attrsLen*/] == 1 && vdom[7/*attrsStartPos*/] == spreadType) {
@@ -504,7 +505,7 @@
     function updateComponentChildren(oldParent, oldPos, old, newParent, vdomPos, vdom, topComponent) {
         if (vdom.length !== old.length) {
             console.log("Replaced cause different length", vdom, old);
-            return replace(oldParent, oldPos, old, newParent, vdomPos, vdom, topComponent);
+            return replace(old, vdom, topComponent);
         }
         //todo: wtf?
         vdom[1/*parentNode*/] = old[1/*parentNode*/];
@@ -653,7 +654,7 @@
         return vdom[1/*node*/];
     }
 
-    function replace(oldParent, oldPos, old, newParent, vdomPos, vdom, topComponent) {
+    function replace(old, vdom, topComponent) {
         var type = old[0/*type*/];
         if (type == VComponent || type == VArray || type == VChildren) {
             var parentNode = old[1/*parentNode*/];
@@ -663,9 +664,8 @@
             parentNode = old[1/*node*/].parentNode;
             before = old[1/*node*/];
         }
-        vdom = newParent[vdomPos] = create(vdom, parentNode, before, topComponent);
+        vdom = create(vdom, parentNode, before, topComponent);
         remove(parentNode, old, true);
-        oldParent[oldPos] = vdom;
         return vdom;
     }
 
@@ -758,7 +758,7 @@
         //VComponentTuple[type, node, parentNode, Ctor, instance, props, children, ref, key?]
         var component = old[5/*instance*/];
         if (old[2/*Ctor*/] !== vdom[2/*Ctor*/]) {
-            old = replace(oldParent, oldPos, old, newParent, vdomPos, vdom, component);
+            old = replace(old, vdom, component);
         }
         else {
             var props = prepareComponentProps(vdom, true, topComponent);
