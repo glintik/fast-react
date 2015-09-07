@@ -497,12 +497,12 @@
             old = updateComponent(old, vdom, topComponent);
         }
         else if (vdom[0/*type*/] == VChildren) {
-            old = updateComponentChildren(oldParent, oldPos, old, newParent, vdomPos, vdom, topComponent);
+            old = updateComponentChildren(old, vdom, topComponent);
         }
         return old;
     }
 
-    function updateComponentChildren(oldParent, oldPos, old, newParent, vdomPos, vdom, topComponent) {
+    function updateComponentChildren(old, vdom, topComponent) {
         if (vdom.length !== old.length) {
             console.log("Replaced cause different length", vdom, old);
             return replace(old, vdom, topComponent);
