@@ -255,7 +255,6 @@
         if (DEBUG_MODE){
             vdom.id = id++;
         }
-        //console.log("create", vdom);
 
         if (vdom[0/*type*/] == VText) {
             //VTextTuple[type, node, value]
@@ -403,7 +402,6 @@
         //VChildren[type, parentNode, refComponent, ...values]
         vdom[1/*parentNode*/] = old[1/*parentNode*/];
         if (vdom.length !== old.length) {
-            console.log("Replaced cause different length", vdom, old);
             return replace(old, vdom, topComponent);
         }
         for (var i = 3/*VChildrenFirstNode*/; i < vdom.length; i++) {
