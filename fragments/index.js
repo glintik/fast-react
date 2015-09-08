@@ -3,7 +3,7 @@
      * Globals
      **-------------------------------------**/
     var DEBUG_MODE = true;
-    var id = 0;
+    var id = 1;
 
     var baseType = '\u2425';
     var VTag = baseType + 'T';
@@ -252,10 +252,10 @@
      * Creating
      **-------------------------------------**/
     function create(vdom, rootNode, before, topComponent) {
-        vdom.id = id++;
+        if (DEBUG_MODE){
+            vdom.id = id++;
+        }
         //console.log("create", vdom);
-        var child;
-        var i;
 
         if (vdom[0/*type*/] == VText) {
             //VTextTuple[type, node, value]
@@ -263,14 +263,6 @@
             rootNode.insertBefore(vdom[1/*node*/], before);
         }
         else if (vdom[0/*type*/] == VTag) {
-            //VTagTuple[type, node, tag, key, attrsLen, constAttrsLen, ...attrs, ...children]
-            // 0/*type*/
-            // 1/*node*/
-            // 2/*tag*/
-            // 3/*key*/
-            // 5/*attrsLen*/
-            // 6/*constAttrsLen*/
-            // 7/*attrsStartPos*/
             var node = vdom[1/*node*/] = rootNode.insertBefore(document.createElement(vdom[2/*tag*/]), before);
 
             if (vdom[5/*attrsLen*/] == 1 && vdom[7/*attrsStartPos*/] == spreadType) {
@@ -284,8 +276,8 @@
                 }
             }
 
-            for (i = 7/*attrsStartPos*/ + vdom[5/*attrsLen*/] * 2; i < vdom.length; i++) {
-                child = norm(vdom, i, vdom[i]);
+            for (var i = 7/*attrsStartPos*/ + vdom[5/*attrsLen*/] * 2; i < vdom.length; i++) {
+                var child = norm(vdom, i, vdom[i]);
                 vdom[i] = create(child, node, null, topComponent);
             }
 
@@ -298,7 +290,6 @@
             //VArrayTuple[type, node, parentNode, keyMap, sourceArray, ...values]
             vdom[1/*parentNode*/] = rootNode;
             vdom[2/*keymap*/] = {};
-            //vdom[1/*node*/] = rootNode.insertBefore(document.createComment('array'), before);
             //iterate source array
             var sourceArray = vdom[3/*sourceArray*/];
             var keyMap = vdom[2/*keymap*/];
@@ -328,7 +319,6 @@
 
     function createComponent(vdom, rootNode, before, topComponent) {
         var Ctor = vdom[2/*Ctor*/];
-        //VComponentTuple[type, node, parentNode, Ctor, instance, props, children, ref, key?]
         vdom[1/*parentNode*/] = rootNode;
         var props = prepareComponentProps(vdom, false, topComponent);
         var component = vdom[5/*instance*/] = new Ctor(props);
@@ -383,11 +373,9 @@
         //VTagTuple[type, node, tag, key, attrsHash, attrsLen, constAttrsLen, ...attrs, ...children]
         var node = vdom[1/*node*/] = old[1/*node*/];
         if (vdom[4/*attrsHash*/] !== old[4/*attrsHash*/]) {
-            console.log("Replaced cause attrs hash", vdom[4], old[4]);
             return replace(old, vdom, topComponent);
         }
         if (vdom.length !== old.length) {
-            console.log("Replaced cause different length", vdom, old);
             return replace(old, vdom, topComponent);
         }
         //spread
@@ -717,6 +705,10 @@
             p[0/*type*/] = VArray;
             p[2/*keymap*/] = {};
             p[3/*sourceArray*/] = child;
+            if (DEBUG_MODE){
+                p.id = id++;
+            }
+
             return p;
         }
         return [VText, null, child];
@@ -819,6 +811,10 @@
         newVdom[6/*constAttrsLen*/] = 0;
         newVdom[7/*attrsStartPos*/] = null;
         newVdom[7/*attrsStartPos*/ + 1] = props;
+        if (DEBUG_MODE){
+            newVdom.id = id++;
+        }
+
         if (children) {
             for (var i = 3/*VChildrenFirstNode*/; i < children.length; i++) {
                 newVdom.push(children[i]);
