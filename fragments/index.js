@@ -2,7 +2,7 @@
     /**-------------------------------------**
      * Globals
      **-------------------------------------**/
-    var DEBUG_MODE = true;
+    var DEBUG_MODE = false;
     var id = 1;
     var REF_RETURN_NODE = false;
 
@@ -322,7 +322,7 @@
         var component = vdom[5/*instance*/] = new Ctor(props);
         component.node = vdom;
         component.componentWillMount();
-        var children = vdom[6/*children*/] = norm(component.render());
+        var children = norm(component.render());
         vdom[6/*children*/] = create(children, vdom[1/*parentNode*/], before, component);
         component.componentDidMount();
         if (vdom[4/*ref*/] != null) {
@@ -689,7 +689,7 @@
         }
         if (child[0/*type*/] == VComponent) {
             if (typeof child[2/*Ctor*/] == 'string') {
-                return convertComponentToTag(child);
+                child = convertComponentToTag(child);
             }
         }
         return child;
@@ -799,7 +799,14 @@
 
     function convertComponentToTag(vdom) {
         var props = vdom[7/*props*/];
-        var children = props.children || vdom[8/*propsChildren*/];
+        if (vdom[8/*propsChildren*/]) {
+            var children = vdom[8/*propsChildren*/];
+            var startChildrenPos = 0;
+        }
+        else {
+            children = props.children;
+            startChildrenPos = 3/*VChildrenFirstNode*/;
+        }
         props.children = null;
         var tag = vdom[2/*Ctor*/];
         var newVdom = [];
@@ -818,7 +825,7 @@
         }
 
         if (children) {
-            for (var i = 3/*VChildrenFirstNode*/; i < children.length; i++) {
+            for (var i = startChildrenPos; i < children.length; i++) {
                 newVdom.push(children[i]);
             }
         }
