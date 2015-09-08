@@ -4,6 +4,7 @@
      **-------------------------------------**/
     var DEBUG_MODE = true;
     var id = 1;
+    var REF_RETURN_NODE = false;
 
     var baseType = '\u2425';
     var VTag = baseType + 'T';
@@ -252,7 +253,7 @@
      * Creating
      **-------------------------------------**/
     function create(vdom, rootNode, before, topComponent) {
-        if (DEBUG_MODE){
+        if (DEBUG_MODE) {
             vdom.id = id++;
         }
 
@@ -496,8 +497,6 @@
                         keyMap[key] = null;
                     }
                     remove(rootNode, oldChild, true);
-                    //todo: do not need
-                    old[i] = null;
                     if (oldLenFull == ++fitCount) {
                         break;
                     }
@@ -532,8 +531,20 @@
     /**-------------------------------------**
      * Attrs
      **-------------------------------------**/
-    function setStyle(node, val) {
-        //todo: setStyle
+    function setStyle(node, oldStyles, newStyles) {
+        if (oldStyles) {
+            for (var prop in oldStyles) {
+                node.style[prop] = "";
+            }
+        }
+        var val;
+        for (prop in newStyles) {
+            val = newStyles[prop];
+            if (prop == +prop && typeof isUnitlessNumber[prop] == 'undefined') {
+                val = prop + 'px';
+            }
+            node.style[prop] = val;
+        }
     }
 
     function setSpreadAttrs(node, vdom, old) {
@@ -588,14 +599,13 @@
                 }
             }
             else if (normAttr = constProps[attr]) {
-                //todo: how to remove?
                 node[normAttr] = val;
             }
             else if ((normAttr = constEvents[attr]) || ((normAttr = attr.toLowerCase()) && normAttr in document)) {
                 node[normAttr] = val;
             }
             else if (attr == 'style') {
-                setStyle(node, val);
+                setStyle(node, oldAttrs ? oldAttrs.style : null, val);
             }
             else if (attr.substring(0, 4) == 'data') {
                 if (val == null || val === false) {
@@ -649,7 +659,6 @@
                 remove(vdom[1/*parentNode*/], vdom[6/*children*/], removeFromDom);
             }
             else if (type == VChildren) {
-                //todo
                 for (i = 3/*VChildrenFirstNode*/; i < vdom.length; i++) {
                     remove(vdom[1/*parentNode*/], vdom[i], removeFromDom);
                 }
@@ -703,7 +712,7 @@
             p[0/*type*/] = VArray;
             p[2/*keymap*/] = {};
             p[3/*sourceArray*/] = child;
-            if (DEBUG_MODE){
+            if (DEBUG_MODE) {
                 p.id = id++;
             }
 
@@ -716,16 +725,15 @@
         if (!topComponent.refs) {
             topComponent.refs = {};
         }
-        //todo: optional real node or vdom
         if (typeof val == 'function') {
-            val(vdom);
+            val(REF_RETURN_NODE ? vdom[1/*node*/] : vdom);
         }
         else {
             if (vdom[0/*type*/] == VComponent) {
                 topComponent.refs[val] = vdom[5/*instance*/];
             }
             else {
-                topComponent.refs[val] = vdom;
+                topComponent.refs[val] = REF_RETURN_NODE ? vdom[1/*node*/] : vdom;
             }
         }
     }
@@ -809,7 +817,7 @@
         newVdom[6/*constAttrsLen*/] = 0;
         newVdom[7/*attrsStartPos*/] = null;
         newVdom[7/*attrsStartPos*/ + 1] = props;
-        if (DEBUG_MODE){
+        if (DEBUG_MODE) {
             newVdom.id = id++;
         }
 
@@ -875,10 +883,10 @@
         this.componentDidUpdate();
     };
 
+    //noinspection JSUnusedGlobalSymbols
     /**-------------------------------------**
      * Export
      **-------------------------------------**/
-    //noinspection JSUnusedGlobalSymbols
     global.React = global.FastReact = {
         Component: Component,
         findDOMNode: findDOMNode,
