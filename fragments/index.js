@@ -277,8 +277,7 @@
             }
 
             for (var i = 7/*attrsStartPos*/ + vdom[5/*attrsLen*/] * 2; i < vdom.length; i++) {
-                var child = norm(vdom, i, vdom[i]);
-                vdom[i] = create(child, node, null, topComponent);
+                vdom[i] = create(norm(vdom[i]), node, null, topComponent);
             }
 
 
@@ -295,8 +294,8 @@
             var keyMap = vdom[2/*keymap*/];
             for (i = 0; i < sourceArray.length; i++) {
                 var vdomPos = i + 4/*arrayFirstNode*/;
-                child = norm(vdom, vdomPos, sourceArray[i]);
-                child = vdom[vdomPos] = create(child, rootNode, before, topComponent);
+                var child = norm(sourceArray[i]);
+                vdom[vdomPos] = create(child, rootNode, before, topComponent);
                 var key = getKey(child);
                 if (key != null) {
                     keyMap[key] = vdomPos;
@@ -310,8 +309,7 @@
         else if (vdom[0/*type*/] == VChildren) {
             vdom[1/*parentNode*/] = rootNode;
             for (i = 3/*VChildrenFirstNode*/; i < vdom.length; i++) {
-                child = norm(vdom, i, vdom[i]);
-                vdom[i] = create(child, rootNode, before, vdom[2/*refComponent*/]);
+                vdom[i] = create(norm(vdom[i]), rootNode, before, vdom[2/*refComponent*/]);
             }
         }
         return vdom;
@@ -324,7 +322,7 @@
         var component = vdom[5/*instance*/] = new Ctor(props);
         component.node = vdom;
         component.componentWillMount();
-        var children = vdom[6/*children*/] = component.render() || normOnly(null);
+        var children = vdom[6/*children*/] = norm(component.render());
         vdom[6/*children*/] = create(children, vdom[1/*parentNode*/], before, component);
         component.componentDidMount();
         if (vdom[4/*ref*/] != null) {
@@ -390,8 +388,7 @@
             }
         }
         for (var i = 7/*attrsStartPos*/ + vdom[5/*attrsLen*/] * 2; i < vdom.length; i++) {
-            var child = norm(vdom, i, vdom[i]);
-            vdom[i] = update(old[i], child, topComponent);
+            vdom[i] = update(old[i], norm(vdom[i]), topComponent);
         }
         if (typeof vdom.ref != 'undefined') {
             setRef(vdom, vdom.ref, topComponent, false);
@@ -406,8 +403,7 @@
             return replace(old, vdom, topComponent);
         }
         for (var i = 3/*VChildrenFirstNode*/; i < vdom.length; i++) {
-            var child = norm(vdom, i, vdom[i]);
-            old[i] = update(old[i], child, old[2/*refComponent*/]);
+            old[i] = update(old[i], norm(vdom[i]), old[2/*refComponent*/]);
         }
         return old;
     }
@@ -425,7 +421,7 @@
             component.props = vdom[7/*props*/] = props;
 
             component.componentWillUpdate();
-            var children = component.render() || normOnly(null);
+            var children = norm(component.render());
             vdom[6/*children*/] = update(old[6/*children*/], children, component);
             component.node = vdom;
             component.componentDidUpdate();
@@ -449,7 +445,7 @@
 
         var fitCount = 0;
         for (var i = 4/*arrayFirstNode*/; i < vdom.length; i++) {
-            var newChild = vdom[i] = norm(vdom, i, sourceArray[i - 4/*arrayFirstNode*/]);
+            var newChild = vdom[i] = norm(sourceArray[i - 4/*arrayFirstNode*/]);
             var oldChild = oldLen > i ? old[i] : null;
             var newKey = getKey(newChild);
             if (newKey != null) {
@@ -687,13 +683,13 @@
     /**-------------------------------------**
      * Utils
      **-------------------------------------**/
-    function norm(vdom, i, child) {
+    function norm(child) {
         if (!(typeof child == 'object' && child && typeof child[0] == 'string' && child[0][0] == baseType)) {
-            child = vdom[i] = normOnly(child);
+            child = normOnly(child);
         }
         if (child[0/*type*/] == VComponent) {
             if (typeof child[2/*Ctor*/] == 'string') {
-                child = vdom[i] = convertComponentToTag(child);
+                return convertComponentToTag(child);
             }
         }
         return child;
@@ -878,7 +874,7 @@
     ComponentProto.forceUpdate = function () {
         //VComponentTuple[type, node, parentNode, Ctor, instance, props, children, ref, key?]
         this.componentWillUpdate();
-        var children = this.render() || normOnly(null);
+        var children = norm(this.render());
         this.node[6/*children*/] = update(this.node[6/*children*/], children, this);
         this.componentDidUpdate();
     };
@@ -894,12 +890,11 @@
             return el.slice()
         },
         render: function (vdom, rootNode) {
-            var child = norm([vdom], 0, vdom);
             if (typeof rootNode._vdom == 'undefined') {
-                return rootNode._vdom = create(child, rootNode, null, null);
+                return rootNode._vdom = create(norm(vdom), rootNode, null, null);
             }
             var old = rootNode._vdom;
-            return rootNode._vdom = update(old, child, null);
+            return rootNode._vdom = update(old, norm(vdom), null);
         }
     };
 }(window);
