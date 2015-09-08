@@ -1,4 +1,5 @@
 !function (global) {
+    var DEBUG_MODE = true;
     var constAttrs = {
         accept: 'accept',
         acceptCharset: 'accept-charset',
@@ -445,22 +446,23 @@
     }
 
     function update(old, vdom, topComponent) {
-        if (vdom[0/*type*/] !== old[0/*type*/]) {
+        var type = vdom[0/*type*/];
+        if (type !== old[0/*type*/]) {
             vdom = replace(old, vdom, topComponent);
         }
-        else if (vdom[0/*type*/] == VText) {
+        else if (type == VText) {
             vdom = updateText(old, vdom);
         }
-        else if (vdom[0/*type*/] == VTag) {
+        else if (type == VTag) {
             vdom = updateTag(old, vdom, topComponent);
         }
-        else if (vdom[0/*type*/] == VArray) {
-            vdom = updateChildren(old, vdom, topComponent);
+        else if (type == VArray) {
+            vdom = updateArray(old, vdom, topComponent);
         }
-        else if (vdom[0/*type*/] == VComponent) {
+        else if (type == VComponent) {
             vdom = updateComponent(old, vdom, topComponent);
         }
-        else if (vdom[0/*type*/] == VChildren) {
+        else if (type == VChildren) {
             vdom = updateComponentChildren(old, vdom, topComponent);
         }
         return vdom;
@@ -543,7 +545,7 @@
         return null;
     }
 
-    function updateChildren(old, vdom, topComponent) {
+    function updateArray(old, vdom, topComponent) {
         //VArrayTuple[type, node, parentNode, keyMap, sourceArray, ...values]
         var rootNode = vdom[1/*parentNode*/] = old[1/*parentNode*/];
         var keyMap = vdom[2/*keymap*/] = old[2/*keymap*/];
@@ -765,11 +767,12 @@
             var props = prepareComponentProps(vdom, true, topComponent);
             component.componentWillReceiveProps(props);
             component.props = vdom[7/*props*/] = props;
-            //update old
-            component.forceUpdate();
-            //replace old to new
-            vdom[6/*children*/] = old[6/*children*/];
+
+            component.componentWillUpdate();
+            var children = component.render() || normOnly(null);
+            vdom[6/*children*/] = update(old[6/*children*/], children, component);
             component.node = vdom;
+            component.componentDidUpdate();
 
             if (vdom[4/*ref*/] != null) {
                 setRef(vdom, vdom[4/*ref*/], topComponent, false);
