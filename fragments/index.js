@@ -5,6 +5,8 @@
     var DEBUG_MODE = false;
     var id = 1;
     var REF_RETURN_NODE = false;
+    var componentContext = null;
+    var prevContext = null;
 
     var baseType = '\u2425';
     var VTag = baseType + 'T';
@@ -322,8 +324,15 @@
         var component = vdom[5/*instance*/] = new Ctor(props);
         component.node = vdom;
         component.componentWillMount();
+        if (typeof component.getChildContext == 'function') {
+            prevContext = componentContext;
+            componentContext = component.getChildContext();
+        }
         var children = norm(component.render());
         vdom[6/*children*/] = create(children, vdom[1/*parentNode*/], before, component);
+        if (typeof this.getChildContext == 'function') {
+            componentContext = prevContext;
+        }
         component.componentDidMount();
         if (vdom[4/*ref*/] != null) {
             setRef(vdom, vdom[4/*ref*/], topComponent, false);
@@ -421,8 +430,15 @@
             component.props = vdom[7/*props*/] = props;
 
             component.componentWillUpdate();
+            if (typeof component.getChildContext == 'function') {
+                prevContext = componentContext;
+                componentContext = component.getChildContext();
+            }
             var children = norm(component.render());
             vdom[6/*children*/] = update(old[6/*children*/], children, component);
+            if (typeof component.getChildContext == 'function') {
+                componentContext = prevContext;
+            }
             component.node = vdom;
             component.componentDidUpdate();
 
@@ -848,7 +864,9 @@
      * Component
      **-------------------------------------**/
     function Component(props) {
-        this.props = props
+        this.props = props;
+        //noinspection JSUnusedGlobalSymbols
+        this.context = componentContext;
     }
 
     var ComponentProto = Component.prototype;
@@ -878,11 +896,19 @@
     ComponentProto.render = function () {
         return null;
     };
+    ComponentProto.getChildContext = null;
     ComponentProto.forceUpdate = function () {
         //VComponentTuple[type, node, parentNode, Ctor, instance, props, children, ref, key?]
         this.componentWillUpdate();
+        componentContext = this.context;
+        if (typeof this.getChildContext == 'function') {
+            componentContext = this.getChildContext();
+        }
         var children = norm(this.render());
         this.node[6/*children*/] = update(this.node[6/*children*/], children, this);
+        if (typeof this.getChildContext == 'function') {
+            componentContext = prevContext;
+        }
         this.componentDidUpdate();
     };
 
