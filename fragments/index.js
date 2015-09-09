@@ -712,7 +712,7 @@
     }
 
     function normOnly(child) {
-        if (child == null) {
+        if (child == null || typeof child == 'boolean') {
             return [VText, null, ''];
         }
 
@@ -817,11 +817,9 @@
         var props = vdom[7/*props*/];
         if (vdom[8/*propsChildren*/]) {
             var children = vdom[8/*propsChildren*/];
-            var startChildrenPos = 0;
         }
         else {
             children = props.children;
-            startChildrenPos = 3/*VChildrenFirstNode*/;
         }
         props.children = null;
         var tag = vdom[2/*Ctor*/];
@@ -841,7 +839,7 @@
         }
 
         if (children) {
-            for (var i = startChildrenPos; i < children.length; i++) {
+            for (var i = 3/*VChildrenFirstNode*/; i < children.length; i++) {
                 newVdom.push(children[i]);
             }
         }
