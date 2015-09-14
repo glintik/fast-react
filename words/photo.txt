@@ -1,0 +1,437 @@
+var s = `
+Lisa works at Black and Sons. 
+Black and Sons is a large company.
+Lisa works in the Accounts Department.
+The work is very important. 
+But it is not very exciting.
+
+Лиза работает в Блак энд Санс. 
+Блак энд Санс - крупная компания. 
+Лиза работает в бухгалтерии. 
+Эта работа очень важная.
+Но она не очень увлекательная.
+
+- Your holiday is next week, Lisa.
+Are you excited?
+- Oh, yes! 
+I'm going to go with Alice. 
+We're going to go to Greece. 
+It will be fun. 
+Perhaps something exciting will happen.
+
+- У тебя отпуск на следующей неделе, Лиза.
+Ты в нетерпении? 
+- О, да! 
+Я собираюсь поехать с Алисой. 
+Мы собираемся поехать в Грецию. 
+Это будет весело. 
+Возможно, случится что-то захватывающее.
+
+
+Alice is Lisa’s friend. 
+Alice works for Black and Sons too. 
+She works in the Marketing Department. 
+Alice is an artist. 
+She designs advertisements for Black and Sons.
+
+
+Алиса подруга Лизы.
+Алиса тоже работает в Блак энд Санс. 
+Она работает в отделе маркетинга. 
+Алиса - художник. 
+Она разрабатывает рекламу для Блак энд Санс.
+
+
+- I want to work with Alice.
+I want to work in the Marketing Department. 
+The Marketing Department is always busy.
+Everybody is very friendly.
+They have exciting jobs.
+
+
+- Я хочу работать с Алисой.
+Я хочу работать в отделе маркетинга. 
+В отделе маркетинга всегда оживленно. 
+Все очень дружелюбные. 
+У них увлекательная работа.
+
+
+Alice phones Lisa. 
+They are going to get their passports today. 
+They must go to the Post Office.
+- Hi, Lisa.
+- Hello, Alice.
+- Let's meet at lunch time.
+Then we can get our passports for our holiday.
+- OK. 
+I’ll meet you outside the office at 12.30.
+
+
+Алиса звонит по телефону Лизе.
+Они собираются сегодня получить их паспорта. 
+Они должны пойти в почтовое отделение. 
+- Привет, Лиза. 
+- Здравствуй, Алиса. 
+- Давай встретимся во время ланча. 
+Затем мы можем получить наши паспорта для нашего отпуска. 
+- Ладно. 
+Я встречу тебя снаружи офиса в 12.30.
+
+
+Lisa and Alice are in the Post Office.
+The assistant gives the passport forms to the two friends. 
+- Please fill in these forms.
+Where are your passport photos? 
+- Here are my photos.
+- Oh, no! 
+My photos aren’t in my bag!
+My photos are at home!
+
+
+Лиза и Алиса находятся в почтовом отделении.
+Служащая дает бланки для паспорта двум друзьям.
+- Пожалуйста, заполните эти бланки. 
+Где ваши фотографии на паспорт?
+- Вот мои фотографии. 
+- Ой, нет! 
+Мои фотографий нет в моей сумке! 
+Мои фотографии дома!
+
+
+
+- Lisa, you must go to the photo booth in the old bus station.
+You can get your photos there.
+- Oh, no! I hate the old bus station.
+I don't want to go there. 
+- But you must get the photos today. 
+Listen, I can fill in the forms.
+Go to the bus station, Lisa.
+Go and get your photos.
+I’ll wait for you here.
+
+
+- Лиза, ты должна пойти в фото-будку в старом автовокзале.
+Ты сможешь там сделать (получить) себе фотографии. 
+- Ой, нет! Я ненавижу старый автовокзал. 
+Я не хочу идти туда.
+- Но ты должна сделать фотографии сегодня. 
+Слушай, я могу заполнить бланки. 
+Иди на автовокзал, Лиза. 
+Иди и сделай себе фотографии. 
+Я буду ждать тебя здесь.
+
+
+
+
+
+Nobody goes to the bus station now.
+There is a new bus station in the centre of town.
+The old bus station is empty and dark.
+Lisa walks quickly.
+Her shoes make a loud noise on the ground.
+Then she sees the photo booth.
+There is nobody in the photo booth.
+Lisa is happy.
+She can get her photos quickly.
+
+
+Никто не ходит в автовокзал теперь.
+Есть новый автовокзал в центре города.
+Старый автовокзал - пустой и темный.
+Лиза идет быстро.
+Ее туфли громко стучат по полу.
+Затем она видит фото-будку.
+В фото-будке никого нет.
+Лиза счастлива.
+Она может сделать фотографии быстро.
+
+
+Lisa goes into the photo booth.
+She puts her money into the machine.
+She closes the little curtain.
+She sits down.
+She waits.
+FLASH!
+The camera is very quick.
+FLASH! FLASH! FLASH!
+Now Lisa can get her passport today.
+
+
+Лиза заходит в фото-будку.
+Она кладет деньги в аппарат.
+Она закрывает маленькую занавеску.
+Она садится.
+Она ждет.
+Вспышка!
+Камера работает очень быстро.
+Вспышка! Вспышка! Вспышка!
+Теперь Лиза может получить свой паспорт сегодня.
+
+
+Lisa goes outside the photo booth.
+Her photos will come out of a slot in the machine.
+Lisa hears a noise.
+Some photos are coming out of the slot.
+Are they her photos?
+No, it is too soon.
+Lisa’s photos can’t be ready.
+
+
+Лиза выходит из фото-будки.
+Ее фотографии выйдут из слота в аппарате.
+Лиза слышит шум.
+Несколько фотографий выходят из слота.
+Это ее фотографии?
+Нет, слишком рано.
+Фотографии Лизы не могут быть готовы.
+
+
+
+But who is in the photos?
+There is nobody in the bus station.
+Nobody else is waiting for photos.
+Lisa is alone.
+Lisa takes the photos out of the slot.
+There is a man in the pictures.
+But something is wrong.
+
+
+She is frightened.	Но кто на этих фотографиях?
+Никого нет в автовокзале.
+Больше никто не ждет фотографии.
+Лиза одна.
+Лиза берет фотографии из слота.
+На фотографиях какой-то мужчина.
+Но что-то не так.
+Она напугана.
+
+
+
+
+
+
+
+The four photos show a murder!
+There is a man in the first photo.
+He is very large.
+He is wearing a black coat and a red scarf.
+The man is sitting in the photo booth.
+He is smiling.
+It is not a nice smile.
+It is a cruel smile.
+The man is in the second photo.
+The man is looking to the right.
+He is afraid.
+
+
+Эти четыре фотографии изображают убийство!
+На первой фотографии какой-то мужчина.
+Он очень большой.
+Он одет в черное пальто и красный шарф.
+Этот мужчина сидит в фото-будке.
+Он улыбается.
+Это не хорошая улыбка.
+Это жестокая улыбка.
+Этот же мужчина на второй фотографии.
+Мужчина смотрит направо.
+Он боится.
+
+
+
+Something is happening in the third photo.
+Somebody is holding the man’s scarf.
+Somebody is holding the man’s scarf very tightly.
+The large man is pulling at his scarf.
+There is no man in the fourth photo.
+There are two hands.
+The hands are holding the red scarf.
+
+Что-то происходит на третьей фотографии.
+Кто-то держит шарф этого мужчины.
+Кто-то держит шарф этого мужчины очень крепко.
+Крупный мужчина тянет за свой шарф.
+На четвертой фотографии нет мужчины.
+Есть лишь две руки.
+Эти руки держат красный шарф.
+
+
+
+There is a ring on one of the hands.
+It is a strange ring.
+There is a snake on the ring.
+There is a tattoo on the other hand.
+It is a tattoo of a bird.
+The hands are the murderer’s hands.
+
+
+
+На одной руке есть кольцо.
+Это странное кольцо.
+На кольце изображена змея.
+На другой руке - татуировка.
+Эта татуировка в виде птицы.
+Эти руки - руки убийцы.
+
+
+
+
+Now Lisa is very frightened?
+- The man with the red scarf is dead.
+But where is his body?
+Where is the murderer?
+Is the murderer in the bus station?
+The photos show the murder.
+The murderer knows about the photos.
+The murderer will come back to the photo booth.
+He will want the photos.
+I'm in danger!
+
+
+
+Теперь Лиза очень испугана?
+- Человек с красным шарфом мертв.
+Но где его тело?
+Где убийца?
+Убийца находится в автовокзале?
+Эти фотографии изображают убийство.
+Убийца знает о фотографиях.
+Убийца вернется в фото-будку.
+Он захочет забрать эти фотографии.
+Я нахожусь в опасности!
+
+
+
+Lisa and Alice are at the police station.
+They are telling their story to the police.
+They are showing the photos to a detective.
+She is very interested.
+The detective has a plan.
+
+
+
+Лиза и Алиса находятся в полицейском участке.
+Они рассказывают свою историю полиции.
+Они показывают фотографии детективу.
+Она очень заинтересована.
+У детектива есть план.
+
+
+
+- I know the man in the photos.
+He is a criminal.
+Now he is dead.
+But we can catch his murderer.
+The murderer will go back to the photo booth.
+He will want his photos.
+But he will find your photos, Lisa.
+He will look for you.
+You can help us, Lisa.
+
+
+- Я знаю этого человек на фотографиях.
+Он является преступником.
+Теперь он мертв.
+Но мы можем поймать его убийцу.
+Убийца вернется в фото-будку.
+Он захочет забрать его фотографии.
+Но он найдет твои фотографии, Лиза.
+Он будет искать тебя.
+Ты можешь помочь нам, Лиза.
+
+
+
+Lisa is in the bus station.
+She is walking towards the photo booth.
+She is going to get her photos.
+The police are in the bus station.
+They are hiding.
+They are watching Lisa.
+They are waiting for the murderer.
+Lisa walks slowly.
+She is very frightened.
+
+
+
+Лиза находится в автовокзале.
+Она идет к фото-будке.
+Она собирается забрать ее фотографии.
+Полиция находится в автовокзале.
+Они прячутся.
+Они наблюдают за Лизой.
+Они ждут убийцы.
+Лиза медленно идет.
+Она очень испугана.
+
+
+
+A man is standing by the photo booth.
+He is young and handsome.
+Is this the murderer?
+The man sees Lisa.
+He smiles at her.
+He has a nice smile.
+He is holding some photos.
+Lisa sees his hands.
+She sees the snake ring.
+She sees the bird tattoo!
+
+
+
+Какой-то мужчина стоит возле фото-будки.
+Он молодой и симпатичный.
+Это убийца?
+Мужчина видит Лизу.
+Он улыбается ей.
+У него милая улыбка.
+Он держит несколько фотографий.
+Лиза видит его руки.
+Она видит кольцо со змеей.
+Она видит татуировку в виде птицы!
+
+
+
+The police catch the murderer.
+The detective is pleased.
+Lisa is safe.
+- Thank you for your help, Lisa.
+- Well done, Lisa!
+It's exciting to catch criminals.
+- Exciting? No!
+It’s very frightening.
+- But everything is OK now.
+We’re going on holiday.
+It will be fun.
+- Yes.
+Perhaps something exciting will happen!
+
+
+
+Полиция хватает убийцу.
+Детектив довольна.
+Лиза в безопасности.
+- Спасибо за твою помощь, Лиза.
+- Молодец (хорошо сделано), Лиза!
+Очень захватывающе ловить преступников.
+- Захватывающе? Нет!
+Это очень страшно.
+- Но все в порядке сейчас.
+Мы собираемся в отпуск.
+Это будет весело.
+- Да.
+Возможно, произойдет что-нибудь захватывающее!
+
+`
+ss = s.trim().replace(/\n\s*\n+\s*/, '\n\n').trim();
+var blocks = ss.split(/\n\s*\n/);
+var lines = [];
+for (var i=0; i<blocks.length; i+=2){
+    var originLines = blocks[i].split(/\n/);
+    var translateLines = blocks[i+1].split(/\n/);
+    for (var j=0; j<originLines.length; j++){
+        if (!translateLines[j]){
+            throw new Error('translateLines not found: '+originLines[j]);
+        }
+        lines.push([originLines[j], translateLines[j]]);
+    }
+}
+

@@ -1,0 +1,417 @@
+var s = ` Welcome to Middletown!
+It is Monday morning.
+Everybody is at the market.
+The market is busy.
+Today, there is a new man at the market.
+His name is Mister Fruit.
+His daughter is helping him.
+Her name is Sara.
+
+
+Добро пожаловать в Миддлтон!
+Понедельник утро.
+Все находятся на рынке.
+Рынок оживлённый.
+Сегодня на рынке новый человек.
+Его зовут мистер Фрукт.
+Его дочь помогает ему.
+Ее зовут Сара.
+
+
+‘Good morning,’
+Mister Fruit says to everybody.
+‘My fruit is fresh.
+My fruit is cheap.’
+Mister Fruit is polite.
+He is friendly.
+Everybody likes Mister Fruit.
+‘What a nice man!’ they say.
+Everybody likes his daughter.
+‘What a nice girl,’ they say.
+
+
+
+«Доброе утро,
+- говорит мистер Фрукт всем.
+- Мои фрукты свежие.
+Мои фрукты дешевые».
+Мистер Фрукт вежливый.
+Он дружелюбен.
+Всем нравится мистер Фрукт.
+«Какой хороший человек!» - они говорят.
+Всем нравится его дочь.
+«Что за милая девушка», - говорят они.
+
+
+
+A schoolboy asks for one kilo of apples.
+Mister Fruit puts some apples on the scales.
+The scales show one kilo and one hundred grammes.
+Mister Fruit takes one apple away.
+Now the scales show nine hundred grammes.
+
+
+
+Школьник просит один килограмм яблок.
+Мистер Фрукт кладет несколько яблок на весы.
+Весы показывают один килограмм и сто граммов.
+Мистер Фрукт убирает одно яблоко.
+Теперь весы показывают девятьсот граммов.
+
+
+But Mister Fruit says,
+‘One kilo of apples! One dollar!’
+He takes one dollar from the schoolboy.
+Sara is watching her father.
+She sees everything.
+
+
+
+Но мистер Фрукт говорит:
+"Один килограмм яблок! Один доллар!»
+Он берет один доллар у школьника.
+Сара наблюдает за отцом.
+Она все видит.
+
+
+
+A young woman asks for two kilos of oranges.
+Mister Fruit puts some oranges on the scales.
+The scales show two kilos and two hundred grammes.
+Mister Fruit takes one orange away.
+
+
+Молодая женщина просит два кило апельсинов.
+Мистер Фрукт кладет несколько апельсинов на весы.
+Весы показывают два килограмма двести граммов.
+Мистер Фрукт убирает один апельсин.
+
+
+
+Now the scales show one kilo and eight hundred grammes.
+But Mister Fruit says,
+‘Two kilos of oranges. Two dollars!’
+He takes two dollars from the young woman.
+Sara sees everything.
+
+
+Теперь весы показывают один килограмм восемьсот граммов.
+Но Мистер Фрукт говорит:
+«Два килограмма апельсинов. Два доллара!»
+Он берет два доллара у молодой женщины.
+Сара видит все.
+
+
+
+
+It is Monday evening.
+Sara’s father is counting his money.
+He is happy.
+But Sara is not happy.
+She is angry.
+Father! You must sell the correct weight.
+You mustn't cheat our customers.
+Our customers are poor.
+
+
+
+Понедельник вечер.
+Отец Сары считает свои деньги.
+Он счастлив.
+Но Сара не счастлива.
+Она сердится.
+Отец! Ты должен продавать правильный вес.
+Ты не должен обманывать наших покупателей.
+Наши покупатели бедные.
+
+
+
+But we are poor too, Sara!
+My wife is dead.
+You have no mother.
+I have no sons.
+You have no brothers.
+We must make money, Sara!
+That’s life!
+I don't want to work at the market, father.
+
+
+Но мы тоже бедные, Сара!
+Моя жена умерла.
+У тебя нет матери.
+У меня нет сыновей.
+У тебя нет братьев.
+Мы должны зарабатывать деньги, Сара!
+Такова жизнь!
+Я не хочу работать на рынке, отец.
+
+
+You must work at the market!
+We must live, Sara.
+We must eat!
+You’re a child.
+You don’t understand business.
+You’re a woman.
+Women don't understand business.
+That’s life, Sara!
+
+
+
+Ты должна работать на рынке!
+Мы должны жить, Сара.
+Мы должны съесть!
+Ты - ребенок.
+Ты не понимаешь бизнеса.
+Ты - женщина.
+Женщины не понимают бизнеса.
+Такова жизнь, Сара!
+
+
+
+It is Tuesday morning.
+Today, Sara's father is selling the correct weight.
+He is honest.
+He takes the correct money.
+Sara is happy.
+Today, she is proud of her father.
+The customers are happy too.
+They buy a lot of fruit.
+‘Your fruit is cheap and fresh,’ they say.
+
+
+
+Вторник утро.
+Сегодня отец Сары продает правильный вес.
+Он честен.
+Он берет правильные деньги.
+Сара счастлива.
+Сегодня она гордится своим отцом.
+Покупатели тоже счастливы.
+Они покупают много фруктов.
+«Ваши фрукты дешевые и свежие», - говорят они.
+
+
+
+But in the afternoon, some customers come back.
+They are angry.
+An old man brings back some apples.
+One of his apples is bad.
+A girl brings back some oranges.
+One of her oranges is bad.
+
+
+
+Но во второй половине дня, некоторые покупатели приходят назад.
+Они сердитые.
+Старик возвращает несколько яблок.
+Одно из его яблок гнилое.
+Девушка возвращает несколько апельсинов.
+Один из ее апельсинов гнилой.
+
+
+
+A woman brings back some bananas.
+One of her bananas is bad.
+It is black, and full of worms.
+‘Look, Mister Fruit! Your fruit isn’t fresh today.
+We want our money back!’
+But Mister Fruit does not listen.
+He does not give them any money.
+
+
+Женщина возвращает несколько бананов.
+Один из ее бананов гнилой.
+Он черный и полон червей.
+«Смотрите, мистер Фрукт! Ваши фрукты не свежие сегодня.
+Мы хотим наши деньги назад!»
+Но мистер Фрукт не слушает.
+Он не дает им никаких денег.
+
+
+
+
+
+
+‘You’re dishonest, father!’ says Sara.
+‘You’re cheating the customers!
+I don’t want to work for you.
+I don’t want to work at the market!’
+
+
+«Ты нечестный, отец!» - говорит Сара.
+- Ты обманываешь покупателей!
+Я не хочу работать на тебя.
+Я не хочу работать на рынке!»
+
+
+
+‘But you must work for me, Sara,’ says her father.
+‘I have no family! I have no wife, and no sons.
+Children must help their parents.
+You are my daughter, Sara.
+You must work for me. That’s life!’
+
+
+"Но ты должна работать на меня, Сара, - говорит ее отец.
+- У меня нет семьи! У меня нет жены и нет сыновей.
+Дети должны помогать своим родителям.
+Ты моя дочь, Сара.
+Ты должны работать на меня. Такова жизнь!»
+
+
+
+‘No, father,’ says Sara.
+‘I don’t want to clean your house.
+I want to leave home.
+I don’t want to cook your food.
+I want to get a good job!
+I’m not going to work for you.’
+Sara’s father is angry.
+‘Go to bed!’ he shouts at her.
+
+
+
+«Нет, отец, - говорит Сара.
+- Я не хочу убирать твой дом.
+Я хочу уйти из дома.
+Я не хочу готовить тебе еду.
+Я хочу получить хорошую работу!
+Я не собираюсь работать на тебя».
+Отец Сары сердится.
+«Отправляйся в постель!» - он кричит на нее.
+
+
+
+Sara goes to bed.
+She is lonely.
+She is unhappy.
+She says a prayer.
+Please, help me.
+Please, help my father!
+Please, help us!
+What am I going to do?
+I need a miracle.
+Help me!
+
+
+
+Сара идет спать.
+Ей одиноко.
+Она несчастна.
+Она произносит молитву.
+Пожалуйста, помоги мне.
+Пожалуйста, помоги моему отцу!
+Пожалуйста, помоги нам!
+Что мне делать?
+Мне нужно чудо.
+Помоги мне!
+
+
+
+
+It is Wednesday morning.
+Everybody is at the market.
+Everybody is laughing.
+Something strange is happening.
+Mister Fruit touches an apple.
+The apple goes bad.
+Then he picks up an orange.
+
+
+
+Среда утро.
+Все находятся на рынке.
+Все смеются.
+Что-то странное происходит.
+Мистер Фрукт касается яблока.
+Яблоко становится гнилое.
+Затем он берет апельсин.
+
+
+
+
+
+
+The orange goes bad too.
+Then he picks up some bananas.
+They go black.
+Everybody laughs.
+‘Look at Mister Fruit!
+He touches the fruit and it goes bad!'
+
+
+
+Апельсин тоже становится гнилым.
+Затем он берет несколько бананов.
+Они становятся черные.
+Все смеются.
+"Посмотрите на мистера Фрукта!
+Он касается фрукта, и он становится гнилой!
+
+
+Mister Fruit looks at his hands.
+‘What is happening?’ he says.
+‘Please, Sara.
+Please help me.’
+Sara touches an apple.
+She picks up an orange and some bananas.
+
+
+
+Мистер Фрукт смотрит на свои руки.
+«Что происходит? - говорит он.
+- Пожалуйста, Сара.
+Пожалуйста, помогите мне».
+Сара касается яблока.
+Она берет апельсин и несколько бананов.
+
+
+
+‘Hooray!’ everybody says.
+‘It’s a miracle!
+Sara touches the fruit and it’s OK!
+We’re going to buy our fruit from Sara!’
+
+
+"Ура!" - все говорят.
+- Это чудо!
+Сара касается фрукта, и он становится нормальным!
+Мы будем покупать наши фрукты у Сары!»
+
+
+Next year, Mister Fruit is Miss Fruit.
+Sara is honest.
+She does not cheat.
+She always sells the correct weight.
+She sells good, fresh fruit.
+She understands business.
+Sara is making a lot of money.
+She has a good job now.
+
+
+В следующем году Мистером Фрукт становится Мисс Фрукт.
+Сара честная.
+Она не обманывает.
+Она всегда продает правильный вес.
+Она продает хорошие, свежие фрукты.
+Она понимает бизнес.
+Сара зарабатывает много денег.
+У нее есть хорошая работа.
+
+
+Sara’s father stays at home.
+He cleans the house.
+He cooks the food.
+He is very happy!
+‘That’s life!’ he says.
+
+
+Отец Сары остается дома.
+Он убирает дом.
+Он готовит еду.
+Он очень доволен!
+«Такова жизнь!» - говорит он.
+
+
+
+`;
