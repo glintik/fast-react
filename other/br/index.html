@@ -8,6 +8,7 @@
 
 <script src="babel/browser.js" type="text/javascript"></script>
 <script type="text/javascript">
+    'use strict';
 
     var attrs = {hey: true};
     var code = `
@@ -37,14 +38,181 @@
     var a = <Cmp>1,2,{123}</Cmp>
 
     `;
-/*
-    var code = `var a = <div a="1" {...{c:3}} b="2"></div>;
-    var a = <Cmp>1,2,{123}</Cmp>;
-    `;
-*/
+
+    //    var code = `<Cmp ref="asdf" key="213" className="adsfsa"/>`;
+    var code = `class ABC{render(){return <div>Wow</div>}}`;
+    /*
+     var code = `var a = <div a="1" {...{c:3}} b="2"></div>;
+     var a = <Cmp>1,2,{123}</Cmp>;
+     `;
+     */
+
+    function abc(obj) {
+//        console.log("ASDFASFA", obj);
+        const Plugin = obj.Plugin;
+        const t = obj.types;
+
+        function getFullName(node) {
+            console.log(node);
+            if (t.isMemberExpression(node)) {
+                return getFullName(node.object) + '.' + getFullName(node.property);
+            }
+            if (t.isIdentifier(node)) {
+                return node.name;
+            }
+            return '';
+        }
+
+        function React(callExpr) {
+            var array = [];
+            var callArgs = callExpr.arguments;
+            var tag = callArgs[0];
+            var attrs = callArgs[1];
+            var key = t.literal(null);
+            var ref = t.literal(null);
+            var isComponent = t.isIdentifier(tag) || t.isMemberExpression(tag);
+            var base = '\u2425';
+            var VT = {COMPONENT: base + 'C', TAG: base + 'T', TEXT: base + '#'}
+
+            array.push(t.literal(isComponent ? VT.COMPONENT : VT.TAG));
+            //node
+            array.push(t.literal(null));
+            array.push(tag);
+            var children = [];
+            for (var i = 2; i < callArgs.length; i++) {
+                var child = callArgs[i];
+                if (t.isLiteral(child)) {
+                    var value = (child.value == null || typeof child.value == 'boolean') ? '' : child.value + '';
+                    child = t.arrayExpression([t.literal(VT.TEXT), t.literal(null), t.literal(value)]);
+                }
+                children.push(child);
+            }
 
 
-    var bb = babel.transform(code, {stage: 0, sourceMaps: true});
+            if (isComponent) {
+                // instance
+                array.push(t.literal(null));
+                var isObject = !t.isCallExpression(attrs) && !t.isIdentifier(attrs);
+                if (isObject) {
+                    if (t.isObjectExpression(attrs)) {
+                        var _attrs = attrs.properties;
+                        for (var i = 0; i < _attrs.length; i++) {
+                            var keyNode = _attrs[i].key;
+                            var valueNode = _attrs[i].value;
+                            if (keyNode.name == 'key') {
+                                key = valueNode;
+                                _attrs.splice(i, 1);
+                                i--;
+                            }
+                            if (keyNode.name == 'ref') {
+                                ref = valueNode;
+                                _attrs.splice(i, 1);
+                                i--;
+                            }
+                        }
+                    }
+                    else {
+                        attrs = t.objectExpression([]);
+                    }
+                    attrs.properties.push(t.Property('init', t.Identifier('children'), t.arrayExpression(children)));
+                }
+                array.push(attrs);
+
+                if (!isObject) {
+                    array.push(t.arrayExpression(children));
+                }
+
+                array.splice(3, 0, key);
+                array.splice(4, 0, ref);
+            }
+            else {
+                var constAttrs = [];
+                var varAttrs = [];
+                var hash = [];
+                //spread
+                if (t.isCallExpression(attrs)) {
+                    varAttrs.push(t.literal(null));
+                    varAttrs.push(attrs);
+                    hash.push("&");
+                }
+                if (t.isObjectExpression(attrs)) {
+                    var _attrs = attrs.properties;
+                    for (var i = 0; i < _attrs.length; i++) {
+                        var keyNode = _attrs[i].key;
+                        var valueNode = _attrs[i].value;
+                        if (keyNode.name == 'key') {
+                            key = valueNode;
+                            continue;
+                        }
+
+                        keyNode = t.isLiteral(keyNode) ? keyNode : t.literal(keyNode.name);
+
+                        if (t.isLiteral(valueNode)) {
+                            constAttrs.push(keyNode);
+                            constAttrs.push(valueNode);
+                            hash.push(keyNode.value);
+                        }
+                        else {
+                            varAttrs.push(keyNode);
+                            varAttrs.push(valueNode);
+                            hash.push('&' + keyNode.value);
+                        }
+                    }
+                }
+                array.push(t.literal(hash.join()));
+                array.push(t.literal(varAttrs.length / 2 + constAttrs.length / 2));
+                array.push(t.literal(constAttrs.length / 2));
+                array = array.concat(constAttrs);
+                array = array.concat(varAttrs);
+                array.splice(3, 0, key);
+                array = array.concat(children);
+            }
+            return t.arrayExpression(array);
+        }
+
+        console.log(arguments);
+
+        function addToTop(){
+
+        }
+
+        return new Plugin("foo-bar", {
+            visitor: {
+                /*enter: function (node, parent) {
+                 console.log("enter");
+
+                 },
+
+                 exit: function (node, parent) {
+
+                 console.log("exit");
+                 },*/
+                CallExpression: function (node, parent, scope, file) {
+                    console.log(arguments);
+                    if (getFullName(node.callee) == 'React.createElement') {
+                        file.ast.program.body.splice(0, 0, t.expressionStatement(t.literal("i hate function declarations!")));
+
+                        const nnn = t.expressionStatement(t.literal("awt gsdfgds"));
+                        scope.addGlobal(nnn);
+
+                        var id = scope.generateUidIdentifier('meanful');
+                        console.log(id);
+                        scope.parent.parent.push({ id: id });
+//                        return t.assignmentExpression("=", id, node);
+
+                        return React(node);
+                        //return t.expressionStatement(t.literal("i hate function declarations!"));
+                    }
+                }
+            }
+        });
+    }
+
+
+    var bb = babel.transform(code, {
+        plugins: [{transformer: abc, position: 'after'}],
+        stage: 0, sourceMaps: true
+    });
     console.log(bb.code);
 
 
