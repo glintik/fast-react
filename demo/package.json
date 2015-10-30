@@ -1,0 +1,19 @@
+{
+  "name": "demo",
+  "version": "1.0.0",
+  "description": "demo fast react app",
+  "main": "index.js",
+  "author": "cevek",
+  "license": "ISC",
+  "dependencies": {
+    "babel": "^5.8.29",
+    "babel-core": "^5.8.33",
+    "babel-fast-react": "^1.0.0",
+    "babel-loader": "^5.3.2",
+    "babel-runtime": "^5.8.29",
+    "fast-react": "^1.0.0",
+    "fast-react-loader": "^1.0.0",
+    "react": "^0.14.1",
+    "webpack": "^1.12.2"
+  }
+}
