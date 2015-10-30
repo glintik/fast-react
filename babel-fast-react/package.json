@@ -1,0 +1,8 @@
+{
+  "name": "babel-fast-react",
+  "version": "1.0.0",
+  "description": "Fast React transformer babel plugin",
+  "main": "index.js",
+  "author": "cevek",
+  "license": "ISC"
+}

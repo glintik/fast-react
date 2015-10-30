@@ -1,0 +1,12 @@
+{
+  "name": "fast-react",
+  "version": "1.0.0",
+  "description": "Fast implemetation Facebook React library",
+  "main": "index.js",
+  "peerDependencies": {
+    "babel-fast-react": "1.0.0",
+    "fast-react-loader": "1.0.0"
+  },
+  "author": "cevek",
+  "license": "ISC"
+}

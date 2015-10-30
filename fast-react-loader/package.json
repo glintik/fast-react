@@ -1,0 +1,8 @@
+{
+  "name": "fast-react-loader",
+  "version": "1.0.0",
+  "description": "fast react webpack loader",
+  "main": "index.js",
+  "author": "cevek",
+  "license": "ISC"
+}
