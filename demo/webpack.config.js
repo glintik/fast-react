@@ -8,10 +8,6 @@ module.exports = {
     module: {
         loaders: [
             {
-                test: require.resolve('react'),
-                loader: 'fast-react-loader'
-            },
-            {
                 test: /\.jsx?$/,
                 exclude: /(node_modules|bower_components)/,
                 loader: 'babel',
@@ -26,7 +22,10 @@ module.exports = {
         ]
     },
     resolve: {
-        extensions: ['', '.js', '.jsx']
+        extensions: ['', '.js', '.jsx'],
+        alias: {
+            react: 'fast-react'
+        }
     },
     devtool: 'source-map'
 };

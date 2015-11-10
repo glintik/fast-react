@@ -917,6 +917,32 @@
     module.exports = {
         Component: Component,
         findDOMNode: findDOMNode,
+        createElement: function (tag, attrs, child) {
+            if (typeof tag == 'function') {
+                // 0/*type*/
+                // 1/*parentNode*/
+                // 2/*Ctor*/
+                // 3/*key*/
+                // 4/*ref*/
+                // 5/*instance*/
+                // 6/*children*/
+                // 7/*props*/
+                // 8/*propsChildren*/
+                return [VComponent, null, tag, null, null, null, attrs, child];
+            }
+            // 0/*type*/
+            // 1/*node*/
+            // 2/*tag*/
+            // 3/*key*/
+            // 4/*attrsHash*/
+            // 5/*attrsLen*/
+            // 6/*constAttrsLen*/
+            var d = [VTag, null, tag, null, '&', 1, 0, spreadType, attrs];
+            for (var i = 2; i < arguments.length; i++) {
+                d.push(arguments[i]);
+            }
+            return d;
+        },
         cloneElement: function (el) {
             return el.slice()
         },
