@@ -937,7 +937,12 @@
             // 4/*attrsHash*/
             // 5/*attrsLen*/
             // 6/*constAttrsLen*/
-            var d = [VTag, null, tag, null, '&', 1, 0, spreadType, attrs];
+            var d = [VTag, null, tag, null, '&'];
+            if (attrs != null){
+                d.push(1, 0, spreadType, attrs);
+            } else {
+                d.push(0, 0);
+            }
             for (var i = 2; i < arguments.length; i++) {
                 d.push(arguments[i]);
             }
