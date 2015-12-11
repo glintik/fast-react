@@ -928,7 +928,7 @@
                 // 6/*children*/
                 // 7/*props*/
                 // 8/*propsChildren*/
-                return [VComponent, null, tag, null, null, null, attrs, child];
+                return [VComponent, null, tag, null, null, null, null, attrs, child];
             }
             // 0/*type*/
             // 1/*node*/
