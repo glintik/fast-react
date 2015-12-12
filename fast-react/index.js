@@ -379,6 +379,9 @@
     function updateTag(old, vdom, topComponent) {
         //VTagTuple[type, node, tag, key, attrsHash, attrsLen, constAttrsLen, ...attrs, ...children]
         var node = vdom[1/*node*/] = old[1/*node*/];
+        if (vdom[2/*tag*/] !== old[2/*tag*/]) {
+            return replace(old, vdom, topComponent);
+        }
         if (vdom[4/*attrsHash*/] !== old[4/*attrsHash*/]) {
             return replace(old, vdom, topComponent);
         }
@@ -937,11 +940,11 @@
             // 4/*attrsHash*/
             // 5/*attrsLen*/
             // 6/*constAttrsLen*/
-            var d = [VTag, null, tag, null, '&'];
+            var d = [];
             if (attrs != null){
-                d.push(1, 0, spreadType, attrs);
+                d.push(VTag, null, tag, null, '&', 1, 0, spreadType, attrs);
             } else {
-                d.push(0, 0);
+                d.push(VTag, null, tag, null, '', 0, 0);
             }
             for (var i = 2; i < arguments.length; i++) {
                 d.push(arguments[i]);
