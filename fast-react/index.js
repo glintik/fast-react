@@ -638,6 +638,14 @@
             else if (attr == 'ref') {
                 vdom.ref = val;
             }
+            else if (attr == 'dangerouslySetInnerHTML') {
+                if (isUpdate && oldAttrs) {
+                    if (oldAttrs[i + 1].__html === val.html) {
+                        continue;
+                    }
+                }
+                node.innerHTML = val.__html;
+            }
         }
     }
 
