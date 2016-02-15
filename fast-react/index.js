@@ -16,123 +16,56 @@
     var VChildren = baseType + 'F';
     var spreadType = null;
 
-    var constAttrs = {
-        accept: 'accept',
+    var fastAttrs = {
         acceptCharset: 'accept-charset',
-        accessKey: 'accessKey',
-        action: 'action',
-        allowFullScreen: 'allowFullScreen',
-        allowTransparency: 'allowTransparency',
-        alt: 'alt',
-        async: 'async',
-        autoComplete: 'autoComplete',
-        autoPlay: 'autoPlay',
-        capture: 'capture',
-        cellPadding: 'cellPadding',
-        cellSpacing: 'cellSpacing',
-        charSet: 'charSet',
-        challenge: 'challenge',
-        classID: 'classID',
-        cols: 'cols',
-        colSpan: 'colSpan',
-        content: 'content',
-        contentEditable: 'contentEditable',
-        contextMenu: 'contextMenu',
-        coords: 'coords',
-        crossOrigin: 'crossOrigin',
-        data: 'data',
-        dateTime: 'dateTime',
-        defer: 'defer',
-        dir: 'dir',
-        disabled: 'disabled',
-        download: 'download',
-        draggable: 'draggable',
-        encType: 'encType',
-        form: 'form',
-        formAction: 'formAction',
-        formEncType: 'formEncType',
-        formMethod: 'formMethod',
-        formNoValidate: 'formNoValidate',
-        formTarget: 'formTarget',
-        frameBorder: 'frameBorder',
-        headers: 'headers',
-        height: 'height',
-        hidden: 'hidden',
-        high: 'high',
-        href: 'href',
-        hrefLang: 'hrefLang',
+        className: 'class',
         htmlFor: 'for',
         httpEquiv: 'http-equiv',
-        icon: 'icon',
-        inputMode: 'inputMode',
-        is: 'is',
-        keyParams: 'keyParams',
-        keyType: 'keyType',
-        label: 'label',
-        lang: 'lang',
-        list: 'list',
-        low: 'low',
-        manifest: 'manifest',
-        marginHeight: 'marginHeight',
-        marginWidth: 'marginWidth',
+        id: 'id',
+
+        alt: 'alt',
+        disabled: 'disabled',
+        height: 'height',
+        hidden: 'hidden',
+        href: 'href',
         max: 'max',
         maxLength: 'maxLength',
         media: 'media',
-        mediaGroup: 'mediaGroup',
-        method: 'method',
         min: 'min',
         minLength: 'minLength',
         name: 'name',
-        noValidate: 'noValidate',
-        open: 'open',
-        optimum: 'optimum',
         pattern: 'pattern',
         placeholder: 'placeholder',
-        poster: 'poster',
-        preload: 'preload',
-        radioGroup: 'radioGroup',
         rel: 'rel',
         required: 'required',
-        role: 'role',
-        rows: 'rows',
-        rowSpan: 'rowSpan',
-        sandbox: 'sandbox',
-        scope: 'scope',
-        scoped: 'scoped',
-        scrolling: 'scrolling',
-        seamless: 'seamless',
-        shape: 'shape',
-        size: 'size',
-        sizes: 'sizes',
-        span: 'span',
-        spellCheck: 'spellCheck',
         src: 'src',
         srcSet: 'srcSet',
-        start: 'start',
-        step: 'step',
-        style: 'style',
         tabIndex: 'tabIndex',
         target: 'target',
         title: 'title',
         type: 'type',
-        useMap: 'useMap',
         width: 'width',
-        wmode: 'wmode',
-        autoCapitalize: 'autoCapitalize',
-        autoCorrect: 'autoCorrect',
-        itemProp: 'itemProp',
-        itemScope: 'itemScope',
-        itemType: 'itemType',
-        itemID: 'itemID',
-        itemRef: 'itemRef',
-        property: 'property',
-        security: 'security',
-        unselectable: 'unselectable'
+
+
+        //svg attrs
+        clipPath: 'clip-path',
+        fillOpacity: 'fill-opacity',
+        fontFamily: 'font-family',
+        fontSize: 'font-size',
+        markerEnd: 'marker-end',
+        markerMid: 'marker-mid',
+        markerStart: 'marker-start',
+        stopColor: 'stop-color',
+        stopOpacity: 'stop-opacity',
+        strokeDasharray: 'stroke-dasharray',
+        strokeLinecap: 'stroke-linecap',
+        strokeOpacity: 'stroke-opacity',
+        strokeWidth: 'stroke-width',
+        textAnchor: 'text-anchor',
     };
 
     var constProps = {
         checked: 'checked',
-        className: 'className',
         controls: 'controls',
         id: 'id',
         loop: 'loop',
@@ -143,6 +76,29 @@
         srcDoc: 'srcdoc',
         value: 'value'
     };
+
+    const svgElements = {
+        circle: 'circle',
+        clipPath: 'clipPath',
+        defs: 'defs',
+        ellipse: 'ellipse',
+        g: 'g',
+        image: 'image',
+        line: 'line',
+        linearGradient: 'linearGradient',
+        mask: 'mask',
+        path: 'path',
+        pattern: 'pattern',
+        polygon: 'polygon',
+        polyline: 'polyline',
+        radialGradient: 'radialGradient',
+        rect: 'rect',
+        stop: 'stop',
+        svg: 'svg',
+        text: 'text',
+        tspan: 'tspan',
+    }
+
 
     //noinspection JSUnusedLocalSymbols
     var isUnitlessNumber = {
@@ -199,6 +155,8 @@
         onKeyPress: 'onkeypress',
         onKeyUp: 'onkeyup'
     };
+
+    const svgNS = 'http://www.w3.org/2000/svg';
 
     /**
      * VTagTuple[type, node, tag, key, attrsHash, attrsLen, constAttrsLen, ...attrs, ...children]
@@ -265,7 +223,13 @@
             rootNode.insertBefore(vdom[1/*node*/], before);
         }
         else if (vdom[0/*type*/] == VTag) {
-            var node = vdom[1/*node*/] = rootNode.insertBefore(document.createElement(vdom[2/*tag*/]), before);
+            // isSvg
+            if (typeof svgElements[vdom[2/*tag*/]] == 'string'){
+                var node = document.createElementNS(svgNS, vdom[2/*tag*/]);
+            } else {
+                var node = document.createElement(vdom[2/*tag*/]);
+            }
+            vdom[1/*node*/] = rootNode.insertBefore(node, before);
 
             if (vdom[5/*attrsLen*/] == 1 && vdom[7/*attrsStartPos*/] == spreadType) {
                 setSpreadAttrs(node, vdom, null, false);
@@ -555,8 +519,8 @@
         var val;
         for (prop in newStyles) {
             val = newStyles[prop];
-            if (prop == +prop && typeof isUnitlessNumber[prop] == 'undefined') {
-                val = prop + 'px';
+            if (val == +val && typeof isUnitlessNumber[prop] == 'undefined') {
+                val = val + 'px';
             }
             node.style[prop] = val;
         }
@@ -603,7 +567,7 @@
                     continue;
                 }
             }
-            if (normAttr = constAttrs[attr]) {
+            if (normAttr = fastAttrs[attr]) {
                 if (val == null || val === false) {
                     if (isUpdate) {
                         node.removeAttribute(normAttr);
@@ -645,6 +609,16 @@
                     }
                 }
                 node.innerHTML = val.__html;
+            }
+            else {
+                if (val == null || val === false) {
+                    if (isUpdate) {
+                        node.removeAttribute(attr);
+                    }
+                }
+                else {
+                    node.setAttribute(attr, val);
+                }
             }
         }
     }
