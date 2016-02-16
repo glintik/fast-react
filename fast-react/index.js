@@ -284,10 +284,12 @@
     function createComponent(vdom, rootNode, before, topComponent) {
         var Ctor = vdom[2/*Ctor*/];
         vdom[1/*parentNode*/] = rootNode;
-        var props = prepareComponentProps(vdom, false, topComponent);
+        var props = vdom.length == 8/*propsChildren*/ + 1 ? prepareSpreadComponentProps(vdom) : vdom[7/*props*/];
         var component = vdom[5/*instance*/] = new Ctor(props);
         component.node = vdom;
-        component.componentWillMount();
+        if (component.componentWillMount) {
+            component.componentWillMount();
+        }
         if (typeof component.getChildContext == 'function') {
             prevContext = componentContext;
             componentContext = component.getChildContext();
@@ -297,7 +299,9 @@
         if (typeof component.getChildContext == 'function') {
             componentContext = prevContext;
         }
-        component.componentDidMount();
+        if (component.componentDidMount) {
+            component.componentDidMount();
+        }
         if (vdom[4/*ref*/] != null) {
             setRef(vdom, vdom[4/*ref*/], topComponent, false);
         }
@@ -311,24 +315,23 @@
     function update(old, vdom, topComponent) {
         var type = vdom[0/*type*/];
         if (type !== old[0/*type*/]) {
-            vdom = replace(old, vdom, topComponent);
+            return replace(old, vdom, topComponent);
         }
         else if (type == VText) {
-            vdom = updateText(old, vdom);
+            return updateText(old, vdom);
         }
         else if (type == VTag) {
-            vdom = updateTag(old, vdom, topComponent);
+            return updateTag(old, vdom, topComponent);
         }
         else if (type == VArray) {
-            vdom = updateArray(old, vdom, topComponent);
+            return updateArray(old, vdom, topComponent);
         }
         else if (type == VComponent) {
-            vdom = updateComponent(old, vdom, topComponent);
+            return updateComponent(old, vdom, topComponent);
         }
         else if (type == VChildren) {
-            vdom = updateComponentChildren(old, vdom, topComponent);
+            return updateComponentChildren(old, vdom, topComponent);
         }
-        return vdom;
     }
 
     function updateText(old, vdom) {
@@ -392,11 +395,15 @@
         else {
             vdom[1/*parentNode*/] = old[1/*parentNode*/];
             var component = vdom[5/*instance*/] = old[5/*instance*/];
-            var props = prepareComponentProps(vdom, true, topComponent);
-            component.componentWillReceiveProps(props);
+            var props = vdom.length == 8/*propsChildren*/ + 1 ? prepareSpreadComponentProps(vdom) : vdom[7/*props*/];
+            if (component.componentWillReceiveProps) {
+                component.componentWillReceiveProps(props);
+            }
             component.props = vdom[7/*props*/] = props;
 
-            component.componentWillUpdate();
+            if (component.componentWillUpdate) {
+                component.componentWillUpdate();
+            }
             if (typeof component.getChildContext == 'function') {
                 prevContext = componentContext;
                 componentContext = component.getChildContext();
@@ -407,8 +414,9 @@
                 componentContext = prevContext;
             }
             component.node = vdom;
-            component.componentDidUpdate();
-
+            if (component.componentDidUpdate) {
+                component.componentDidUpdate();
+            }
             if (vdom[4/*ref*/] != null) {
                 setRef(vdom, vdom[4/*ref*/], topComponent, false);
             }
@@ -652,7 +660,9 @@
                 }
             }
             else if (type == VComponent) {
-                vdom[5/*instance*/].componentWillUnmount();
+                if (vdom[5/*instance*/].componentWillUnmount) {
+                    vdom[5/*instance*/].componentWillUnmount();
+                }
                 remove(vdom[1/*parentNode*/], vdom[6/*children*/], removeFromDom);
             }
             else if (type == VChildren) {
@@ -776,26 +786,22 @@
         return vdom[1/*node*/];
     }
 
-    function prepareComponentProps(vdom) {
+    function prepareSpreadComponentProps(vdom) {
         var props = vdom[7/*props*/];
-        //spread props
-        if (vdom.length == 8/*propsChildren*/ + 1) {
-            var _props = {children: vdom[8/*propsChildren*/]};
-            for (var prop in props) {
-                var val = props[prop];
-                if (prop == 'key') {
-                    vdom[3/*key*/] = val;
-                    continue;
-                }
-                if (prop == 'ref') {
-                    vdom[4/*ref*/] = val;
-                    continue;
-                }
-                _props[prop] = val;
+        var _props = {children: vdom[8/*propsChildren*/]};
+        for (var prop in props) {
+            var val = props[prop];
+            if (prop == 'key') {
+                vdom[3/*key*/] = val;
+                continue;
             }
-            props = _props;
+            if (prop == 'ref') {
+                vdom[4/*ref*/] = val;
+                continue;
+            }
+            _props[prop] = val;
         }
-        return props;
+        return _props;
     }
 
     function convertComponentToTag(vdom) {
@@ -848,23 +854,20 @@
      **-------------------------------------**/
     function Component(props) {
         this.props = props;
+        this.node = null;
         //noinspection JSUnusedGlobalSymbols
         this.context = componentContext;
     }
 
     var ComponentProto = Component.prototype;
-    ComponentProto.componentWillMount = function () {
-    };
-    ComponentProto.componentDidMount = function () {
-    };
-    ComponentProto.componentWillUpdate = function () {
-    };
-    ComponentProto.componentDidUpdate = function () {
-    };
-    ComponentProto.componentWillReceiveProps = function () {
-    };
-    ComponentProto.componentWillUnmount = function () {
-    };
+/*
+    ComponentProto.componentWillMount = function () {};
+    ComponentProto.componentDidMount = function () {};
+    ComponentProto.componentWillUpdate = function () {};
+    ComponentProto.componentDidUpdate = function () {};
+    ComponentProto.componentWillReceiveProps = function () {};
+    ComponentProto.componentWillUnmount = function () {};
+*/
     ComponentProto.setState = function (state) {
         if (this.state) {
             for (var key in state) {
@@ -882,7 +885,9 @@
     ComponentProto.getChildContext = null;
     ComponentProto.forceUpdate = function () {
         //VComponentTuple[type, node, parentNode, Ctor, instance, props, children, ref, key?]
-        this.componentWillUpdate();
+        if (this.componentWillUpdate) {
+            this.componentWillUpdate();
+        }
         componentContext = this.context;
         if (typeof this.getChildContext == 'function') {
             componentContext = this.getChildContext();
@@ -892,7 +897,9 @@
         if (typeof this.getChildContext == 'function') {
             componentContext = prevContext;
         }
-        this.componentDidUpdate();
+        if (this.componentDidUpdate) {
+            this.componentDidUpdate();
+        }
     };
 
     //noinspection JSUnusedGlobalSymbols
