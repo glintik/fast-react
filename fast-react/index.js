@@ -314,6 +314,14 @@
      **-------------------------------------**/
     function update(old, vdom, topComponent) {
         var type = vdom[0/*type*/];
+        if (DEBUG_MODE && !vdom.id) {
+            vdom.id = id++;
+        }
+        // don't update the same node
+        // happens when we use {this.props.children}
+        if (vdom === old) {
+            return vdom;
+        }
         if (type !== old[0/*type*/]) {
             return replace(old, vdom, topComponent);
         }
@@ -791,6 +799,10 @@
         var _props = {children: vdom[8/*propsChildren*/]};
         for (var prop in props) {
             var val = props[prop];
+            // don't copy sended props.children into our props if we have own children
+            if (prop == 'children' && vdom[8/*propsChildren*/][0/*type*/] == VChildren) {
+                continue;
+            }
             if (prop == 'key') {
                 vdom[3/*key*/] = val;
                 continue;
