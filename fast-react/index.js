@@ -443,6 +443,7 @@
         var inserts = null;
 
         var fitCount = 0;
+        //todo: notify if we have two or more same keys
         for (var i = 4/*arrayFirstNode*/; i < vdom.length; i++) {
             var newChild = vdom[i] = norm(sourceArray[i - 4/*arrayFirstNode*/]);
             var oldChild = oldLen > i ? old[i] : null;
