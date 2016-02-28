@@ -924,6 +924,8 @@
         }
     });
 
+    function propType(){}
+    propType.isRequired = function(){}
     //noinspection JSUnusedGlobalSymbols
     /**-------------------------------------**
      * Export
@@ -971,6 +973,23 @@
             }
             var old = rootNode._vdom;
             return rootNode._vdom = update(old, norm(vdom), null, null);
+        },
+        PropTypes: {
+            array: propType,
+            bool: propType,
+            func: propType,
+            number: propType,
+            object: propType,
+            string: propType,
+            any: propType,
+            arrayOf: propType,
+            element: propType,
+            instanceOf: propType,
+            node: propType,
+            objectOf: propType,
+            oneOf: propType,
+            oneOfType: propType,
+            shape: propType
         }
     };
 }();
