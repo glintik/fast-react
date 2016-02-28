@@ -282,20 +282,26 @@
     }
 
     function createComponent(vdom, rootNode, before, topComponent, parentComponent) {
-        var Ctor = vdom[2/*Ctor*/];
+        var Constructor = vdom[2/*Ctor*/];
         vdom[1/*parentNode*/] = rootNode;
         var props = vdom.length == 8/*propsChildren*/ + 1 ? prepareSpreadComponentProps(vdom) : vdom[7/*props*/];
-        var component = vdom[5/*instance*/] = new Ctor(props);
-        component.node = vdom;
-        component._internalParentComponent = parentComponent;
-        if (component.componentWillMount) {
-            component.componentWillMount();
+        if (!Constructor.prototype || !Constructor.prototype.render) {
+            var children = norm(Constructor(props));
+            vdom[6/*children*/] = create(children, vdom[1/*parentNode*/], before, topComponent, parentComponent);
         }
-        var children = norm(component.render());
-        component._internalContext = typeof component.getChildContext == 'function' ? component.getChildContext() : null;
-        vdom[6/*children*/] = create(children, vdom[1/*parentNode*/], before, component, component);
-        if (component.componentDidMount) {
-            component.componentDidMount();
+        else {
+            var component = vdom[5/*instance*/] = new Constructor(props);
+            component.node = vdom;
+            component._internalParentComponent = parentComponent;
+            if (component.componentWillMount) {
+                component.componentWillMount();
+            }
+            var children = norm(component.render());
+            component._internalContext = typeof component.getChildContext == 'function' ? component.getChildContext() : null;
+            vdom[6/*children*/] = create(children, vdom[1/*parentNode*/], before, component, component);
+            if (component.componentDidMount) {
+                component.componentDidMount();
+            }
         }
         if (vdom[4/*ref*/] != null) {
             setRef(vdom, vdom[4/*ref*/], topComponent, false);
@@ -398,23 +404,30 @@
         else {
             vdom[1/*parentNode*/] = old[1/*parentNode*/];
             var component = vdom[5/*instance*/] = old[5/*instance*/];
-            component._internalParentComponent = parentComponent;
-            component._context = null;
-            var props = vdom.length == 8/*propsChildren*/ + 1 ? prepareSpreadComponentProps(vdom) : vdom[7/*props*/];
-            if (component.componentWillReceiveProps) {
-                component.componentWillReceiveProps(props);
+            if (!component) {
+                //noinspection JSDuplicatedDeclaration
+                var children = norm(vdom[2/*Ctor*/]());
+                vdom[6/*children*/] = update(old[6/*children*/], children, topComponent, parentComponent);
             }
-            component.props = vdom[7/*props*/] = props;
+            else {
+                component._internalParentComponent = parentComponent;
+                component._context = null;
+                var props = vdom.length == 8/*propsChildren*/ + 1 ? prepareSpreadComponentProps(vdom) : vdom[7/*props*/];
+                if (component.componentWillReceiveProps) {
+                    component.componentWillReceiveProps(props);
+                }
+                component.props = vdom[7/*props*/] = props;
 
-            if (component.componentWillUpdate) {
-                component.componentWillUpdate();
-            }
-            var children = norm(component.render());
-            component._internalContext = typeof component.getChildContext == 'function' ? component.getChildContext() : null;
-            vdom[6/*children*/] = update(old[6/*children*/], children, component, component);
-            component.node = vdom;
-            if (component.componentDidUpdate) {
-                component.componentDidUpdate();
+                if (component.componentWillUpdate) {
+                    component.componentWillUpdate();
+                }
+                var children = norm(component.render());
+                component._internalContext = typeof component.getChildContext == 'function' ? component.getChildContext() : null;
+                vdom[6/*children*/] = update(old[6/*children*/], children, component, component);
+                component.node = vdom;
+                if (component.componentDidUpdate) {
+                    component.componentDidUpdate();
+                }
             }
             if (vdom[4/*ref*/] != null) {
                 setRef(vdom, vdom[4/*ref*/], topComponent, false);
@@ -930,7 +943,7 @@
     /**-------------------------------------**
      * Export
      **-------------------------------------**/
-    module.exports = {
+    var _exports = {
         Component: Component,
         findDOMNode: findDOMNode,
         createElement: function (tag, attrs, child) {
@@ -964,9 +977,6 @@
             }
             return d;
         },
-        cloneElement: function (el) {
-            return el.slice()
-        },
         render: function (vdom, rootNode) {
             if (typeof rootNode._vdom == 'undefined') {
                 return rootNode._vdom = create(norm(vdom), rootNode, null, null, null);
@@ -990,7 +1000,54 @@
             oneOf: propType,
             oneOfType: propType,
             shape: propType
+        },
+        cloneElement: function (el) {
+            return el.slice()
+        },
+        isValidElement: function(element) {
+            return element && typeof element == 'object' && (element[0/*type*/] == VTag || VComponent);
+        },
+        createClass: function(specification) {
+            throw new Error('createClass is not supported, please use ES6 classes');
+        },
+        unmountComponentAtNode: function(container){
+            _exports.render(null, container);
+        },
+        createFactory: function(type){
+            return _exports.createElement.bind(null, type);
+        },
+        Children: {
+            map: function(children, fn, thisArg) {
+                return _exports.Children.toArray(children).map(fn, thisArg);
+            },
+            forEach: function(children, fn, thisArg) {
+                return _exports.Children.toArray(children).forEach(fn, thisArg);
+            },
+            count: function(children) {
+                return _exports.Children.toArray(children).length;
+            },
+            toArray: function(children) {
+                var vdom = children;
+                var ret = [];
+                if (type == VChildren || type == VArray) {
+                    var start = type == VArray ? 4/*arrayFirstNode*/ : 3/*VChildrenFirstNode*/;
+                    for (var i = start; i < vdom.length; i++) {
+                        ret = ret.concat(_exports.Children.toArray(vdom[i]));
+                    }
+                }
+                else {
+                    return [children];
+                }
+                return ret;
+            },
+            only: function(children) {
+                if (!_exports.isValidElement(children)){
+                    throw new Error('onlyChild must be passed a children with exactly one child.');
+                }
+                return children;
+            }
         }
     };
+    module.exports = _exports;
 }();
 //a.match(/\d+\/\*\w+\*\//g).filter(function(value, index, self) {return self.indexOf(value) === index})
