@@ -937,7 +937,9 @@
         }
     });
 
-    function propType(){}
+    function propType(){
+        return propType;
+    }
     propType.isRequired = function(){}
     //noinspection JSUnusedGlobalSymbols
     /**-------------------------------------**
