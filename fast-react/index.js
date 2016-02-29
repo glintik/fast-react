@@ -479,8 +479,12 @@
             }
 
             if (fitPos != null) {
+                oldChild = old[fitPos];
+                if (!oldChild) {
+                    throw new Error('duplicate key: ' + newKey);
+                }
                 fitCount++;
-                vdom[i] = update(old[fitPos], newChild, topComponent, parentComponent);
+                vdom[i] = update(oldChild, newChild, topComponent, parentComponent);
                 if (fitPos !== i) {
                     if (inserts == null) {
                         inserts = [];
