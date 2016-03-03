@@ -414,19 +414,31 @@
                 component._context = null;
                 var props = vdom.length == 8/*propsChildren*/ + 1 ? prepareSpreadComponentProps(vdom) : vdom[7/*props*/];
                 if (component.componentWillReceiveProps) {
+                    // todo: nextState
                     component.componentWillReceiveProps(props);
+                }
+                var shouldUpdate = true;
+                if (component.shouldComponentUpdate) {
+                    // todo: nextState
+                    shouldUpdate = component.shouldComponentUpdate(props);
                 }
                 component.props = vdom[7/*props*/] = props;
 
-                if (component.componentWillUpdate) {
-                    component.componentWillUpdate();
-                }
-                var children = norm(component.render());
-                component._internalContext = typeof component.getChildContext == 'function' ? component.getChildContext() : null;
-                vdom[6/*children*/] = update(old[6/*children*/], children, component, component);
-                component.node = vdom;
-                if (component.componentDidUpdate) {
-                    component.componentDidUpdate();
+                if (shouldUpdate) {
+                    if (component.componentWillUpdate) {
+                        component.componentWillUpdate();
+                    }
+                    var children = norm(component.render());
+                    component._internalContext = typeof component.getChildContext == 'function' ? component.getChildContext() : null;
+                    // because child component can still updates
+                    vdom[6/*children*/] = update(component.node[6/*children*/], children, component, component);
+                    // vdom[6/*children*/] = update(old[6/*children*/], children, component, component);
+                    component.node = vdom;
+                    if (component.componentDidUpdate) {
+                        component.componentDidUpdate();
+                    }
+                } else {
+                    vdom[6/*children*/] = old[6/*children*/];
                 }
             }
             if (vdom[4/*ref*/] != null) {
@@ -887,6 +899,34 @@
     ComponentProto.componentWillReceiveProps = function () {};
     ComponentProto.componentWillUnmount = function () {};
 */
+
+    var queue = [];
+    var isUpdating = false;
+    function runQueue() {
+        //todo: main render
+        if (!isUpdating && queue.length > 0) {
+            isUpdating = true;
+            //VComponentTuple[type, node, parentNode, Ctor, instance, props, children, ref, key?]
+            var q = queue.shift();
+            if (q.type == 'forceUpdate') {
+                var component = q.component;
+                if (component.componentWillUpdate) {
+                    component.componentWillUpdate();
+                }
+                component._internalContext = typeof component.getChildContext == 'function' ? component.getChildContext() : null;
+                var children = norm(component.render());
+                component.node[6/*children*/] = update(component.node[6/*children*/], children, component, component);
+                if (component.componentDidUpdate) {
+                    component.componentDidUpdate();
+                }
+                isUpdating = false;
+                if (q.callback) {
+                    q.callback();
+                }
+            }
+            runQueue();
+        }
+    }
     ComponentProto.setState = function (state) {
         if (this.state) {
             for (var key in state) {
@@ -902,18 +942,9 @@
         return null;
     };
     ComponentProto.getChildContext = null;
-    ComponentProto.forceUpdate = function () {
-        //VComponentTuple[type, node, parentNode, Ctor, instance, props, children, ref, key?]
-        var component = this;
-        if (component.componentWillUpdate) {
-            component.componentWillUpdate();
-        }
-        component._internalContext = typeof component.getChildContext == 'function' ? component.getChildContext() : null;
-        var children = norm(component.render());
-        this.node[6/*children*/] = update(component.node[6/*children*/], children, component, component);
-        if (component.componentDidUpdate) {
-            component.componentDidUpdate();
-        }
+    ComponentProto.forceUpdate = function (callback) {
+        queue.push({type: 'forceUpdate', component: this, callback: callback});
+        runQueue();
     };
 
     Object.defineProperty(ComponentProto, 'context', {
