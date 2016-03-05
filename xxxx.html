@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<script type="text/javascript">
+    "use strict";
+
+    //    var props = {a: 1, b: 2, c: 3, d: 5, e: 6, f: 7};
+//    var props = {a: 1};
+    var props = {a: 1, b: 2, c: 3};
+    function createEl() {
+        return [null, null, null, null, props, null, null, null];
+//        return [null, null, null, null, props, null, null, null, null, null, null, null, null, null, null, null];
+    }
+
+    function a() {
+        var p = t[4];
+        var params = [];
+        params.push(4, 1);
+        for (var i in p) {
+            params.push(i, p[i]);
+        }
+        t.splice.apply(t, params);
+    }
+
+    function b() {
+        var p = t[4];
+        var pCount = 0;
+        for (var i in p) pCount++;
+        var newT = new Array(t.length + pCount * 2 - 1);
+        newT[0] = t[0];
+        newT[1] = t[1];
+        newT[2] = t[2];
+        newT[3] = t[3];
+        var k = 4;
+        for (i in p) {
+            newT[k++] = i;
+            newT[k++] = p[i];
+        }
+        for (var i = 5; i < t.length; i++) {
+            newT[k++] = t[i];
+        }
+        return newT;
+    }
+    var t = createEl();
+    function c() {
+        var newT = new Array(t.length);
+        for (var i = 0; i < t.length; i++) {
+            newT[i] = t[i];
+        }
+        return newT;
+    }
+    function d() {
+        var newT = new Array(t.length);
+        newT[0] = t[0];
+        newT[1] = t[1];
+        newT[2] = t[2];
+        newT[3] = t[3];
+        newT[4] = t[4];
+        newT[5] = t[5];
+        newT[6] = t[6];
+        newT[7] = t[7];
+//        newT[8] = t[8];
+        return newT;
+    }
+
+    function abc(fn) {
+        console.time('perf');
+        for (var i = 0; i < 1000000; i++) {
+            fn();
+        }
+        console.timeEnd('perf');
+    }
+//    abc(a);
+    abc(b);
+    abc(c);
+    abc(d);
+
+</script>
+</body>
+</html>
