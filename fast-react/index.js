@@ -770,6 +770,7 @@
         }
     }
 
+    // todo: need rethink
     function getKey(vdom) {
         if (vdom[0/*type*/] == VTag) {
             if (vdom[3/*key*/] == null && vdom[5/*attrsLen*/] == 1 && vdom[7/*attrsStartPos*/] == null) {
@@ -790,6 +791,50 @@
             return vdom[3/*key*/];
         }
         return null;
+    }
+
+    function getRef(vdom) {
+        if (vdom[0/*type*/] == VComponent) {
+            return vdom[4/*ref*/]
+        }
+        else if (vdom[0/*type*/] == VTag) {
+            if (vdom[5/*attrsLen*/] == 1 && vdom[7/*attrsStartPos*/] == spreadType) {
+                return vdom[7/*attrsStartPos*/ + 1].ref;
+            }
+            else {
+                var attrsStart = 7/*attrsStartPos*/;
+                var attrsEnd = 7/*attrsStartPos*/ + vdom[5/*attrsLen*/] * 2;
+                if (attrsEnd - attrsStart > 0) {
+                    for (var i = attrsStart; i < attrsEnd; i += 2) {
+                        if (vdom[i] == 'ref') {
+                            return vdom[i + 1];
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    function getProps(vdom) {
+        if (vdom[0/*type*/] == VComponent) {
+            return vdom[7/*props*/];
+        }
+        else if (vdom[0/*type*/] == VTag) {
+            if (vdom[5/*attrsLen*/] == 1 && vdom[7/*attrsStartPos*/] == spreadType) {
+                return vdom[7/*attrsStartPos*/ + 1];
+            }
+            else {
+                var attrsStart = 7/*attrsStartPos*/;
+                var attrsEnd = 7/*attrsStartPos*/ + vdom[5/*attrsLen*/] * 2;
+                var props = {};
+                if (attrsEnd - attrsStart > 0) {
+                    for (var i = attrsStart; i < attrsEnd; i += 2) {
+                        props[vdom[i]] = vdom[i+1];
+                    }
+                }
+                return props;
+            }
+        }
     }
 
     function getChildNode(vdom, isLast) {
@@ -884,21 +929,21 @@
     function Component(props) {
         this.props = props;
         this.node = null;
-        
+
         this._context = null;
         this._internalContext = null;
         this._internalParentComponent = null;
     }
 
     var ComponentProto = Component.prototype;
-/*
-    ComponentProto.componentWillMount = function () {};
-    ComponentProto.componentDidMount = function () {};
-    ComponentProto.componentWillUpdate = function () {};
-    ComponentProto.componentDidUpdate = function () {};
-    ComponentProto.componentWillReceiveProps = function () {};
-    ComponentProto.componentWillUnmount = function () {};
-*/
+    /*
+     ComponentProto.componentWillMount = function () {};
+     ComponentProto.componentDidMount = function () {};
+     ComponentProto.componentWillUpdate = function () {};
+     ComponentProto.componentDidUpdate = function () {};
+     ComponentProto.componentWillReceiveProps = function () {};
+     ComponentProto.componentWillUnmount = function () {};
+     */
 
     var queue = [];
     var isUpdating = false;
@@ -919,15 +964,15 @@
                 if (component.componentDidUpdate) {
                     component.componentDidUpdate();
                 }
-                isUpdating = false;
-                if (q.callback) {
-                    q.callback();
-                }
             }
+            isUpdating = false;
             runQueue();
+            if (q.callback) {
+                q.callback();
+            }
         }
     }
-    ComponentProto.setState = function (state) {
+    ComponentProto.setState = function (state, callback) {
         if (this.state) {
             for (var key in state) {
                 this.state[key] = state[key];
@@ -936,7 +981,7 @@
         else {
             this.state = state;
         }
-        this.forceUpdate();
+        this.forceUpdate(callback);
     };
     ComponentProto.render = function () {
         return null;
@@ -947,25 +992,27 @@
         runQueue();
     };
 
-    Object.defineProperty(ComponentProto, 'context', {
-        get: function() {
-            if (!this._context) {
-                var parentComponent = this;
-                var context = {};
-                var parents = [];
-                while (parentComponent = parentComponent._internalParentComponent) {
-                    parents.push(parentComponent._internalContext);
-                }
-                for (var i = 0; i < parents.length; i++) {
-                    parentComponent = parents[i];
-                    for (var prop in parentComponent) {
-                        context[prop] = parentComponent[prop];
-                    }
-                }
-                this._context = context;
+    function getContext() {
+        if (!this._context) {
+            var parentComponent = this;
+            var context = {};
+            var parents = [];
+            while (parentComponent = parentComponent._internalParentComponent) {
+                parents.push(parentComponent._internalContext);
             }
-            return this._context;
+            for (var i = 0; i < parents.length; i++) {
+                parentComponent = parents[i];
+                for (var prop in parentComponent) {
+                    context[prop] = parentComponent[prop];
+                }
+            }
+            this._context = context;
         }
+        return this._context;
+    }
+
+    Object.defineProperty(ComponentProto, 'context', {
+        get: getContext
     });
 
     function propType(){
@@ -990,7 +1037,14 @@
                 // 6/*children*/
                 // 7/*props*/
                 // 8/*propsChildren*/
-                return [VComponent, null, tag, null, null, null, null, attrs, child];
+                //todo: what if generate
+                if (attrs && typeof attrs.children == 'object'){
+                    child = attrs.children;
+                }
+                if (child) {
+                    return [VComponent, null, tag, null, null, null, null, attrs, child];
+                }
+                return [VComponent, null, tag, null, null, null, null, attrs];
             }
             // 0/*type*/
             // 1/*node*/
@@ -1005,17 +1059,24 @@
             } else {
                 d.push(VTag, null, tag, null, '', 0, 0);
             }
+            if (attrs && typeof attrs.children != 'undefined'){
+                d.push(attrs.children);
+            }
             for (var i = 2; i < arguments.length; i++) {
                 d.push(arguments[i]);
             }
             return d;
         },
         render: function (vdom, rootNode) {
+            isUpdating = true;
             if (typeof rootNode._vdom == 'undefined') {
                 return rootNode._vdom = create(norm(vdom), rootNode, null, null, null);
             }
             var old = rootNode._vdom;
-            return rootNode._vdom = update(old, norm(vdom), null, null);
+            rootNode._vdom = update(old, norm(vdom), null, null);
+            isUpdating = false;
+            runQueue();
+            return rootNode._vdom;
         },
         PropTypes: {
             array: propType,
@@ -1034,14 +1095,63 @@
             oneOfType: propType,
             shape: propType
         },
-        cloneElement: function (el) {
+        cloneElement: function (el, props) {
+            //todo: props?
             return el.slice()
         },
         isValidElement: function(element) {
             return element && typeof element == 'object' && (element[0/*type*/] == VTag || VComponent);
         },
         createClass: function(specification) {
-            throw new Error('createClass is not supported, please use ES6 classes');
+            var defaultProps = specification.getDefaultProps ? specification.getDefaultProps() : null;
+            function Comp(props) {
+                if (defaultProps) {
+                    for (var prop in defaultProps) {
+                        if (typeof props[prop] == 'undefined') {
+                            props[prop] = defaultProps[prop];
+                        }
+                    }
+                }
+                if (specification.getInitialState) {
+                    this.state = specification.getInitialState();
+                }
+                this.props = props;
+                this.node = null;
+                for (var p in specification){
+                    if (p != 'getDefaultProps' && p != 'getInitialState' && p != 'statics'
+                        && p != 'componentWillMount' && p != 'componentDidMount' && p != 'componentWillReceiveProps'
+                        && p != 'shouldComponentUpdate' && p != 'componentWillUpdate' && p != 'componentDidUpdate'
+                        && p != 'componentWillUnmount' && p != 'render' && p != 'propTypes' && p != 'displayName') {
+                        var val = specification[p];
+                        this[p] = typeof val == 'function' ? val.bind(this) : val;
+                    }
+                }
+
+                this._context = null;
+                this._internalContext = null;
+                this._internalParentComponent = null;
+            }
+            for (var method in ComponentProto) {
+                Comp.prototype[method] = ComponentProto[method];
+            }
+            Comp.prototype.componentWillMount = specification.componentWillMount;
+            Comp.prototype.componentDidMount = specification.componentDidMount;
+            Comp.prototype.componentWillReceiveProps = specification.componentWillReceiveProps;
+            Comp.prototype.shouldComponentUpdate = specification.shouldComponentUpdate;
+            Comp.prototype.componentWillUpdate = specification.componentWillUpdate;
+            Comp.prototype.componentDidUpdate = specification.componentDidUpdate;
+            Comp.prototype.componentWillUnmount = specification.componentWillUnmount;
+            Comp.prototype.render = specification.render;
+            Object.defineProperty(Comp.prototype, 'context', {get: getContext});
+            Comp.displayName = specification.displayName;
+            Comp.propTypes = specification.propTypes;
+            Comp.defaultProps = defaultProps;
+            if (specification.statics) {
+                for (var i in specification.statics) {
+                    Comp[i] = specification.statics[i];
+                }
+            }
+            return Comp;
         },
         unmountComponentAtNode: function(container){
             _exports.render(null, container);
@@ -1062,6 +1172,7 @@
             toArray: function(children) {
                 var vdom = children;
                 var ret = [];
+                var type = vdom[0/*type*/];
                 if (type == VChildren || type == VArray) {
                     var start = type == VArray ? 4/*arrayFirstNode*/ : 3/*VChildrenFirstNode*/;
                     for (var i = start; i < vdom.length; i++) {
@@ -1069,7 +1180,18 @@
                     }
                 }
                 else {
-                    return [children];
+                    // return [children];
+                    var tag = null;
+                    if (type == VComponent) {
+                        tag = vdom[2/*Ctor*/];
+                    }
+                    else if (type == VTag) {
+                        tag = vdom[2/*tag*/];
+                    }
+                    var props = getProps(vdom);
+                    props.key = getKey(vdom);
+                    props.ref = getRef(vdom);
+                    return [{type: tag, key: getKey(vdom), ref: getRef(vdom), props: props}];
                 }
                 return ret;
             },
