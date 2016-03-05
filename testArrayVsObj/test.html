@@ -12,15 +12,18 @@
     var kk = 0;
     var parser = new DOMParser();
     var xmlDoc = parser.parseFromString(htmlData, "text/html");
-    var div = a(xmlDoc);
+    var div = aCmp(xmlDoc);
     var props = {a: "23", b: "43", c: "435"};
+    function Ctor(){}
 
     function a(dom) {
         kk++;
-        var div = [];
-        var divObj = {};
+        var div = ['type', null];
+        var divObj = {owner: 'this', node: null, ref: null, key: null};
         divObj.tag = dom.tagName;
         div.push(dom.tagName);
+        div.push(null, null, null, 't1his', 1, 0); // node, key, ref, owner, allProps, staticProps,
+//        div.push(0); // key, ref, owner, allProps, staticProps,
         if (dom.attributes) {
             var attrs = [];
             var attrsHash = {};
@@ -38,10 +41,12 @@
 //            div.push(attrs);
             divObj.attrs = attrsHash;
         }
+/*
         if (dom instanceof Text) {
             div.push(dom.textContent);
             divObj.text = dom.textContent;
         }
+*/
         if (dom.childNodes) {
             var children = [];
             for (var i = 0; i < dom.childNodes.length; i++) {
@@ -54,9 +59,30 @@
             }
         }
         return div;
+//        return divObj;
+    }
+    function aCmp(dom) {
+        kk++;
+        var div = [];
+        var divObj = {type: 'type', owner: 't1his', parentNode: null, Ctor: Ctor, props: props, instance: null, ref: null, key: null};
+        div.push('type', null, null, null, 't1his', props); // type, parentNode, key, ref, owner, props
+        if (dom.childNodes) {
+            var children = [];
+            for (var i = 0; i < dom.childNodes.length; i++) {
+                var child = aCmp(dom.childNodes[i]);
+                children.push(child);
+            }
+            if (children.length) {
+                div.push(children);
+                divObj.children = children;
+            }
+        }
+        return div;
+//        return divObj;
     }
 
-    var fn = new Function('return ' + JSON.stringify(div));
+    var fn = new Function('return ' + JSON.stringify(div).replace(/"this"/g, 'this').replace(/"Ctor"/g, 'Ctor').replace(/"props"/g, 'props'));
+    fn();
     fn();
     fn();
     function assign() {
@@ -67,9 +93,12 @@
 //        return ["0", ["className", "234", "few", "#@", "dot", props], 2, 3, 4, 5, 6, 7];
         return ["0", "className", "234", "few", "#@", "dot", props, 2, 3, 4, 5, 6, 7];
     }
+    function X(){}
+    X.prototype.fn = fn;
+    var x = new X();
     function abc() {
         for (var i = 0; i < 1000; i++) {
-            fn();
+            x.fn();
 //            var d = ["0", "1", "2", "3", "4", 5, 6, ["0", "1", "2", "3", "4", 5, 6, ["0", "1", "2", "3", "4", 5, 6, ["0", "1", "2", "3", "4", 5, 6, ["0", "1", "2", "3", "4", 5, 6, props]]]]]
 //            var d = ["div", 1, assign({className: "yow"}, props, {maj: 234}), ["div", 1, 3]];
 //            var d = ["div", "className", "yow", "maj", 243, ["div", 1, 3]];
