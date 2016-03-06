@@ -736,12 +736,97 @@
         if (!(typeof child == 'object' && child && typeof child[0] == 'string' && child[0][0] == baseType)) {
             child = normOnly(child);
         }
-        if (child[0/*type*/] == VComponent) {
+        var type = child[0/*type*/];
+        if (type == VComponent) {
+            if (vdom.length == 8/*propsChildren*/ + 1) {
+                child = convertComponentWithSpreadToNormal(child);
+            }
             if (typeof child[2/*Ctor*/] == 'string') {
-                child = convertComponentToTag(child);
+                return convertComponentToTag(child);
+            }
+        } else if (type == VTag) {
+            if (vdom[5/*attrsLen*/] == 1 && vdom[7/*attrsStartPos*/] == spreadType) {
+                return convertTagWithSpreadToNormal(child);
             }
         }
+
         return child;
+    }
+
+    var propsHashCounter = 1;
+    function makeTag(attrs, tag, len, childrenArray, from, to){
+        var pCount = 0;
+        var key = null;
+        var ref = null;
+        var newVdom = new Array(len || 7/*attrsStartPos*/ + 2 + to - from); // len or min tag array len
+        newVdom[0/*type*/] = VTag;
+        newVdom[1/*node*/] = null;
+        newVdom[2/*tag*/] = tag;
+        newVdom[6/*constAttrsLen*/] = 0;
+        var k = 7/*attrsStartPos*/;
+        for (var p in attrs) {
+            // if attrs has children prop replace argument childrenArray
+            if (p === 'children') {
+                childrenArray = attrs[p];
+                from = 0;
+                to = childrenArray.length;
+                continue;
+            }
+            if (p === 'key') {
+                key = attrs[p];
+                continue;
+            }
+            if (p === 'ref') {
+                ref = attrs[p];
+                // continue; // todo: wait new design
+            }
+            pCount++;
+            newVdom[k++] = p;
+            newVdom[k++] = attrs[p];
+        }
+        newVdom[3/*key*/] = key;
+        newVdom[4/*attrsHash*/] = propsHashCounter++;
+        newVdom[5/*attrsLen*/] = pCount;
+        if (DEBUG_MODE) {
+            newVdom.id = id++;
+        }
+        for (var i = from; i < to; i++) {
+            newVdom[k++] = childrenArray[i];
+        }
+        return newVdom;
+    }
+    function convertTagWithSpreadToNormal(vdom) {
+        return makeTag(vdom[7/*attrsStartPos*/ + 1], vdom[2/*tag*/], vdom.length, vdom, 7/*attrsStartPos*/ + 2, vdom.length);
+    }
+
+    function convertComponentToTag(vdom) {
+        var props = vdom[7/*props*/];
+        return makeTag(props, vdom[2/*Ctor*/], 0, props.children, 0, props.children.length);
+    }
+
+    function convertComponentWithSpreadToNormal(vdom){
+        var props = vdom[7/*props*/];
+        var propsChildren = vdom[8/*propsChildren*/];
+        var newProps = {children: propsChildren};
+        for (var prop in props) {
+            var val = props[prop];
+            // don't copy sended props.children into our props if we have own children
+            if (prop == 'children' && propsChildren[0/*type*/] == VChildren) {
+                continue;
+            }
+            if (prop == 'key') {
+                vdom[3/*key*/] = val;
+                continue;
+            }
+            if (prop == 'ref') {
+                vdom[4/*ref*/] = val;
+                continue;
+            }
+            newProps[prop] = val;
+        }
+        vdom[7/*props*/] = newProps;
+        vdom.pop(); //remove 8/*propsChildren*/
+        return vdom;
     }
 
     function normOnly(child) {
@@ -891,38 +976,6 @@
         return _props;
     }
 
-    function convertComponentToTag(vdom) {
-        var props = vdom[7/*props*/];
-        if (vdom[8/*propsChildren*/]) {
-            var children = vdom[8/*propsChildren*/];
-        }
-        else {
-            children = props.children;
-        }
-        props.children = null;
-        var tag = vdom[2/*Ctor*/];
-        var newVdom = [];
-        newVdom.length = 0;
-        newVdom[0/*type*/] = VTag;
-        newVdom[1/*node*/] = null;
-        newVdom[2/*tag*/] = tag;
-        newVdom[3/*key*/] = null;
-        newVdom[4/*attrsHash*/] = '&';
-        newVdom[5/*attrsLen*/] = 1;
-        newVdom[6/*constAttrsLen*/] = 0;
-        newVdom[7/*attrsStartPos*/] = null;
-        newVdom[7/*attrsStartPos*/ + 1] = props;
-        if (DEBUG_MODE) {
-            newVdom.id = id++;
-        }
-
-        if (children) {
-            for (var i = 3/*VChildrenFirstNode*/; i < children.length; i++) {
-                newVdom.push(children[i]);
-            }
-        }
-        return newVdom;
-    }
 
 
     /**-------------------------------------**
