@@ -689,28 +689,31 @@
     /**-------------------------------------**
      * Utils
      **-------------------------------------**/
-    function norm(child) {
-        if (!(typeof child == 'object' && child && typeof child[0] == 'string' && child[0][0] == baseType)) {
-            if (child.constructor == Array) {
-                return makeVArray(child);
+    function norm(vdom) {
+        if (!(typeof vdom == 'object' && vdom && typeof vdom[0] == 'string' && vdom[0][0] == baseType)) {
+            if (vdom.constructor == Array) {
+                return makeVArray(vdom);
             }
-            return makeText(child == null || typeof child == 'boolean' ? '' : child);
+            return makeText(vdom == null || typeof vdom == 'boolean' ? '' : vdom);
         }
-        var type = child[0/*type*/];
+        var type = vdom[0/*type*/];
         if (type == VComponent) {
+            //convertComponentToTag
+            if (typeof vdom[2/*Ctor*/] == 'string') {
+                return makeTag(vdom[7/*props*/], vdom[2/*Ctor*/], 0, vdom[7/*props*/].children, 0, vdom[7/*props*/].children.length);
+            }
+            //convertComponentWithSpreadToNormal
             if (vdom.length == 8/*propsChildren*/ + 1) {
-                child = convertComponentWithSpreadToNormal(child);
-            }
-            if (typeof child[2/*Ctor*/] == 'string') {
-                return convertComponentToTag(child);
-            }
-        } else if (type == VTag) {
-            if (vdom[5/*attrsLen*/] == 1 && vdom[7/*attrsStartPos*/] == spreadType) {
-                return convertTagWithSpreadToNormal(child);
+                return makeComponent(vdom[2/*Ctor*/], vdom[7/*props*/], vdom[8/*propsChildren*/])
             }
         }
-
-        return child;
+        if (type == VTag) {
+            //convertTagWithSpreadToNormal
+            if (vdom[5/*attrsLen*/] == 1 && vdom[7/*attrsStartPos*/] == spreadType) {
+                return makeTag(vdom[7/*attrsStartPos*/ + 1], vdom[2/*tag*/], vdom.length, vdom, 7/*attrsStartPos*/ + 2, vdom.length);
+            }
+        }
+        return vdom;
     }
 
     var propsHashCounter = 1;
@@ -815,40 +818,6 @@
         if (DEBUG_MODE) {
             debugVNode(vdom);
         }
-        return vdom;
-    }
-
-    function convertTagWithSpreadToNormal(vdom) {
-        return makeTag(vdom[7/*attrsStartPos*/ + 1], vdom[2/*tag*/], vdom.length, vdom, 7/*attrsStartPos*/ + 2, vdom.length);
-    }
-
-    function convertComponentToTag(vdom) {
-        var props = vdom[7/*props*/];
-        return makeTag(props, vdom[2/*Ctor*/], 0, props.children, 0, props.children.length);
-    }
-
-    function convertComponentWithSpreadToNormal(vdom) {
-        var props = vdom[7/*props*/];
-        var propsChildren = vdom[8/*propsChildren*/];
-        var newProps = {children: propsChildren};
-        for (var prop in props) {
-            var val = props[prop];
-            // don't copy sended props.children into our props if we have own children
-            if (prop == 'children' && propsChildren[0/*type*/] == VChildren) {
-                continue;
-            }
-            if (prop == 'key') {
-                vdom[3/*key*/] = val;
-                continue;
-            }
-            if (prop == 'ref') {
-                vdom[4/*ref*/] = val;
-                continue;
-            }
-            newProps[prop] = val;
-        }
-        vdom[7/*props*/] = newProps;
-        vdom.pop(); //remove 8/*propsChildren*/
         return vdom;
     }
 
