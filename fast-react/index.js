@@ -404,7 +404,9 @@
             }
             else {
                 component._internalParentComponent = parentComponent;
-                component._context = null;
+                if (component._context) {
+                    component._context = null;
+                }
                 var props = vdom[7/*props*/];
                 if (typeof Ctor.defaultProps == 'object' && Ctor.defaultProps) {
                     for (var prop in Ctor.defaultProps) {
@@ -943,7 +945,6 @@
         this.props = props;
         this.node = null;
 
-        this._context = null;
         this._internalContext = null;
         this._internalParentComponent = null;
     }
@@ -1128,7 +1129,6 @@
                     }
                 }
 
-                this._context = null;
                 this._internalContext = null;
                 this._internalParentComponent = null;
             }
