@@ -23,7 +23,7 @@ function fastReact(obj) {
         var key = t.literal(null);
         var ref = t.literal(null);
         var isComponent = t.isIdentifier(tag) || t.isMemberExpression(tag);
-        var base = '␥';
+        var base = '¨';
         var VT = { COMPONENT: base + 'C', TAG: base + 'T', TEXT: base + '#', COMPONENT_CHILDREN: base + 'F' };
 
         array.push(t.literal(isComponent ? VT.COMPONENT : VT.TAG));

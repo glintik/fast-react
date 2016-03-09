@@ -13,12 +13,13 @@
     var prevContext = null;
     var currentComponent = null;
 
-    var baseType = '\u2425';
-    var VTag = baseType + 'T';
-    var VText = baseType + '#';
-    var VComponent = baseType + 'C';
-    var VArray = baseType + 'A';
-    var VChildren = baseType + 'F';
+    // for performance purposes
+    var baseType = '¨';
+    var VTag = '¨T';
+    var VText = '¨#';
+    var VComponent = '¨C';
+    var VArray = '¨A';
+    var VChildren = '¨F';
     var spreadType = null;
 
     var fastAttrs = {
@@ -253,10 +254,9 @@
         else if (vdom[0/*type*/] == VArray) {
             //VArrayTuple[type, node, parentNode, keyMap, sourceArray, ...values]
             vdom[1/*parentNode*/] = rootNode;
-            vdom[2/*keymap*/] = {};
             //iterate source array
             var sourceArray = vdom[3/*sourceArray*/];
-            var keyMap = vdom[2/*keymap*/];
+            var keyMap = vdom[2/*keymap*/] = {};
             for (i = 0; i < sourceArray.length; i++) {
                 var vdomPos = i + 4/*arrayFirstNode*/;
                 var child = norm(sourceArray[i]);
@@ -707,7 +707,7 @@
         if (typeof vdom != 'object' || vdom == null) {
             return makeText(vdom == null || typeof vdom == 'boolean' ? '' : vdom);
         }
-        if (!(typeof vdom[0] == 'string' && vdom[0][0] == baseType)) {
+        if (typeof vdom[0] != 'string' || vdom[0][0] != baseType) {
             if (vdom.constructor == Array) {
                 return makeVArray(vdom);
             }
@@ -745,10 +745,10 @@
         }
         // var newVdom = new Array(7/*attrsStartPos*/ + 2 + to - from); // min tag array len
         var vdom = [];
+        vdom[6/*constAttrsLen*/] = 0;
         vdom[0/*type*/] = VTag;
         vdom[1/*node*/] = null;
         vdom[2/*tag*/] = tag;
-        vdom[6/*constAttrsLen*/] = 0;
         var k = 7/*attrsStartPos*/;
         if (attrs) {
             for (var p in attrs) {
@@ -832,12 +832,12 @@
     }
 
     function makeVArray(array) {
-        if (array.length == 0) {
+        var length = array.length;
+        if (length === 0) {
             return [VText, null, ''];
         }
-        var p = new Array(array.length + 4/*arrayFirstNode*/);
+        var p = new Array(length + 4/*arrayFirstNode*/);
         p[0/*type*/] = VArray;
-        p[2/*keymap*/] = {};
         p[3/*sourceArray*/] = array;
         if (DEBUG_MODE) {
             debugVNode(p);
