@@ -728,6 +728,10 @@
         var pCount = 0;
         var key = null;
         var ref = null;
+        var childrenLen = to - from;
+        if (childrenLen < 0) {
+            childrenLen = 0;
+        }
         // var newVdom = new Array(7/*attrsStartPos*/ + 2 + to - from); // min tag array len
         var vdom = [];
         vdom[0/*type*/] = VTag;
@@ -735,30 +739,40 @@
         vdom[2/*tag*/] = tag;
         vdom[6/*constAttrsLen*/] = 0;
         var k = 7/*attrsStartPos*/;
-        for (var p in attrs) {
-            if (p === 'children' && childrenArray == null) {
-                childrenArray = attrs[p];
-                from = 0;
-                to = childrenArray.length;
-                continue;
+        if (attrs) {
+            for (var p in attrs) {
+                if (p === 'children') {
+                    if (childrenLen == 0) {
+                        childrenArray = attrs[p];
+                        from = 0;
+                        to = childrenArray.length;
+                    }
+                    continue;
+                }
+                if (p === 'key') {
+                    key = attrs[p];
+                    continue;
+                }
+                if (p === 'ref') {
+                    ref = attrs[p];
+                    // continue; // todo: wait new design
+                }
+                pCount++;
+                vdom[k++] = p;
+                vdom[k++] = attrs[p];
             }
-            if (p === 'key') {
-                key = attrs[p];
-                continue;
-            }
-            if (p === 'ref') {
-                ref = attrs[p];
-                // continue; // todo: wait new design
-            }
-            pCount++;
-            vdom[k++] = p;
-            vdom[k++] = attrs[p];
         }
         vdom[3/*key*/] = key;
         vdom[4/*attrsHash*/] = propsHashCounter++;
         vdom[5/*attrsLen*/] = pCount;
-        for (var i = from; i < to; i++) {
-            vdom[k++] = childrenArray[i];
+        if (childrenLen) {
+            // pre create array slots
+            vdom[k + childrenLen - 1] = null;
+        }
+        if (childrenArray) {
+            for (var i = from; i < to; i++) {
+                vdom[k++] = childrenArray[i];
+            }
         }
         if (DEBUG_MODE) {
             debugVNode(vdom);
@@ -783,20 +797,21 @@
         var key = null;
         var ref = null;
         var newProps = {children: childrenArray};
-        for (var p in props) {
-            if (p === 'children' && childrenArray == null) {
-                newProps.children = props[p];
-                continue;
+        if (props) {
+            for (var p in props) {
+                if (p === 'children' && childrenArray != null) {
+                    continue;
+                }
+                if (p === 'key') {
+                    key = props[p];
+                    continue;
+                }
+                if (p === 'ref') {
+                    ref = props[p];
+                    // continue; // todo: wait new design
+                }
+                newProps[p] = props[p];
             }
-            if (p === 'key') {
-                key = props[p];
-                continue;
-            }
-            if (p === 'ref') {
-                ref = props[p];
-                // continue; // todo: wait new design
-            }
-            newProps[p] = props[p];
         }
         var vdom = [VComponent, null, Ctor, key, ref, null, null, newProps];
         if (DEBUG_MODE) {
@@ -1049,24 +1064,26 @@
         Component: Component,
         findDOMNode: findDOMNode,
         createElement: function (tag, attrs, child) {
+            var argLen = arguments.length;
             if (typeof tag == 'function') {
                 var children;
-                if (arguments.length > 2) {
-                    children = new Array(arguments.length - 2 + 3/*VChildrenFirstNode*/);
+                if (argLen > 2) {
+                    children = new Array(argLen - 2 + 3/*VChildrenFirstNode*/);
                     children[0/*type*/] = VChildren;
                     children[1/*parentNode*/] = null;
                     //todo: ref?
                     children[2/*refComponent*/] = null;
                     var k = 3/*VChildrenFirstNode*/;
-                    for (var i = 2; i < arguments.length; i++) {
+                    for (var i = 2; i < argLen; i++) {
                         children[k++] = arguments[i];
                     }
                 }
                 return makeComponent(tag, attrs, children);
             }
-            var vdom = makeTag(attrs, tag, 0, null, null, null);
-            for (var i = 2; i < arguments.length; i++) {
-                vdom.push(arguments[i]);
+            var vdom = makeTag(attrs, tag, 0, null, 2, argLen);
+            var vdomLen = vdom.length;
+            for (var i = 2; i < argLen; i++) {
+                vdom[vdomLen - argLen + i] = arguments[i];
             }
             return vdom;
         },
