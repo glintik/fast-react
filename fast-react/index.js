@@ -717,7 +717,7 @@
         if (type == VComponent) {
             //convertComponentToTag
             if (typeof vdom[2/*Ctor*/] == 'string') {
-                return makeTag(vdom[2/*Ctor*/], vdom[7/*props*/], vdom[7/*props*/].children, 0, vdom[7/*props*/].children.length);
+                return makeTag(vdom[2/*Ctor*/], vdom[7/*props*/], normChildren(vdom[7/*props*/].children), 0, vdom[7/*props*/].children.length);
             }
             //convertComponentWithSpreadToNormal
             if (vdom.length == 8/*propsChildren*/ + 1) {
@@ -731,6 +731,20 @@
             }
         }
         return vdom;
+    }
+
+    // [], null, false, "223", undefined, {}, ["xT", ...],
+    function normChildren(vdom){
+        if (typeof vdom != 'object' || vdom == null) {
+            return [vdom];
+        }
+        if (typeof vdom[0] == 'string' && vdom[0][0] == baseType) {
+            return [vdom];
+        }
+        if (vdom.constructor == Array) {
+            return vdom;
+        }
+        return [vdom];
     }
 
     var propsHashCounter = 1;
@@ -754,7 +768,7 @@
             for (var p in attrs) {
                 if (p === 'children') {
                     if (childrenLen == 0) {
-                        childrenArray = attrs[p];
+                        childrenArray = normChildren(attrs[p]);
                         from = 0;
                         to = childrenArray.length;
                     }
@@ -810,7 +824,10 @@
         var newProps = {children: childrenArray};
         if (props) {
             for (var p in props) {
-                if (p === 'children' && childrenArray != null) {
+                if (p === 'children') {
+                    if (childrenArray == null) {
+                        newProps.children = normChildren(props.children);
+                    }
                     continue;
                 }
                 if (p === 'key') {
