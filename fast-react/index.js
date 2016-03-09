@@ -696,17 +696,20 @@
      * Utils
      **-------------------------------------**/
     function norm(vdom) {
-        if (!(typeof vdom == 'object' && vdom && typeof vdom[0] == 'string' && vdom[0][0] == baseType)) {
+        if (typeof vdom != 'object' || vdom == null) {
+            return makeText(vdom == null || typeof vdom == 'boolean' ? '' : vdom);
+        }
+        if (!(typeof vdom[0] == 'string' && vdom[0][0] == baseType)) {
             if (vdom.constructor == Array) {
                 return makeVArray(vdom);
             }
-            return makeText(vdom == null || typeof vdom == 'boolean' ? '' : vdom);
+            return makeText('');
         }
         var type = vdom[0/*type*/];
         if (type == VComponent) {
             //convertComponentToTag
             if (typeof vdom[2/*Ctor*/] == 'string') {
-                return makeTag(vdom[7/*props*/], vdom[2/*Ctor*/], 0, vdom[7/*props*/].children, 0, vdom[7/*props*/].children.length);
+                return makeTag(vdom[2/*Ctor*/], vdom[7/*props*/], vdom[7/*props*/].children, 0, vdom[7/*props*/].children.length);
             }
             //convertComponentWithSpreadToNormal
             if (vdom.length == 8/*propsChildren*/ + 1) {
@@ -716,7 +719,7 @@
         if (type == VTag) {
             //convertTagWithSpreadToNormal
             if (vdom[5/*attrsLen*/] == 1 && vdom[7/*attrsStartPos*/] == spreadType) {
-                return makeTag(vdom[7/*attrsStartPos*/ + 1], vdom[2/*tag*/], vdom.length, vdom, 7/*attrsStartPos*/ + 2, vdom.length);
+                return makeTag(vdom[2/*tag*/], vdom[7/*attrsStartPos*/ + 1], vdom, 7/*attrsStartPos*/ + 2, vdom.length);
             }
         }
         return vdom;
@@ -1080,7 +1083,7 @@
                 }
                 return makeComponent(tag, attrs, children);
             }
-            var vdom = makeTag(attrs, tag, 0, null, 2, argLen);
+            var vdom = makeTag(tag, attrs, null, 2, argLen);
             var vdomLen = vdom.length;
             for (var i = 2; i < argLen; i++) {
                 vdom[vdomLen - argLen + i] = arguments[i];
