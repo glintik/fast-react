@@ -11,6 +11,7 @@
     var REF_RETURN_NODE = false;
     var componentContext = null;
     var prevContext = null;
+    var currentComponent = null;
 
     var baseType = '\u2425';
     var VTag = baseType + 'T';
@@ -289,6 +290,8 @@
         }
         else {
             var component = vdom[5/*instance*/] = new Constructor(props);
+            var prevComponent = currentComponent;
+            currentComponent = component;
             component.node = vdom;
             component._internalParentComponent = parentComponent;
             if (component.componentWillMount) {
@@ -300,6 +303,7 @@
             if (component.componentDidMount) {
                 component.componentDidMount();
             }
+            currentComponent = prevComponent;
         }
         if (vdom[4/*ref*/] != null) {
             setRef(vdom, vdom[4/*ref*/], topComponent, false);
@@ -403,6 +407,9 @@
                 vdom[6/*children*/] = update(old[6/*children*/], children, topComponent, parentComponent);
             }
             else {
+                var prevComponent = currentComponent;
+                currentComponent = component;
+
                 component._internalParentComponent = parentComponent;
                 if (component._context) {
                     component._context = null;
@@ -442,6 +449,7 @@
                 } else {
                     vdom[6/*children*/] = old[6/*children*/];
                 }
+                currentComponent = prevComponent;
             }
             if (vdom[4/*ref*/] != null) {
                 setRef(vdom, vdom[4/*ref*/], topComponent, false);
@@ -992,6 +1000,9 @@
             var q = queue.shift();
             if (q.type == 'forceUpdate') {
                 var component = q.component;
+                var prevComponent = currentComponent;
+                currentComponent = component;
+
                 if (component.componentWillUpdate) {
                     component.componentWillUpdate();
                 }
@@ -1001,6 +1012,7 @@
                 if (component.componentDidUpdate) {
                     component.componentDidUpdate();
                 }
+                currentComponent = prevComponent;
             }
             isUpdating = false;
             runQueue();
@@ -1074,8 +1086,7 @@
                     children = new Array(argLen - 2 + 3/*VChildrenFirstNode*/);
                     children[0/*type*/] = VChildren;
                     children[1/*parentNode*/] = null;
-                    //todo: ref?
-                    children[2/*refComponent*/] = null;
+                    children[2/*refComponent*/] = currentComponent;
                     var k = 3/*VChildrenFirstNode*/;
                     for (var i = 2; i < argLen; i++) {
                         children[k++] = arguments[i];
