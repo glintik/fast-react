@@ -826,7 +826,7 @@
             for (var p in props) {
                 if (p === 'children') {
                     if (childrenArray == null) {
-                        newProps.children = normChildren(props.children);
+                    newProps.children = normChildren(props.children);
                     }
                     continue;
                 }
@@ -1153,7 +1153,7 @@
             return el.slice()
         },
         isValidElement: function (element) {
-            return element && typeof element == 'object' && (element[0/*type*/] == VTag || VComponent);
+            return element && typeof element == 'object' && (element[0/*type*/] == VTag || element[0/*type*/] == VComponent);
         },
         createClass: function (specification) {
             var defaultProps = specification.getDefaultProps ? specification.getDefaultProps() : null;
