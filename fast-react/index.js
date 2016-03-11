@@ -566,19 +566,21 @@
      * Attrs
      **-------------------------------------**/
     function setStyle(node, oldStyles, newStyles) {
-        if (oldStyles) {
-            //todo: maybe slow
-            for (var prop in oldStyles) {
-                node.style[prop] = "";
-            }
-        }
         var val;
+        var styleNode = node.style;
         for (prop in newStyles) {
             val = newStyles[prop];
             if (val == +val && typeof isUnitlessNumber[prop] == 'undefined') {
                 val = val + 'px';
             }
-            node.style[prop] = val;
+            styleNode[prop] = val;
+        }
+        if (oldStyles) {
+            for (var prop in oldStyles) {
+                if (typeof newStyles[prop] === 'undefined') {
+                    styleNode[prop] = null;
+                }
+            }
         }
     }
 
