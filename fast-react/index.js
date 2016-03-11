@@ -570,6 +570,9 @@
         var styleNode = node.style;
         for (prop in newStyles) {
             val = newStyles[prop];
+            if (oldStyles && oldStyles[prop] === val) {
+                continue;
+            }
             if (val == +val && typeof isUnitlessNumber[prop] == 'undefined') {
                 val = val + 'px';
             }
