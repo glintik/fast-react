@@ -239,14 +239,12 @@
             vdom[1/*node*/] = rootNode.insertBefore(node, before);
             var attrsStart = 7/*attrsStartPos*/;
             var attrsEnd = 7/*attrsStartPos*/ + vdom[5/*attrsLen*/] * 2;
-            if (attrsEnd - attrsStart > 0) {
-                setAttrs(false, node, vdom, null, attrsStart, attrsEnd, vdom);
+            for (var i = attrsStart; i < attrsEnd; i += 2) {
+                handleAttr(vdom[i], vdom[i + 1], null, node, vdom);
             }
-
             for (var i = 7/*attrsStartPos*/ + vdom[5/*attrsLen*/] * 2; i < vdom.length; i++) {
                 vdom[i] = create(norm(vdom[i]), node, null, topComponent, parentComponent);
             }
-
 
             if (typeof vdom.ref != 'undefined') {
                 setRef(vdom, vdom.ref, topComponent, false);
@@ -361,33 +359,30 @@
         if (vdom[2/*tag*/] !== old[2/*tag*/]) {
             return replace(old, vdom, topComponent, parentComponent);
         }
-        if (vdom[4/*attrsHash*/] !== old[4/*attrsHash*/]) {
-            return replace(old, vdom, topComponent, parentComponent);
-        }
-        if (vdom.length !== old.length) {
-            return replace(old, vdom, topComponent, parentComponent);
-        }
         var attrsStart = 7/*attrsStartPos*/ + vdom[6/*constAttrsLen*/] * 2;
         var attrsEnd = 7/*attrsStartPos*/ + vdom[5/*attrsLen*/] * 2;
-        if (attrsEnd - attrsStart > 0) {
-            setAttrs(true, node, vdom, old, attrsStart, attrsEnd, vdom);
-/*
+        var oldAttrsEnd = 7/*attrsStartPos*/ + old[5/*attrsLen*/] * 2;
+        var vdomLen = vdom.length;
+        var oldLen = old.length;
+        var childLen = vdomLen - attrsEnd;
+        var oldChildLen = oldLen - oldAttrsEnd;
+        if (childLen !== oldChildLen) {
+            return replace(old, vdom, topComponent, parentComponent);
+        }
+        if (vdom[4/*attrsHash*/] === old[4/*attrsHash*/] && attrsEnd === oldAttrsEnd) {
             for (var i = attrsStart; i < attrsEnd; i += 2) {
                 handleAttr(vdom[i], vdom[i + 1], old[i + 1], node, vdom);
             }
-            handleAttrs(vdom, old, attrsStart, attrsEnd, vdom);
-*/
+            for (var i = attrsEnd; i < vdomLen; i++) {
+                vdom[i] = update(old[i], norm(vdom[i]), topComponent, parentComponent);
+            }
+        } else {
+            handleAttrs(vdom, old, attrsEnd, oldAttrsEnd);
+            for (var i = 0; i < childLen; i++) {
+                vdom[attrsEnd + i] = update(old[oldAttrsEnd + i], norm(vdom[attrsEnd + i]), topComponent, parentComponent);
+            }
         }
-        for (var i = 7/*attrsStartPos*/ + vdom[5/*attrsLen*/] * 2; i < vdom.length; i++) {
-            vdom[i] = update(old[i], norm(vdom[i]), topComponent, parentComponent);
-        }
-/*
-        for (var i = vdom.length; i < old.length; i++) {
-            remove();
-            vdom[i] = update(old[i], norm(vdom[i]), topComponent, parentComponent);
-        }
-*/
-        if (typeof vdom.ref != 'undefined') {
+        if (typeof vdom.ref !== 'undefined') {
             setRef(vdom, vdom.ref, topComponent, false);
         }
         return vdom;
@@ -587,73 +582,6 @@
         }
     }
 
-    function setAttrs(isUpdate, node, attrs, oldAttrs, startPos, endPos, vdom) {
-        var normAttr;
-        for (var i = startPos; i < endPos; i += 2) {
-            var attr = attrs[i];
-            var val = attrs[i + 1];
-
-            if (isUpdate && oldAttrs) {
-                if (oldAttrs[i + 1] === val) {
-                    continue;
-                }
-            }
-            if (normAttr = fastAttrs[attr]) {
-                if (val == null || val === false) {
-                    if (isUpdate) {
-                        node.removeAttribute(normAttr);
-                    }
-                }
-                else {
-                    node.setAttribute(normAttr, val);
-                }
-            }
-            else if (normAttr = constProps[attr]) {
-                node[normAttr] = val;
-            }
-            else if ((normAttr = constEvents[attr]) || ((normAttr = attr.toLowerCase()) && normAttr in document && normAttr.substr(0, 2) == 'on')) {
-                node[normAttr] = val;
-            }
-            else if (attr == 'style') {
-                setStyle(node, oldAttrs ? oldAttrs[i + 1] : null, val);
-            }
-            else if (attr.substring(0, 4) == 'data') {
-                if (val == null || val === false) {
-                    if (isUpdate) {
-                        node.removeAttribute(attr);
-                    }
-                }
-                else {
-                    node.setAttribute(attr, val);
-                }
-            }
-            else if (attr == 'key') {
-                vdom[3/*key*/] = val;
-            }
-            else if (attr == 'ref') {
-                vdom.ref = val;
-            }
-            else if (attr == 'dangerouslySetInnerHTML') {
-                if (isUpdate && oldAttrs) {
-                    if (oldAttrs[i + 1].__html === val.html) {
-                        continue;
-                    }
-                }
-                node.innerHTML = val.__html;
-            }
-            else {
-                if (val == null || val === false) {
-                    if (isUpdate) {
-                        node.removeAttribute(attr);
-                    }
-                }
-                else {
-                    node.setAttribute(attr, val);
-                }
-            }
-        }
-    }
-
     function handleAttr(attr, val, oldVal, node, vdom) {
         var normAttr;
         if (val === oldVal) {
@@ -695,10 +623,8 @@
             vdom.ref = val;
         }
         else if (attr === 'dangerouslySetInnerHTML') {
-            if (oldVal) {
-                if (oldVal.__html !== val.html) {
-                    node.innerHTML = val.__html;
-                }
+            if (!oldVal || oldVal.__html !== val.html) {
+                node.innerHTML = val.__html;
             }
         }
         else {
