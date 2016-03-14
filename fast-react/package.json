@@ -1,6 +1,6 @@
 {
   "name": "fast-react",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "description": "Fast implemetation Facebook React library",
   "main": "index.js",
   "author": "cevek",
