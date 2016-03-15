@@ -1208,7 +1208,15 @@
         },
         cloneElement: function (el, props) {
             //todo: props?
-            return el.slice()
+            var clone = vdom.slice();
+            var type = vdom[0/*type*/];
+            if (type == VChildren || type == VArray) {
+                var start = type == VArray ? 4/*arrayFirstNode*/ : 3/*VChildrenFirstNode*/;
+                for (var i = start; i < vdom.length; i++) {
+                    clone[i] = _exports.cloneElement(vdom[i]);
+                }
+            }
+            return clone;
         },
         isValidElement: function (element) {
             return element && typeof element == 'object' && (element[0/*type*/] == VTag || element[0/*type*/] == VComponent);
