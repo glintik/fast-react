@@ -172,10 +172,12 @@
     // 1/*node*/
     // 2/*tag*/
     // 3/*key*/
-    // 4/*attrsHash*/
-    // 5/*attrsLen*/
-    // 6/*constAttrsLen*/
-    // 7/*attrsStartPos*/
+    // 4/*refT*/
+    // 5/*ownerT*/
+    // 6/*attrsHash*/
+    // 7/*attrsLen*/
+    // 8/*constAttrsLen*/
+    // 9/*attrsStartPos*/
 
     /**
      * VTextTuple[type, node, value]
@@ -237,12 +239,12 @@
                 var node = document.createElement(vdom[2/*tag*/]);
             }
             vdom[1/*node*/] = rootNode.insertBefore(node, before);
-            var attrsStart = 7/*attrsStartPos*/;
-            var attrsEnd = 7/*attrsStartPos*/ + vdom[5/*attrsLen*/] * 2;
+            var attrsStart = 9/*attrsStartPos*/;
+            var attrsEnd = 9/*attrsStartPos*/ + vdom[7/*attrsLen*/] * 2;
             for (var i = attrsStart; i < attrsEnd; i += 2) {
                 handleAttr(vdom[i], vdom[i + 1], null, node, vdom);
             }
-            for (var i = 7/*attrsStartPos*/ + vdom[5/*attrsLen*/] * 2; i < vdom.length; i++) {
+            for (var i = 9/*attrsStartPos*/ + vdom[7/*attrsLen*/] * 2; i < vdom.length; i++) {
                 vdom[i] = create(norm(vdom[i]), node, null, topComponent, parentComponent);
             }
 
@@ -362,9 +364,9 @@
         if (vdom[2/*tag*/] !== old[2/*tag*/]) {
             return replace(old, vdom, topComponent, parentComponent);
         }
-        var attrsStart = 7/*attrsStartPos*/ + vdom[6/*constAttrsLen*/] * 2;
-        var attrsEnd = 7/*attrsStartPos*/ + vdom[5/*attrsLen*/] * 2;
-        var oldAttrsEnd = 7/*attrsStartPos*/ + old[5/*attrsLen*/] * 2;
+        var attrsStart = 9/*attrsStartPos*/ + vdom[8/*constAttrsLen*/] * 2;
+        var attrsEnd = 9/*attrsStartPos*/ + vdom[7/*attrsLen*/] * 2;
+        var oldAttrsEnd = 9/*attrsStartPos*/ + old[7/*attrsLen*/] * 2;
         var vdomLen = vdom.length;
         var oldLen = old.length;
         var childLen = vdomLen - attrsEnd;
@@ -372,7 +374,7 @@
         if (childLen !== oldChildLen) {
             return replace(old, vdom, topComponent, parentComponent);
         }
-        if (vdom[4/*attrsHash*/] === old[4/*attrsHash*/] && attrsEnd === oldAttrsEnd) {
+        if (vdom[6/*attrsHash*/] === old[6/*attrsHash*/] && attrsEnd === oldAttrsEnd) {
             for (var i = attrsStart; i < attrsEnd; i += 2) {
                 handleAttr(vdom[i], vdom[i + 1], old[i + 1], node, vdom);
             }
@@ -646,7 +648,7 @@
     function handleAttrs(vdom, old, newEnd, oldEnd) {
         var newProp, newPropVal, oldProp, oldPropVal, node = vdom[1/*node*/];
         var max = oldEnd > newEnd ? oldEnd : newEnd;
-        for (var i = 7/*attrsStartPos*/; i < max; i += 2) {
+        for (var i = 9/*attrsStartPos*/; i < max; i += 2) {
             if (i < newEnd) {
                 newProp = vdom[i];
                 newPropVal = vdom[i + 1];
@@ -665,7 +667,7 @@
                 if (oldProp) {
                     //check old is deleted
                     var found = false;
-                    for (var j = 7/*attrsStartPos*/; j < newEnd; j += 2) {
+                    for (var j = 9/*attrsStartPos*/; j < newEnd; j += 2) {
                         if (vdom[j] == oldProp) {
                             found = true;
                             break;
@@ -678,7 +680,7 @@
                 }
                 if (newProp) {
                     var found = -1;
-                    for (var j = 7/*attrsStartPos*/; j < oldEnd; j += 2) {
+                    for (var j = 9/*attrsStartPos*/; j < oldEnd; j += 2) {
                         if (old[j] == newProp) {
                             found = j;
                             break;
@@ -751,7 +753,7 @@
         }
         else {
             if (type == VTag) {
-                for (i = 7/*attrsStartPos*/ + vdom[5/*attrsLen*/] * 2; i < vdom.length; i++) {
+                for (i = 9/*attrsStartPos*/ + vdom[7/*attrsLen*/] * 2; i < vdom.length; i++) {
                     remove(vdom[1/*node*/], vdom[i], false);
                 }
                 if (removeFromDom) {
@@ -798,8 +800,8 @@
         }
         if (type == VTag) {
             //convertTagWithSpreadToNormal
-            if (vdom[5/*attrsLen*/] == 1 && vdom[7/*attrsStartPos*/] == spreadType) {
-                return makeTag(vdom[2/*tag*/], vdom[7/*attrsStartPos*/ + 1], vdom, 7/*attrsStartPos*/ + 2, vdom.length);
+            if (vdom[7/*attrsLen*/] == 1 && vdom[9/*attrsStartPos*/] == spreadType) {
+                return makeTag(vdom[2/*tag*/], vdom[9/*attrsStartPos*/ + 1], vdom, 9/*attrsStartPos*/ + 2, vdom.length);
             }
         }
         return vdom;
@@ -829,13 +831,13 @@
         if (childrenLen < 0) {
             childrenLen = 0;
         }
-        // var newVdom = new Array(7/*attrsStartPos*/ + 2 + to - from); // min tag array len
+        // var newVdom = new Array(9/*attrsStartPos*/ + 2 + to - from); // min tag array len
         var vdom = [];
-        vdom[6/*constAttrsLen*/] = 0;
+        vdom[8/*constAttrsLen*/] = 0;
         vdom[0/*type*/] = VTag;
         vdom[1/*node*/] = null;
         vdom[2/*tag*/] = tag;
-        var k = 7/*attrsStartPos*/;
+        var k = 9/*attrsStartPos*/;
         if (attrs) {
             for (var p in attrs) {
                 if (p === 'children') {
@@ -860,8 +862,8 @@
             }
         }
         vdom[3/*key*/] = key;
-        vdom[4/*attrsHash*/] = propsHashCounter++;
-        vdom[5/*attrsLen*/] = pCount;
+        vdom[6/*attrsHash*/] = propsHashCounter++;
+        vdom[7/*attrsLen*/] = pCount;
         if (childrenLen) {
             // pre create array slots
             vdom[k + childrenLen - 1] = null;
@@ -952,8 +954,8 @@
     // todo: need rethink
     function getKey(vdom) {
         if (vdom[0/*type*/] == VTag) {
-            if (vdom[3/*key*/] == null && vdom[5/*attrsLen*/] == 1 && vdom[7/*attrsStartPos*/] == null) {
-                var spread = vdom[7/*attrsStartPos*/ + 1];
+            if (vdom[3/*key*/] == null && vdom[7/*attrsLen*/] == 1 && vdom[9/*attrsStartPos*/] == null) {
+                var spread = vdom[9/*attrsStartPos*/ + 1];
                 if (typeof spread.key != 'undefined' && spread.key != null) {
                     vdom[3/*key*/] = spread.key;
                 }
@@ -977,12 +979,12 @@
             return vdom[4/*ref*/]
         }
         else if (vdom[0/*type*/] == VTag) {
-            if (vdom[5/*attrsLen*/] == 1 && vdom[7/*attrsStartPos*/] == spreadType) {
-                return vdom[7/*attrsStartPos*/ + 1].ref;
+            if (vdom[7/*attrsLen*/] == 1 && vdom[9/*attrsStartPos*/] == spreadType) {
+                return vdom[9/*attrsStartPos*/ + 1].ref;
             }
             else {
-                var attrsStart = 7/*attrsStartPos*/;
-                var attrsEnd = 7/*attrsStartPos*/ + vdom[5/*attrsLen*/] * 2;
+                var attrsStart = 9/*attrsStartPos*/;
+                var attrsEnd = 9/*attrsStartPos*/ + vdom[7/*attrsLen*/] * 2;
                 if (attrsEnd - attrsStart > 0) {
                     for (var i = attrsStart; i < attrsEnd; i += 2) {
                         if (vdom[i] == 'ref') {
@@ -999,12 +1001,12 @@
             return vdom[7/*props*/];
         }
         else if (vdom[0/*type*/] == VTag) {
-            if (vdom[5/*attrsLen*/] == 1 && vdom[7/*attrsStartPos*/] == spreadType) {
-                return vdom[7/*attrsStartPos*/ + 1];
+            if (vdom[7/*attrsLen*/] == 1 && vdom[9/*attrsStartPos*/] == spreadType) {
+                return vdom[9/*attrsStartPos*/ + 1];
             }
             else {
-                var attrsStart = 7/*attrsStartPos*/;
-                var attrsEnd = 7/*attrsStartPos*/ + vdom[5/*attrsLen*/] * 2;
+                var attrsStart = 9/*attrsStartPos*/;
+                var attrsEnd = 9/*attrsStartPos*/ + vdom[7/*attrsLen*/] * 2;
                 var props = {};
                 if (attrsEnd - attrsStart > 0) {
                     for (var i = attrsStart; i < attrsEnd; i += 2) {
@@ -1336,7 +1338,7 @@
                     }
                     else if (type == VTag) {
                         childs = [VArray, null, null, null];
-                        for (var i = 7/*attrsStartPos*/ + vdom[5/*attrsLen*/] * 2; i < vdom.length; i++) {
+                        for (var i = 9/*attrsStartPos*/ + vdom[7/*attrsLen*/] * 2; i < vdom.length; i++) {
                             childs.push(norm(vdom[i]));
                         }
                         tag = vdom[2/*tag*/];
