@@ -288,6 +288,9 @@
             vdom[6/*children*/] = create(children, vdom[1/*parentNode*/], before, topComponent, parentComponent);
         }
         else {
+            if (typeof Constructor.defaultProps == 'object') {
+                setDefaultProps(props, Constructor.defaultProps);
+            }
             var component = vdom[5/*instance*/] = new Constructor(props);
             var prevComponent = currentComponent;
             currentComponent = component;
@@ -423,12 +426,8 @@
                     component._context = null;
                 }
                 var props = vdom[7/*props*/];
-                if (typeof Ctor.defaultProps == 'object' && Ctor.defaultProps) {
-                    for (var prop in Ctor.defaultProps) {
-                        if (typeof props[prop] == 'undefined') {
-                            props[prop] = Ctor.defaultProps[prop];
-                        }
-                    }
+                if (typeof Ctor.defaultProps == 'object') {
+                    setDefaultProps(props, Ctor.defaultProps);
                 }
                 if (component.componentWillReceiveProps) {
                     // todo: nextState
@@ -1030,6 +1029,14 @@
         }
         return vdom[1/*node*/];
     }
+    
+    function setDefaultProps(props, defaultProps) {
+        for (var prop in defaultProps) {
+            if (typeof props[prop] == 'undefined') {
+                props[prop] = defaultProps[prop];
+            }
+        }
+    }
 
 
     /**-------------------------------------**
@@ -1225,13 +1232,6 @@
             var defaultProps = specification.getDefaultProps ? specification.getDefaultProps() : null;
 
             function Comp(props) {
-                if (defaultProps) {
-                    for (var prop in defaultProps) {
-                        if (typeof props[prop] == 'undefined') {
-                            props[prop] = defaultProps[prop];
-                        }
-                    }
-                }
                 if (specification.getInitialState) {
                     this.state = specification.getInitialState();
                 }
