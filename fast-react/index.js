@@ -791,17 +791,17 @@
         if (type == VComponent) {
             //convertComponentToTag
             if (typeof vdom[2/*Ctor*/] == 'string') {
-                return makeTag(vdom[2/*Ctor*/], vdom[8/*props*/], normChildren(vdom[8/*props*/].children), 0, vdom[8/*props*/].children.length);
+                return makeTag(vdom[2/*Ctor*/], vdom[8/*props*/], normChildren(vdom[8/*props*/].children), 0, vdom[8/*props*/].children.length, vdom[5/*ownerC*/]);
             }
             //convertComponentWithSpreadToNormal
             if (vdom.length == 9/*propsChildren*/ + 1) {
-                return makeComponent(vdom[2/*Ctor*/], vdom[8/*props*/], vdom[9/*propsChildren*/])
+                return makeComponent(vdom[2/*Ctor*/], vdom[8/*props*/], vdom[9/*propsChildren*/], vdom[5/*ownerC*/])
             }
         }
         if (type == VTag) {
             //convertTagWithSpreadToNormal
             if (vdom[7/*attrsLen*/] == 1 && vdom[9/*attrsStartPos*/] == spreadType) {
-                return makeTag(vdom[2/*tag*/], vdom[9/*attrsStartPos*/ + 1], vdom, 9/*attrsStartPos*/ + 2, vdom.length);
+                return makeTag(vdom[2/*tag*/], vdom[9/*attrsStartPos*/ + 1], vdom, 9/*attrsStartPos*/ + 2, vdom.length, vdom[5/*ownerT*/]);
             }
         }
         return vdom;
@@ -823,7 +823,7 @@
 
     var propsHashCounter = 1;
 
-    function makeTag(tag, attrs, childrenArray, from, to) {
+    function makeTag(tag, attrs, childrenArray, from, to, ownerComponent) {
         var pCount = 0;
         var key = null;
         var ref = null;
@@ -862,6 +862,8 @@
             }
         }
         vdom[3/*key*/] = key;
+        vdom[4/*refT*/] = ref;
+        vdom[5/*ownerT*/] = ref ? ownerComponent : null;
         vdom[6/*attrsHash*/] = propsHashCounter++;
         vdom[7/*attrsLen*/] = pCount;
         if (childrenLen) {
@@ -879,7 +881,7 @@
         return vdom;
     }
 
-    function makeComponent(Ctor, props, childrenArray) {
+    function makeComponent(Ctor, props, childrenArray, ownerComponent) {
         /**
          * VComponentTuple[type, parentNode, Ctor, key, ref, instance, children, props, propsChildren?]
          */
@@ -905,7 +907,7 @@
                 newProps[p] = props[p];
             }
         }
-        var vdom = [VComponent, null, Ctor, key, ref, null, null, newProps];
+        var vdom = [VComponent, null, Ctor, key, ref, ref ? ownerComponent : null, null, null, newProps];
         if (DEBUG_MODE) {
             debugVNode(vdom);
         }
@@ -1203,9 +1205,9 @@
                         children[k++] = arguments[i];
                     }
                 }
-                return makeComponent(tag, attrs, children);
+                return makeComponent(tag, attrs, children, currentComponent);
             }
-            var vdom = makeTag(tag, attrs, null, 2, argLen);
+            var vdom = makeTag(tag, attrs, null, 2, argLen, currentComponent);
             var vdomLen = vdom.length;
             for (var i = 2; i < argLen; i++) {
                 vdom[vdomLen - argLen + i] = arguments[i];
