@@ -181,7 +181,7 @@
      * VTextTuple[type, node, value]
      */
     // 0/*type*/
-    // 1/*node*/
+    // 1/*nodeText*/
     // 2/*text*/
 
     /**
@@ -226,8 +226,8 @@
 
         if (vdom[0/*type*/] == VText) {
             //VTextTuple[type, node, value]
-            vdom[1/*node*/] = document.createTextNode(vdom[2/*text*/]);
-            rootNode.insertBefore(vdom[1/*node*/], before);
+            vdom[1/*nodeText*/] = document.createTextNode(vdom[2/*text*/]);
+            rootNode.insertBefore(vdom[1/*nodeText*/], before);
         }
         else if (vdom[0/*type*/] == VTag) {
             // isSvg
@@ -349,9 +349,9 @@
 
     function updateText(old, vdom) {
         //VTextTuple[type, node, value]
-        vdom[1/*node*/] = old[1/*node*/];
+        vdom[1/*nodeText*/] = old[1/*nodeText*/];
         if (vdom[2/*text*/] !== old[2/*text*/]) {
-            vdom[1/*node*/].textContent = vdom[2/*text*/];
+            vdom[1/*nodeText*/].textContent = vdom[2/*text*/];
         }
         return vdom;
     }
@@ -549,7 +549,7 @@
                     beforeChild = getChildNode(vdom[pos + 1], false);
                 }
 
-                if (child[1/*node*/]) {
+                if (isRendered(child)) {
                     move(rootNode, child, beforeChild);
                 }
                 else {
@@ -707,9 +707,13 @@
             var parentNode = old[1/*parentNode*/];
             var before = getChildNode(old, false);
         }
-        else {
+        else if (type == VTag) {
             parentNode = old[1/*node*/].parentNode;
             before = old[1/*node*/];
+        }
+        else if (type == VText) {
+            parentNode = old[1/*nodeText*/].parentNode;
+            before = old[1/*nodeText*/];
         }
         vdom = create(vdom, parentNode, before, topComponent, parentComponent);
         remove(parentNode, old, true);
@@ -742,9 +746,12 @@
                 for (i = 7/*attrsStartPos*/ + vdom[5/*attrsLen*/] * 2; i < vdom.length; i++) {
                     remove(vdom[1/*node*/], vdom[i], false);
                 }
+                if (removeFromDom) {
+                    parentNode.removeChild(vdom[1/*node*/]);
+                }
             }
-            if (removeFromDom) {
-                parentNode.removeChild(vdom[1/*node*/]);
+            if (type == VText && removeFromDom) {
+                parentNode.removeChild(vdom[1/*nodeText*/]);
             }
         }
     }
@@ -1014,9 +1021,6 @@
     function getChildNode(vdom, isLast) {
         while (true) {
             var type = vdom[0/*type*/];
-            if (type != VComponent && type != VArray && type != VChildren) {
-                break;
-            }
             if (type == VArray) {
                 vdom = vdom[isLast ? vdom.length - 1 : 4/*arrayFirstNode*/];
             }
@@ -1026,8 +1030,13 @@
             else if (type == VChildren) {
                 vdom = vdom[isLast ? vdom.length - 1 : 3/*VChildrenFirstNode*/];
             }
+            else if (type == VTag) {
+                return vdom[1/*node*/];
+            }
+            else if (type == VText) {
+                return vdom[1/*nodeText*/];
+            }
         }
-        return vdom[1/*node*/];
     }
     
     function setDefaultProps(props, defaultProps) {
@@ -1038,10 +1047,30 @@
         }
     }
 
+    function isRendered(vdom) {
+        var type = vdom[0/*type*/];
+        if (type == VArray) {
+            return vdom[1/*parentNode*/] != null;
+        }
+        else if (type == VComponent) {
+            return vdom[1/*parentNode*/] != null;
+        }
+        else if (type == VChildren) {
+            return vdom[1/*parentNode*/] != null;
+        }
+        else if (type == VTag) {
+            return vdom[1/*node*/] != null;
+        }
+        else if (type == VText) {
+            return vdom[1/*nodeText*/] != null;
+        }
+    }
+
 
     /**-------------------------------------**
      * Top Level
      **-------------------------------------**/
+    //todo: remove
     function findDOMNode(vdom) {
         if (vdom[0/*type*/] == VComponent) {
             return vdom[5/*instance*/];
