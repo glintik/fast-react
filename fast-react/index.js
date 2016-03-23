@@ -207,7 +207,7 @@
     // 0/*type*/
     // 1/*parentNode*/
     // 2/*Ctor*/
-    // 3/*key*/
+    // 3/*keyCmp*/
     // 4/*ref*/
     // 5/*instance*/
     // 6/*children*/
@@ -876,7 +876,7 @@
         // 0/*type*/
         // 1/*parentNode*/
         // 2/*Ctor*/
-        // 3/*key*/
+        // 3/*keyCmp*/
         // 4/*ref*/
         // 5/*instance*/
         // 6/*children*/
@@ -963,13 +963,13 @@
             return vdom[3/*key*/];
         }
         else if (vdom[0/*type*/] == VComponent) {
-            if (vdom[3/*key*/] == null && vdom.length - 1 == 8/*propsChildren*/) {
+            if (vdom[3/*keyCmp*/] == null && vdom.length - 1 == 8/*propsChildren*/) {
                 spread = vdom[7/*props*/];
                 if (typeof spread.key != 'undefined' && spread.key != null) {
-                    vdom[3/*key*/] = spread.key;
+                    vdom[3/*keyCmp*/] = spread.key;
                 }
             }
-            return vdom[3/*key*/];
+            return vdom[3/*keyCmp*/];
         }
         return null;
     }
@@ -1333,20 +1333,6 @@
                     var tag = null;
                     var childs = null;
                     if (type == VComponent) {
-                        /**
-                         * VComponentTuple[type, parentNode, Ctor, key, ref, instance, children, props, propsChildren?]
-                         */
-                        // 0/*type*/
-                        // 1/*parentNode*/
-                        // 2/*Ctor*/
-                        // 3/*key*/
-                        // 4/*ref*/
-                        // 5/*instance*/
-                        // 6/*children*/
-                        // 7/*props*/
-                        // 8/*propsChildren*/
-                        //var hasPropsChildrenLen = 9;
-
                         tag = vdom[2/*Ctor*/];
                         childs = vdom.length == 8/*propsChildren*/ + 1 ? vdom[8/*propsChildren*/] : (vdom[7/*props*/] ? vdom[7/*props*/].children : null);
                     }
