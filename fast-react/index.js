@@ -211,11 +211,11 @@
     // 2/*Ctor*/
     // 3/*keyCmp*/
     // 4/*ref*/
-    // 5/*instance*/
-    // 6/*children*/
-    // 7/*props*/
-    // 8/*propsChildren*/
-    //var hasPropsChildrenLen = 9;
+    // 5/*ownerC*/
+    // 6/*instance*/
+    // 7/*children*/
+    // 8/*props*/
+    // 9/*propsChildren*/
 
 
     /**-------------------------------------**
@@ -284,16 +284,16 @@
     function createComponent(vdom, rootNode, before, topComponent, parentComponent) {
         var Constructor = vdom[2/*Ctor*/];
         vdom[1/*parentNode*/] = rootNode;
-        var props = vdom[7/*props*/];
+        var props = vdom[8/*props*/];
         if (!Constructor.prototype || !Constructor.prototype.render) {
             var children = norm(Constructor(props));
-            vdom[6/*children*/] = create(children, vdom[1/*parentNode*/], before, topComponent, parentComponent);
+            vdom[7/*children*/] = create(children, vdom[1/*parentNode*/], before, topComponent, parentComponent);
         }
         else {
             if (typeof Constructor.defaultProps == 'object') {
                 setDefaultProps(props, Constructor.defaultProps);
             }
-            var component = vdom[5/*instance*/] = new Constructor(props);
+            var component = vdom[6/*instance*/] = new Constructor(props);
             var prevComponent = currentComponent;
             currentComponent = component;
             component.node = vdom;
@@ -303,7 +303,7 @@
             }
             var children = norm(component.render());
             component._internalContext = typeof component.getChildContext == 'function' ? component.getChildContext() : null;
-            vdom[6/*children*/] = create(children, vdom[1/*parentNode*/], before, component, component);
+            vdom[7/*children*/] = create(children, vdom[1/*parentNode*/], before, component, component);
             if (component.componentDidMount) {
                 component.componentDidMount();
             }
@@ -413,11 +413,11 @@
         }
         else {
             vdom[1/*parentNode*/] = old[1/*parentNode*/];
-            var component = vdom[5/*instance*/] = old[5/*instance*/];
+            var component = vdom[6/*instance*/] = old[6/*instance*/];
             if (!component) {
                 //noinspection JSDuplicatedDeclaration
                 var children = norm(Ctor());
-                vdom[6/*children*/] = update(old[6/*children*/], children, topComponent, parentComponent);
+                vdom[7/*children*/] = update(old[7/*children*/], children, topComponent, parentComponent);
             }
             else {
                 var prevComponent = currentComponent;
@@ -427,7 +427,7 @@
                 if (component._context) {
                     component._context = null;
                 }
-                var props = vdom[7/*props*/];
+                var props = vdom[8/*props*/];
                 if (typeof Ctor.defaultProps == 'object') {
                     setDefaultProps(props, Ctor.defaultProps);
                 }
@@ -440,7 +440,7 @@
                     // todo: nextState
                     shouldUpdate = component.shouldComponentUpdate(props);
                 }
-                component.props = vdom[7/*props*/] = props;
+                component.props = vdom[8/*props*/] = props;
 
                 if (shouldUpdate) {
                     if (component.componentWillUpdate) {
@@ -449,14 +449,14 @@
                     var children = norm(component.render());
                     component._internalContext = typeof component.getChildContext == 'function' ? component.getChildContext() : null;
                     // because child component can still updates
-                    vdom[6/*children*/] = update(component.node[6/*children*/], children, component, component);
-                    // vdom[6/*children*/] = update(old[6/*children*/], children, component, component);
+                    vdom[7/*children*/] = update(component.node[7/*children*/], children, component, component);
+                    // vdom[7/*children*/] = update(old[7/*children*/], children, component, component);
                     component.node = vdom;
                     if (component.componentDidUpdate) {
                         component.componentDidUpdate();
                     }
                 } else {
-                    vdom[6/*children*/] = old[6/*children*/];
+                    vdom[7/*children*/] = old[7/*children*/];
                 }
                 currentComponent = prevComponent;
             }
@@ -740,10 +740,10 @@
                 }
             }
             else if (type == VComponent) {
-                if (vdom[5/*instance*/].componentWillUnmount) {
-                    vdom[5/*instance*/].componentWillUnmount();
+                if (vdom[6/*instance*/].componentWillUnmount) {
+                    vdom[6/*instance*/].componentWillUnmount();
                 }
-                remove(vdom[1/*parentNode*/], vdom[6/*children*/], removeFromDom);
+                remove(vdom[1/*parentNode*/], vdom[7/*children*/], removeFromDom);
             }
             else if (type == VChildren) {
                 for (i = 3/*VChildrenFirstNode*/; i < vdom.length; i++) {
@@ -791,11 +791,11 @@
         if (type == VComponent) {
             //convertComponentToTag
             if (typeof vdom[2/*Ctor*/] == 'string') {
-                return makeTag(vdom[2/*Ctor*/], vdom[7/*props*/], normChildren(vdom[7/*props*/].children), 0, vdom[7/*props*/].children.length);
+                return makeTag(vdom[2/*Ctor*/], vdom[8/*props*/], normChildren(vdom[8/*props*/].children), 0, vdom[8/*props*/].children.length);
             }
             //convertComponentWithSpreadToNormal
-            if (vdom.length == 8/*propsChildren*/ + 1) {
-                return makeComponent(vdom[2/*Ctor*/], vdom[7/*props*/], vdom[8/*propsChildren*/])
+            if (vdom.length == 9/*propsChildren*/ + 1) {
+                return makeComponent(vdom[2/*Ctor*/], vdom[8/*props*/], vdom[9/*propsChildren*/])
             }
         }
         if (type == VTag) {
@@ -943,7 +943,7 @@
         }
         else {
             if (vdom[0/*type*/] == VComponent) {
-                topComponent.refs[val] = vdom[5/*instance*/];
+                topComponent.refs[val] = vdom[6/*instance*/];
             }
             else {
                 topComponent.refs[val] = REF_RETURN_NODE ? vdom[1/*node*/] : vdom;
@@ -963,8 +963,8 @@
             return vdom[3/*key*/];
         }
         else if (vdom[0/*type*/] == VComponent) {
-            if (vdom[3/*keyCmp*/] == null && vdom.length - 1 == 8/*propsChildren*/) {
-                spread = vdom[7/*props*/];
+            if (vdom[3/*keyCmp*/] == null && vdom.length - 1 == 9/*propsChildren*/) {
+                spread = vdom[8/*props*/];
                 if (typeof spread.key != 'undefined' && spread.key != null) {
                     vdom[3/*keyCmp*/] = spread.key;
                 }
@@ -998,7 +998,7 @@
 
     function getProps(vdom) {
         if (vdom[0/*type*/] == VComponent) {
-            return vdom[7/*props*/];
+            return vdom[8/*props*/];
         }
         else if (vdom[0/*type*/] == VTag) {
             if (vdom[7/*attrsLen*/] == 1 && vdom[9/*attrsStartPos*/] == spreadType) {
@@ -1025,7 +1025,7 @@
                 vdom = vdom[isLast ? vdom.length - 1 : 4/*arrayFirstNode*/];
             }
             else if (type == VComponent) {
-                vdom = vdom[6/*children*/];
+                vdom = vdom[7/*children*/];
             }
             else if (type == VChildren) {
                 vdom = vdom[isLast ? vdom.length - 1 : 3/*VChildrenFirstNode*/];
@@ -1073,7 +1073,7 @@
     //todo: remove
     function findDOMNode(vdom) {
         if (vdom[0/*type*/] == VComponent) {
-            return vdom[5/*instance*/];
+            return vdom[6/*instance*/];
         }
         return vdom[1/*node*/];
     }
@@ -1119,7 +1119,7 @@
                 }
                 component._internalContext = typeof component.getChildContext == 'function' ? component.getChildContext() : null;
                 var children = norm(component.render());
-                component.node[6/*children*/] = update(component.node[6/*children*/], children, component, component);
+                component.node[7/*children*/] = update(component.node[7/*children*/], children, component, component);
                 if (component.componentDidUpdate) {
                     component.componentDidUpdate();
                 }
@@ -1334,7 +1334,7 @@
                     var childs = null;
                     if (type == VComponent) {
                         tag = vdom[2/*Ctor*/];
-                        childs = vdom.length == 8/*propsChildren*/ + 1 ? vdom[8/*propsChildren*/] : (vdom[7/*props*/] ? vdom[7/*props*/].children : null);
+                        childs = vdom.length == 9/*propsChildren*/ + 1 ? vdom[9/*propsChildren*/] : (vdom[8/*props*/] ? vdom[8/*props*/].children : null);
                     }
                     else if (type == VTag) {
                         childs = [VArray, null, null, null];
