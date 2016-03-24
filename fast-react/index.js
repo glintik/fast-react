@@ -226,7 +226,6 @@
         }
 
         if (vdom[0/*type*/] == VText) {
-            //VTextTuple[type, node, value]
             vdom[1/*nodeText*/] = document.createTextNode(vdom[2/*text*/]);
             rootNode.insertBefore(vdom[1/*nodeText*/], before);
         }
@@ -252,7 +251,6 @@
             }
         }
         else if (vdom[0/*type*/] == VArray) {
-            //VArrayTuple[type, node, parentNode, keyMap, sourceArray, ...values]
             vdom[1/*parentNodeArr*/] = rootNode;
             //iterate source array
             var sourceArray = vdom[3/*sourceArray*/];
@@ -342,7 +340,6 @@
     }
 
     function updateText(old, vdom) {
-        //VTextTuple[type, node, value]
         vdom[1/*nodeText*/] = old[1/*nodeText*/];
         if (vdom[2/*text*/] !== old[2/*text*/]) {
             vdom[1/*nodeText*/].textContent = vdom[2/*text*/];
@@ -351,7 +348,6 @@
     }
 
     function updateTag(old, vdom, parentComponent) {
-        //VTagTuple[type, node, tag, key, attrsHash, attrsLen, constAttrsLen, ...attrs, ...children]
         var node = vdom[1/*node*/] = old[1/*node*/];
         if (vdom[2/*tag*/] !== old[2/*tag*/]) {
             return replace(old, vdom, parentComponent);
@@ -388,7 +384,6 @@
 
     function updateComponent(old, vdom, parentComponent) {
         var Ctor = vdom[2/*Ctor*/];
-        //VComponentTuple[type, parentNode, Ctor, key, ref, instance, children, props, propsChildren?]
         if (old[2/*Ctor*/] !== Ctor) {
             vdom = replace(old, vdom, parentComponent);
         }
@@ -451,7 +446,6 @@
     }
 
     function updateArray(old, vdom, parentComponent) {
-        //VArrayTuple[type, node, parentNode, keyMap, sourceArray, ...values]
         var rootNode = vdom[1/*parentNodeArr*/] = old[1/*parentNodeArr*/];
         var keyMap = vdom[2/*keymap*/] = old[2/*keymap*/];
         var oldLen = old.length;
@@ -707,7 +701,6 @@
         var type = vdom[0/*type*/];
         if (type == VComponent || type == VArray) {
             if (type == VArray) {
-                //VArrayTuple[type, node, parentNode, keyMap, sourceArray, ...values]
                 for (var i = 4/*arrayFirstNode*/; i < vdom.length; i++) {
                     remove(vdom[1/*parentNodeArr*/], vdom[i], removeFromDom);
                 }
@@ -856,9 +849,6 @@
     }
 
     function makeComponent(Ctor, props, childrenArray, ownerComponent) {
-        /**
-         * VComponentTuple[type, parentNode, Ctor, key, ref, instance, children, props, propsChildren?]
-         */
         var key = null;
         var ref = null;
         var newProps = {children: childrenArray};
@@ -1060,7 +1050,6 @@
         //todo: main render
         if (!isUpdating && queue.length > 0) {
             isUpdating = true;
-            //VComponentTuple[type, node, parentNode, Ctor, instance, props, children, ref, key?]
             var q = queue.shift();
             if (q.type == 'forceUpdate') {
                 var component = q.component;
