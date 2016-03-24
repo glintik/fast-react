@@ -866,7 +866,7 @@
             for (var p in props) {
                 if (p === 'children') {
                     if (childrenArray == null) {
-                        newProps.children = normChildren(props.children);
+                        newProps.children = props.children;
                     }
                     continue;
                 }
