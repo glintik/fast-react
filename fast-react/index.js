@@ -20,7 +20,6 @@
     var VText = '¨#';
     var VComponent = '¨C';
     var VArray = '¨A';
-    var VChildren = '¨F';
     var spreadType = null;
 
     var fastAttrs = {
@@ -248,8 +247,8 @@
                 vdom[i] = create(norm(vdom[i]), node, null, topComponent, parentComponent);
             }
 
-            if (typeof vdom.ref != 'undefined') {
-                setRef(vdom, vdom.ref, topComponent, false);
+            if (vdom[4/*refT*/]) {
+                setRef(vdom);
             }
         }
         else if (vdom[0/*type*/] == VArray) {
@@ -271,12 +270,6 @@
         }
         else if (vdom[0/*type*/] == VComponent) {
             vdom = createComponent(vdom, rootNode, before, topComponent, parentComponent);
-        }
-        else if (vdom[0/*type*/] == VChildren) {
-            vdom[1/*parentNodeChild*/] = rootNode;
-            for (i = 3/*VChildrenFirstNode*/; i < vdom.length; i++) {
-                vdom[i] = create(norm(vdom[i]), rootNode, before, vdom[2/*refComponent*/], parentComponent);
-            }
         }
         return vdom;
     }
@@ -309,8 +302,8 @@
             }
             currentComponent = prevComponent;
         }
-        if (vdom[4/*ref*/] != null) {
-            setRef(vdom, vdom[4/*ref*/], topComponent, false);
+        if (vdom[4/*ref*/]) {
+            setRef(vdom);
         }
         return vdom;
     }
@@ -343,9 +336,6 @@
         }
         else if (type == VComponent) {
             return updateComponent(old, vdom, topComponent, parentComponent);
-        }
-        else if (type == VChildren) {
-            return updateComponentChildren(old, vdom, topComponent, parentComponent);
         }
     }
 
@@ -387,8 +377,8 @@
                 vdom[attrsEnd + i] = update(old[oldAttrsEnd + i], norm(vdom[attrsEnd + i]), topComponent, parentComponent);
             }
         }
-        if (typeof vdom.ref !== 'undefined') {
-            setRef(vdom, vdom.ref, topComponent, false);
+        if (vdom[4/*refT*/]) {
+            setRef(vdom);
         }
         return vdom;
     }
@@ -460,8 +450,8 @@
                 }
                 currentComponent = prevComponent;
             }
-            if (vdom[4/*ref*/] != null) {
-                setRef(vdom, vdom[4/*ref*/], topComponent, false);
+            if (vdom[4/*ref*/]) {
+                setRef(vdom);
             }
         }
         return vdom;
@@ -622,12 +612,6 @@
                 node.setAttribute(attr, val);
             }
         }
-        else if (attr === 'key') {
-            vdom[3/*key*/] = val;
-        }
-        else if (attr === 'ref') {
-            vdom.ref = val;
-        }
         else if (attr === 'dangerouslySetInnerHTML') {
             if (!oldVal || oldVal.__html !== val.html) {
                 node.innerHTML = val.__html;
@@ -713,10 +697,6 @@
             var parentNode = old[1/*parentNodeArr*/];
             var before = getChildNode(old, false);
         }
-        else if (type == VChildren) {
-            var parentNode = old[1/*parentNodeChild*/];
-            var before = getChildNode(old, false);
-        }
         else if (type == VTag) {
             parentNode = old[1/*node*/].parentNode;
             before = old[1/*node*/];
@@ -732,7 +712,7 @@
 
     function remove(parentNode, vdom, removeFromDom) {
         var type = vdom[0/*type*/];
-        if (type == VComponent || type == VArray || type == VChildren) {
+        if (type == VComponent || type == VArray) {
             if (type == VArray) {
                 //VArrayTuple[type, node, parentNode, keyMap, sourceArray, ...values]
                 for (var i = 4/*arrayFirstNode*/; i < vdom.length; i++) {
@@ -744,11 +724,6 @@
                     vdom[6/*instance*/].componentWillUnmount();
                 }
                 remove(vdom[1/*parentNode*/], vdom[7/*children*/], removeFromDom);
-            }
-            else if (type == VChildren) {
-                for (i = 3/*VChildrenFirstNode*/; i < vdom.length; i++) {
-                    remove(vdom[1/*parentNodeChild*/], vdom[i], removeFromDom);
-                }
             }
         }
         else {
@@ -936,41 +911,36 @@
         return vdom;
     }
 
-    function setRef(vdom, val, topComponent) {
-        if (!topComponent.refs) {
-            topComponent.refs = {};
-        }
-        if (typeof val == 'function') {
-            val(REF_RETURN_NODE ? vdom[1/*node*/] : vdom);
+    function setRef(vdom) {
+        var topComponent;
+        var ref;
+        var val;
+        if (vdom[0/*type*/] == VTag) {
+            topComponent = vdom[5/*ownerT*/];
+            ref = vdom[4/*refT*/];
+            val = REF_RETURN_NODE ? vdom[1/*node*/] : vdom;
         }
         else {
-            if (vdom[0/*type*/] == VComponent) {
-                topComponent.refs[val] = vdom[6/*instance*/];
+            topComponent = vdom[5/*ownerC*/];
+            ref = vdom[4/*ref*/];
+            val = vdom[6/*instance*/];
+        }
+        if (typeof ref == 'function') {
+            ref(val);
+        }
+        else {
+            if (!topComponent.refs) {
+                topComponent.refs = {};
             }
-            else {
-                topComponent.refs[val] = REF_RETURN_NODE ? vdom[1/*node*/] : vdom;
-            }
+            topComponent.refs[ref] = val;
         }
     }
 
-    // todo: need rethink
     function getKey(vdom) {
         if (vdom[0/*type*/] == VTag) {
-            if (vdom[3/*key*/] == null && vdom[7/*attrsLen*/] == 1 && vdom[9/*attrsStartPos*/] == null) {
-                var spread = vdom[9/*attrsStartPos*/ + 1];
-                if (typeof spread.key != 'undefined' && spread.key != null) {
-                    vdom[3/*key*/] = spread.key;
-                }
-            }
             return vdom[3/*key*/];
         }
         else if (vdom[0/*type*/] == VComponent) {
-            if (vdom[3/*keyCmp*/] == null && vdom.length - 1 == 9/*propsChildren*/) {
-                spread = vdom[8/*props*/];
-                if (typeof spread.key != 'undefined' && spread.key != null) {
-                    vdom[3/*keyCmp*/] = spread.key;
-                }
-            }
             return vdom[3/*keyCmp*/];
         }
         return null;
@@ -981,20 +951,7 @@
             return vdom[4/*ref*/]
         }
         else if (vdom[0/*type*/] == VTag) {
-            if (vdom[7/*attrsLen*/] == 1 && vdom[9/*attrsStartPos*/] == spreadType) {
-                return vdom[9/*attrsStartPos*/ + 1].ref;
-            }
-            else {
-                var attrsStart = 9/*attrsStartPos*/;
-                var attrsEnd = 9/*attrsStartPos*/ + vdom[7/*attrsLen*/] * 2;
-                if (attrsEnd - attrsStart > 0) {
-                    for (var i = attrsStart; i < attrsEnd; i += 2) {
-                        if (vdom[i] == 'ref') {
-                            return vdom[i + 1];
-                        }
-                    }
-                }
-            }
+            return vdom[4/*refT*/]
         }
     }
 
@@ -1029,9 +986,6 @@
             else if (type == VComponent) {
                 vdom = vdom[7/*children*/];
             }
-            else if (type == VChildren) {
-                vdom = vdom[isLast ? vdom.length - 1 : 3/*VChildrenFirstNode*/];
-            }
             else if (type == VTag) {
                 return vdom[1/*node*/];
             }
@@ -1056,9 +1010,6 @@
         }
         else if (type == VComponent) {
             return vdom[1/*parentNode*/] != null;
-        }
-        else if (type == VChildren) {
-            return vdom[1/*parentNodeChild*/] != null;
         }
         else if (type == VTag) {
             return vdom[1/*node*/] != null;
@@ -1196,14 +1147,12 @@
             if (typeof tag == 'function') {
                 var children;
                 if (argLen > 2) {
-                    children = new Array(argLen - 2 + 3/*VChildrenFirstNode*/);
-                    children[0/*type*/] = VChildren;
-                    children[1/*parentNode*/] = null;
-                    children[2/*refComponent*/] = currentComponent;
-                    var k = 3/*VChildrenFirstNode*/;
+                    children = new Array(argLen - 2);
                     for (var i = 2; i < argLen; i++) {
-                        children[k++] = arguments[i];
+                        children[i - 2] = arguments[i];
                     }
+                } else {
+                    children = null;
                 }
                 return makeComponent(tag, attrs, children, currentComponent);
             }
@@ -1244,12 +1193,12 @@
             oneOfType: propType,
             shape: propType
         },
-        cloneElement: function (el, props) {
+        cloneElement: function (vdom, props) {
             //todo: props?
             var clone = vdom.slice();
             var type = vdom[0/*type*/];
-            if (type == VChildren || type == VArray) {
-                var start = type == VArray ? 4/*arrayFirstNode*/ : 3/*VChildrenFirstNode*/;
+            if (type == VArray) {
+                var start = 4/*arrayFirstNode*/;
                 for (var i = start; i < vdom.length; i++) {
                     clone[i] = _exports.cloneElement(vdom[i]);
                 }
@@ -1324,8 +1273,8 @@
                 var vdom = children;
                 var ret = [];
                 var type = vdom[0/*type*/];
-                if (type == VChildren || type == VArray) {
-                    var start = type == VArray ? 4/*arrayFirstNode*/ : 3/*VChildrenFirstNode*/;
+                if (type == VArray) {
+                    var start = type == 4/*arrayFirstNode*/;
                     for (var i = start; i < vdom.length; i++) {
                         ret = ret.concat(_exports.Children.toArray(vdom[i]));
                     }
