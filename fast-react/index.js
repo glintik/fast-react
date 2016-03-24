@@ -1272,6 +1272,12 @@
             toArray: function (children) {
                 var vdom = children;
                 var ret = [];
+                if (vdom && vdom.constructor == Array && (!vdom[0/*type*/] || vdom[0/*type*/][0] !== baseType)) {
+                    for (var i = 0; i < vdom.length; i++) {
+                        ret = ret.concat(_exports.Children.toArray(vdom[i]));
+                    }
+                    return ret;
+                }
                 var type = vdom[0/*type*/];
                 if (type == VArray) {
                     var start = type == 4/*arrayFirstNode*/;
@@ -1285,7 +1291,7 @@
                     var childs = null;
                     if (type == VComponent) {
                         tag = vdom[2/*Ctor*/];
-                        childs = vdom.length == 9/*propsChildren*/ + 1 ? vdom[9/*propsChildren*/] : (vdom[8/*props*/] ? vdom[8/*props*/].children : null);
+                        childs = vdom[8/*props*/] ? vdom[8/*props*/].children : null;
                     }
                     else if (type == VTag) {
                         childs = [VArray, null, null, null];
@@ -1295,11 +1301,13 @@
                         tag = vdom[2/*tag*/];
                     }
                     var props = getProps(vdom);
-                    props.key = getKey(vdom);
-                    props.ref = getRef(vdom);
                     props.children = childs;
-
-                    return [{type: tag, key: getKey(vdom), ref: getRef(vdom), props: props}];
+                    var obj = vdom.slice();
+                    obj.type = tag;
+                    obj.key = getKey(vdom);
+                    obj.ref = getRef(vdom);
+                    obj.props = props;
+                    return [obj];
                 }
                 return ret;
             },
