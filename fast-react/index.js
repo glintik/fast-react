@@ -22,53 +22,16 @@
     var VArray = '¨A';
     var spreadType = null;
 
-    var fastAttrs = {
-        acceptCharset: 'accept-charset',
-        className: 'class',
-        htmlFor: 'for',
-        httpEquiv: 'http-equiv',
-        id: 'id',
+    var allAttrs = "accept,accesskey,action,allowfullscreen,allowtransparency,alt,async,autocomplete,autoplay,capture,cellpadding,cellspacing,charset,challenge,checked,classid,cols,colspan,content,contenteditable,contextmenu,controls,coords,crossorigin,data,datetime,default,defer,dir,disabled,download,draggable,enctype,form,formaction,formenctype,formmethod,formnovalidate,formtarget,frameborder,headers,height,hidden,high,href,hreflang,icon,id,inputmode,integrity,is,keyparams,keytype,kind,label,lang,list,loop,low,manifest,marginheight,marginwidth,max,maxlength,media,mediagroup,method,min,minlength,multiple,muted,name,nonce,novalidate,open,optimum,pattern,placeholder,poster,preload,radiogroup,readonly,rel,required,reversed,role,rows,rowspan,sandbox,scope,scoped,scrolling,seamless,selected,shape,size,sizes,span,spellcheck,src,srcdoc,srclang,srcset,start,step,summary,tabindex,target,title,type,usemap,value,width,wmode,wrap,about,datatype,inlist,prefix,property,resource,typeof,vocab,autocapitalize,autocorrect,autosave,color,itemprop,itemscope,itemtype,itemid,itemref,results,security,unselectable,cx,cy,d,dx,dy,fill,fx,fy,gradientTransform,gradientUnits,offset,opacity,patternContentUnits,patternUnits,points,preserveAspectRatio,r,rx,ry,spreadMethod,stroke,transform,version,viewBox,x1,x2,x,y1,y2,y".split(',')
+    var fastAttrs = {"acceptCharset":"accept-charset","className":"class","htmlFor":"for","httpEquiv":"http-equiv","clipPath":"clip-path","fillOpacity":"fill-opacity","fontFamily":"font-family","fontSize":"font-size","markerEnd":"marker-end","markerMid":"marker-mid","markerStart":"marker-start","stopColor":"stop-color","stopOpacity":"stop-opacity","strokeDasharray":"stroke-dasharray","strokeLinecap":"stroke-linecap","strokeOpacity":"stroke-opacity","strokeWidth":"stroke-width","textAnchor":"text-anchor"};
+    for (var i = 0; i < allAttrs.length; i++)
+        fastAttrs[allAttrs[i]] = allAttrs[i];
+    //var ss = []; var obj = {}; for (var i in DOMProperty.properties){ var attr = DOMProperty.properties[i].attributeName; if (i.toLowerCase() == attr.toLowerCase()) ss.push(attr); else obj[i] = attr } ss.join(',')
 
-        alt: 'alt',
-        disabled: 'disabled',
-        height: 'height',
-        hidden: 'hidden',
-        href: 'href',
-        max: 'max',
-        maxLength: 'maxLength',
-        media: 'media',
-        min: 'min',
-        minLength: 'minLength',
-        name: 'name',
-        pattern: 'pattern',
-        placeholder: 'placeholder',
-        rel: 'rel',
-        required: 'required',
-        src: 'src',
-        srcSet: 'srcSet',
-        tabIndex: 'tabIndex',
-        target: 'target',
-        title: 'title',
-        type: 'type',
-        width: 'width',
-
-
-        //svg attrs
-        clipPath: 'clip-path',
-        fillOpacity: 'fill-opacity',
-        fontFamily: 'font-family',
-        fontSize: 'font-size',
-        markerEnd: 'marker-end',
-        markerMid: 'marker-mid',
-        markerStart: 'marker-start',
-        stopColor: 'stop-color',
-        stopOpacity: 'stop-opacity',
-        strokeDasharray: 'stroke-dasharray',
-        strokeLinecap: 'stroke-linecap',
-        strokeOpacity: 'stroke-opacity',
-        strokeWidth: 'stroke-width',
-        textAnchor: 'text-anchor',
-    };
+    var xLinkNS = 'http://www.w3.org/1999/xlink';
+    var xLinkAttrs = {"xlinkActuate":"xlink:actuate","xlinkArcrole":"xlink:arcrole","xlinkHref":"xlink:href","xlinkRole":"xlink:role","xlinkShow":"xlink:show","xlinkTitle":"xlink:title","xlinkType":"xlink:type"};
+    var xmlNS = 'http://www.w3.org/XML/1998/namespace';
+    var xmlAttrs = {"xmlBase":"xml:base","xmlLang":"xml:lang","xmlSpace":"xml:space"};
 
     var constProps = {
         checked: 'checked',
@@ -570,48 +533,39 @@
         if (val === oldVal) {
             return;
         }
-        if (normAttr = fastAttrs[attr]) {
+        if ((normAttr = fastAttrs[attr]) || (attr[4] == '-' && attr.substr(0, 5) == 'data-' && (normAttr = attr))) {
             if (val == null || val === false) {
                 if (oldVal) {
                     node.removeAttribute(normAttr);
                 }
             }
-            else {
+            else if (typeof val !== 'object') {
                 node.setAttribute(normAttr, val);
             }
         }
         else if (normAttr = constProps[attr]) {
             node[normAttr] = val;
         }
-        else if ((normAttr = constEvents[attr]) || ((normAttr = attr.toLowerCase()) && normAttr in document && normAttr.substr(0, 2) == 'on')) {
+        else if ((normAttr = constEvents[attr]) || (attr[0] == 'o' && attr[1] == 'n' && (normAttr = attr.toLowerCase()) && (normAttr in document && normAttr.substr(0, 2) == 'on'))) {
             node[normAttr] = val;
         }
         else if (attr === 'style') {
             setStyle(node, oldVal, val);
-        }
-        else if (attr.substring(0, 4) === 'data') {
-            if (val == null || val === false) {
-                if (oldVal) {
-                    node.removeAttribute(attr);
-                }
-            }
-            else {
-                node.setAttribute(attr, val);
-            }
         }
         else if (attr === 'dangerouslySetInnerHTML') {
             if (!oldVal || oldVal.__html !== val.html) {
                 node.innerHTML = val.__html;
             }
         }
-        else {
+        else if ((normAttr = xLinkAttrs[attr]) || (normAttr = xmlAttrs[attr])) {
+            var ns = normAttr[5] == ':' ? xLinkNS : xmlNS;
             if (val == null || val === false) {
                 if (oldVal) {
-                    node.removeAttribute(attr);
+                    node.removeAttributeNS(ns, normAttr);
                 }
             }
-            else {
-                node.setAttribute(attr, val);
+            else if (typeof val !== 'object') {
+                node.setAttributeNS(ns, normAttr, val);
             }
         }
     }
@@ -1315,5 +1269,3 @@
     };
     module.exports = _exports;
 }();
-
-//a.match(/\d+\/\*\w+\*\//g).filter(function(value, index, self) {return self.indexOf(value) === index})
