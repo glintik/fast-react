@@ -285,6 +285,8 @@
         else {
             if (typeof Constructor.defaultProps == 'object') {
                 setDefaultProps(props, Constructor.defaultProps);
+            } else {
+                Constructor.defaultProps = void 0;
             }
             var component = vdom[6/*instance*/] = new Constructor(props);
             var prevComponent = currentComponent;
@@ -413,7 +415,9 @@
                 var prevComponent = currentComponent;
                 currentComponent = component;
 
-                component._internalParentComponent = parentComponent;
+                if (component._internalParentComponent !== parentComponent) {
+                    component._internalParentComponent = parentComponent;
+                }
                 if (component._context) {
                     component._context = null;
                 }
@@ -798,10 +802,39 @@
 
     var propsHashCounter = 1;
 
+    function makeAttrs(vdom, attrs, childrenLen, ownerComponent) {
+        var pCount = 0;
+        var k = 9/*attrsStartPos*/;
+        var key, ref;
+        for (var p in attrs) {
+            if (p === 'children') {
+                if (childrenLen == 0) {
+                    childrenArray = normChildren(attrs[p]);
+                    from = 0;
+                    to = childrenArray.length;
+                }
+                continue;
+            }
+            if (p === 'key') {
+                key = attrs[p];
+                continue;
+            }
+            if (p === 'ref') {
+                ref = attrs[p];
+                continue;
+            }
+            vdom[k++] = p;
+            vdom[k++] = attrs[p];
+            pCount++;
+        }
+        vdom[3/*key*/] = key;
+        vdom[4/*refT*/] = ref;
+        vdom[5/*ownerT*/] = ref ? ownerComponent : null;
+        return pCount;
+    }
+
     function makeTag(tag, attrs, childrenArray, from, to, ownerComponent) {
         var pCount = 0;
-        var key = null;
-        var ref = null;
         var childrenLen = to - from;
         if (childrenLen < 0) {
             childrenLen = 0;
@@ -812,38 +845,15 @@
         vdom[0/*type*/] = VTag;
         vdom[1/*node*/] = null;
         vdom[2/*tag*/] = tag;
-        var k = 9/*attrsStartPos*/;
-        if (attrs) {
-            for (var p in attrs) {
-                if (p === 'children') {
-                    if (childrenLen == 0) {
-                        childrenArray = normChildren(attrs[p]);
-                        from = 0;
-                        to = childrenArray.length;
-                    }
-                    continue;
-                }
-                if (p === 'key') {
-                    key = attrs[p];
-                    continue;
-                }
-                if (p === 'ref') {
-                    ref = attrs[p];
-                    // continue; // todo: wait new design
-                }
-                pCount++;
-                vdom[k++] = p;
-                vdom[k++] = attrs[p];
-            }
-        }
-        vdom[3/*key*/] = key;
-        vdom[4/*refT*/] = ref;
-        vdom[5/*ownerT*/] = ref ? ownerComponent : null;
+        var pCount = attrs ? makeAttrs(vdom, attrs, childrenLen, ownerComponent) : 0;
+        var k = 9/*attrsStartPos*/ + pCount * 2;
         vdom[6/*attrsHash*/] = propsHashCounter++;
         vdom[7/*attrsLen*/] = pCount;
+
         if (childrenLen) {
             // pre create array slots
-            vdom[k + childrenLen - 1] = null;
+            vdom.length = k + childrenLen;
+            // vdom[k + childrenLen - 1] = null;
         }
         if (childrenArray) {
             for (var i = from; i < to; i++) {
@@ -994,7 +1004,7 @@
             }
         }
     }
-    
+
     function setDefaultProps(props, defaultProps) {
         for (var prop in defaultProps) {
             if (typeof props[prop] == 'undefined') {
@@ -1039,19 +1049,20 @@
         this.props = props;
         this.node = null;
 
+        this._context = null;
         this._internalContext = null;
         this._internalParentComponent = null;
     }
 
     var ComponentProto = Component.prototype;
-    /*
-     ComponentProto.componentWillMount = function () {};
-     ComponentProto.componentDidMount = function () {};
-     ComponentProto.componentWillUpdate = function () {};
-     ComponentProto.componentDidUpdate = function () {};
-     ComponentProto.componentWillReceiveProps = function () {};
-     ComponentProto.componentWillUnmount = function () {};
-     */
+    ComponentProto.componentWillMount = null;
+    ComponentProto.componentDidMount = null;
+    ComponentProto.componentWillUpdate = null;
+    ComponentProto.componentDidUpdate = null;
+    ComponentProto.componentWillReceiveProps = null;
+    ComponentProto.componentWillUnmount = null;
+    ComponentProto.shouldComponentUpdate = null;
+    ComponentProto.getChildContext = null;
 
     var queue = [];
     var isUpdating = false;
@@ -1157,9 +1168,11 @@
                 return makeComponent(tag, attrs, children, currentComponent);
             }
             var vdom = makeTag(tag, attrs, null, 2, argLen, currentComponent);
-            var vdomLen = vdom.length;
-            for (var i = 2; i < argLen; i++) {
-                vdom[vdomLen - argLen + i] = arguments[i];
+            if (argLen) {
+                var shift = vdom.length - argLen;
+                for (var i = 2; i < argLen; i++) {
+                    vdom[shift + i] = arguments[i];
+                }
             }
             return vdom;
         },
@@ -1270,6 +1283,9 @@
                 return _exports.Children.toArray(children).length;
             },
             toArray: function (children) {
+                if (children == null) {
+                    return [];
+                }
                 var vdom = children;
                 var ret = [];
                 if (vdom && vdom.constructor == Array && (!vdom[0/*type*/] || vdom[0/*type*/][0] !== baseType)) {
