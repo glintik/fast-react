@@ -373,20 +373,18 @@
                     setDefaultProps(props, Ctor.defaultProps);
                 }
                 if (component.componentWillReceiveProps) {
-                    // todo: nextState
                     component.componentWillReceiveProps(props);
                 }
                 var shouldUpdate = true;
                 if (component.shouldComponentUpdate) {
-                    // todo: nextState
-                    shouldUpdate = component.shouldComponentUpdate(props);
+                    shouldUpdate = component.shouldComponentUpdate(props, component.state);
                 }
-                component.props = vdom[8/*props*/] = props;
 
                 if (shouldUpdate) {
                     if (component.componentWillUpdate) {
-                        component.componentWillUpdate();
+                        component.componentWillUpdate(props, component.state);
                     }
+                    component.props = vdom[8/*props*/] = props;
                     var children = norm(component.render());
                     component._internalContext = typeof component.getChildContext == 'function' ? component.getChildContext() : null;
                     // because child component can still updates
@@ -394,7 +392,7 @@
                     // vdom[7/*children*/] = update(old[7/*children*/], children, component, component);
                     component.node = vdom;
                     if (component.componentDidUpdate) {
-                        component.componentDidUpdate();
+                        component.componentDidUpdate(props, component.state);
                     }
                 } else {
                     vdom[7/*children*/] = old[7/*children*/];
@@ -418,7 +416,6 @@
         var inserts = null;
 
         var fitCount = 0;
-        //todo: notify if we have two or more same keys
         for (var i = 4/*arrayFirstNode*/; i < vdom.length; i++) {
             var newChild = vdom[i] = norm(sourceArray[i - 4/*arrayFirstNode*/]);
             var oldChild = oldLen > i ? old[i] : null;
@@ -820,7 +817,7 @@
                 }
                 if (p === 'ref') {
                     ref = props[p];
-                    // continue; // todo: wait new design
+                    continue;
                 }
                 newProps[p] = props[p];
             }
@@ -981,6 +978,7 @@
     function Component(props) {
         this.props = props;
         this.node = null;
+        this.state = null;
 
         this._context = null;
         this._internalContext = null;
@@ -1001,51 +999,60 @@
     var isUpdating = false;
 
     function runQueue() {
-        //todo: main render
         if (!isUpdating && queue.length > 0) {
             isUpdating = true;
-            var q = queue.shift();
-            if (q.type == 'forceUpdate') {
-                var component = q.component;
+            var task = queue.shift();
+            if (task.type == 'update') {
+                var component = task.component;
                 var prevComponent = currentComponent;
                 currentComponent = component;
+                var nextProps = component.props;
+                var nextState = task.nextState;
 
-                if (component.componentWillUpdate) {
-                    component.componentWillUpdate();
+                var shouldUpdate = true;
+                if (!task.force && component.shouldComponentUpdate) {
+                    shouldUpdate = component.shouldComponentUpdate(nextProps, nextState);
                 }
-                component._internalContext = typeof component.getChildContext == 'function' ? component.getChildContext() : null;
-                var children = norm(component.render());
-                component.node[7/*children*/] = update(component.node[7/*children*/], children, component);
-                if (component.componentDidUpdate) {
-                    component.componentDidUpdate();
+
+                if (shouldUpdate) {
+                    if (component.componentWillUpdate) {
+                        component.componentWillUpdate(nextProps, nextState);
+                    }
+                    component.state = nextState;
+                    component._internalContext = typeof component.getChildContext == 'function' ? component.getChildContext() : null;
+                    var children = norm(component.render());
+                    component.node[7/*children*/] = update(component.node[7/*children*/], children, component);
+                    if (component.componentDidUpdate) {
+                        component.componentDidUpdate(nextProps, nextState);
+                    }
                 }
                 currentComponent = prevComponent;
             }
             isUpdating = false;
             runQueue();
-            if (q.callback) {
-                q.callback();
+            if (task.callback) {
+                task.callback();
             }
         }
     }
 
     ComponentProto.setState = function (state, callback) {
-        if (this.state) {
-            for (var key in state) {
-                this.state[key] = state[key];
+        if (state && this.state) {
+            for (var key in this.state) {
+                if (!(state in key)) {
+                    state[key] = this.state[key];
+                }
             }
         }
-        else {
-            this.state = state;
-        }
-        this.forceUpdate(callback);
+        queue.push({type: 'update', force: false, nextState: state, component: this, callback: callback});
+        runQueue();
     };
     ComponentProto.render = function () {
         return null;
     };
     ComponentProto.getChildContext = null;
     ComponentProto.forceUpdate = function (callback) {
-        queue.push({type: 'forceUpdate', component: this, callback: callback});
+        queue.push({type: 'update', force: true, nextState: this.state, component: this, callback: callback});
         runQueue();
     };
 
@@ -1076,8 +1083,7 @@
         return propType;
     }
 
-    propType.isRequired = function () {
-    }
+    propType.isRequired = function () {}
     //noinspection JSUnusedGlobalSymbols
     /**-------------------------------------**
      * Export
