@@ -338,7 +338,7 @@
                 vdom[attrsEnd + i] = update(old[oldAttrsEnd + i], norm(vdom[attrsEnd + i]), parentComponent);
             }
         }
-        if (vdom[4/*refT*/]) {
+        if (old[4/*refT*/] !== vdom[4/*refT*/] || old[5/*ownerT*/] !== vdom[5/*ownerT*/]) {
             setRef(vdom);
         }
         return vdom;
@@ -399,7 +399,7 @@
                 }
                 currentComponent = prevComponent;
             }
-            if (vdom[4/*ref*/]) {
+            if (old[4/*ref*/] !== vdom[4/*ref*/] || old[5/*ownerC*/] !== vdom[5/*ownerC*/]) {
                 setRef(vdom);
             }
         }
