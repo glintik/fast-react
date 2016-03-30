@@ -20,7 +20,6 @@
     var VText = '¨#';
     var VComponent = '¨C';
     var VArray = '¨A';
-    var spreadType = null;
 
     var allAttrs = "accept,accesskey,action,allowfullscreen,allowtransparency,alt,async,autocomplete,autoplay,capture,cellpadding,cellspacing,charset,challenge,checked,classid,cols,colspan,content,contenteditable,contextmenu,controls,coords,crossorigin,data,datetime,default,defer,dir,disabled,download,draggable,enctype,form,formaction,formenctype,formmethod,formnovalidate,formtarget,frameborder,headers,height,hidden,high,href,hreflang,icon,id,inputmode,integrity,is,keyparams,keytype,kind,label,lang,list,loop,low,manifest,marginheight,marginwidth,max,maxlength,media,mediagroup,method,min,minlength,multiple,muted,name,nonce,novalidate,open,optimum,pattern,placeholder,poster,preload,radiogroup,readonly,rel,required,reversed,role,rows,rowspan,sandbox,scope,scoped,scrolling,seamless,selected,shape,size,sizes,span,spellcheck,src,srcdoc,srclang,srcset,start,step,summary,tabindex,target,title,type,usemap,value,width,wmode,wrap,about,datatype,inlist,prefix,property,resource,typeof,vocab,autocapitalize,autocorrect,autosave,color,itemprop,itemscope,itemtype,itemid,itemref,results,security,unselectable,cx,cy,d,dx,dy,fill,fx,fy,gradientTransform,gradientUnits,offset,opacity,patternContentUnits,patternUnits,points,preserveAspectRatio,r,rx,ry,spreadMethod,stroke,transform,version,viewBox,x1,x2,x,y1,y2,y".split(',')
     var fastAttrs = {"acceptCharset":"accept-charset","className":"class","htmlFor":"for","httpEquiv":"http-equiv","clipPath":"clip-path","fillOpacity":"fill-opacity","fontFamily":"font-family","fontSize":"font-size","markerEnd":"marker-end","markerMid":"marker-mid","markerStart":"marker-start","stopColor":"stop-color","stopOpacity":"stop-opacity","strokeDasharray":"stroke-dasharray","strokeLinecap":"stroke-linecap","strokeOpacity":"stroke-opacity","strokeWidth":"stroke-width","textAnchor":"text-anchor"};
@@ -705,16 +704,6 @@
             if (typeof vdom[2/*Ctor*/] == 'string') {
                 return makeTag(vdom[2/*Ctor*/], vdom[8/*props*/], normChildren(vdom[8/*props*/].children), 0, vdom[8/*props*/].children.length, vdom[5/*ownerC*/]);
             }
-            //convertComponentWithSpreadToNormal
-            if (vdom.length == 9/*propsChildren*/ + 1) {
-                return makeComponent(vdom[2/*Ctor*/], vdom[8/*props*/], vdom[9/*propsChildren*/], vdom[5/*ownerC*/])
-            }
-        }
-        if (type == VTag) {
-            //convertTagWithSpreadToNormal
-            if (vdom[7/*attrsLen*/] == 1 && vdom[9/*attrsStartPos*/] == spreadType) {
-                return makeTag(vdom[2/*tag*/], vdom[9/*attrsStartPos*/ + 1], vdom, 9/*attrsStartPos*/ + 2, vdom.length, vdom[5/*ownerT*/]);
-            }
         }
         return vdom;
     }
@@ -900,20 +889,15 @@
             return vdom[8/*props*/];
         }
         else if (vdom[0/*type*/] == VTag) {
-            if (vdom[7/*attrsLen*/] == 1 && vdom[9/*attrsStartPos*/] == spreadType) {
-                return vdom[9/*attrsStartPos*/ + 1];
-            }
-            else {
-                var attrsStart = 9/*attrsStartPos*/;
-                var attrsEnd = 9/*attrsStartPos*/ + vdom[7/*attrsLen*/] * 2;
-                var props = {};
-                if (attrsEnd - attrsStart > 0) {
-                    for (var i = attrsStart; i < attrsEnd; i += 2) {
-                        props[vdom[i]] = vdom[i + 1];
-                    }
+            var attrsStart = 9/*attrsStartPos*/;
+            var attrsEnd = 9/*attrsStartPos*/ + vdom[7/*attrsLen*/] * 2;
+            var props = {};
+            if (attrsEnd - attrsStart > 0) {
+                for (var i = attrsStart; i < attrsEnd; i += 2) {
+                    props[vdom[i]] = vdom[i + 1];
                 }
-                return props;
             }
+            return props;
         }
     }
 
