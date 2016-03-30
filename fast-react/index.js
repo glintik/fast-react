@@ -917,6 +917,25 @@
         }
     }
 
+    function getChildren(vdom){
+        var children;
+        var type = vdom[0/*type*/];
+        if (type == VComponent) {
+            children = vdom[8/*props*/] ? vdom[8/*props*/].children : null;
+        }
+        else if (type == VTag) {
+            children = vdom.slice(9/*attrsStartPos*/ + vdom[7/*attrsLen*/] * 2);
+        }
+        else if (type == VArray){
+            children = vdom.slice(4/*arrayFirstNode*/);
+        }
+        return children;
+    }
+
+    function getTag(vdom){
+        return vdom[0/*type*/] == VComponent ? vdom[2/*Ctor*/] : vdom[2/*tag*/];
+    }
+
     function getChildNode(vdom, isLast) {
         while (true) {
             var type = vdom[0/*type*/];
@@ -1145,16 +1164,11 @@
             shape: propType
         },
         cloneElement: function (vdom, props) {
-            //todo: props?
-            var clone = vdom.slice();
-            var type = vdom[0/*type*/];
-            if (type == VArray) {
-                var start = 4/*arrayFirstNode*/;
-                for (var i = start; i < vdom.length; i++) {
-                    clone[i] = _exports.cloneElement(vdom[i]);
-                }
+            var vprops = getProps();
+            for (var i in props){
+                vprops[i] = props[i];
             }
-            return clone;
+            return makeComponent(getTag(vdom), vprops, getChildren(vdom));
         },
         isValidElement: function (element) {
             return element && typeof element == 'object' && (element[0/*type*/] == VTag || element[0/*type*/] == VComponent);
@@ -1234,36 +1248,22 @@
                 }
                 var type = vdom[0/*type*/];
                 if (type == VArray) {
-                    var start = type == 4/*arrayFirstNode*/;
+                    var start = 4/*arrayFirstNode*/;
                     for (var i = start; i < vdom.length; i++) {
                         ret = ret.concat(_exports.Children.toArray(vdom[i]));
                     }
+                    return ret;
                 }
-                else {
-                    // return [children];
-                    var tag = null;
-                    var childs = null;
-                    if (type == VComponent) {
-                        tag = vdom[2/*Ctor*/];
-                        childs = vdom[8/*props*/] ? vdom[8/*props*/].children : null;
-                    }
-                    else if (type == VTag) {
-                        childs = [VArray, null, null, null];
-                        for (var i = 9/*attrsStartPos*/ + vdom[7/*attrsLen*/] * 2; i < vdom.length; i++) {
-                            childs.push(norm(vdom[i]));
-                        }
-                        tag = vdom[2/*tag*/];
-                    }
-                    var props = getProps(vdom);
-                    props.children = childs;
-                    var obj = vdom.slice();
-                    obj.type = tag;
-                    obj.key = getKey(vdom);
-                    obj.ref = getRef(vdom);
-                    obj.props = props;
-                    return [obj];
-                }
-                return ret;
+                var tag = getTag(vdom);
+                var childs = getChildren(vdom);
+                var props = getProps(vdom);
+                props.children = childs;
+                var obj = vdom.slice();
+                obj.type = tag;
+                obj.key = getKey(vdom);
+                obj.ref = getRef(vdom);
+                obj.props = props;
+                return [obj];
             },
             only: function (children) {
                 if (!_exports.isValidElement(children)) {
