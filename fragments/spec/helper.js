@@ -1,6 +1,4 @@
-export let Component = FastReact.Component;
-export let findDOMNode = FastReact.findDOMNode;
-export let render = FastReact.render;
+import {Component, findDOMNode, render} from 'react';
 export class Test {
     constructor(vdom) {}
 

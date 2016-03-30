@@ -16,7 +16,6 @@ module.exports = function (config) {
         // list of files / patterns to load in the browser
         files: [
             //'../dist/fast-react.js',
-            '../dist/index.js',
             './helper.js',
             './**.spec.js'
         ],

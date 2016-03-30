@@ -16,7 +16,6 @@ module.exports = function (config) {
         // list of files / patterns to load in the browser
         files: [
             //'../dist/fast-react.js',
-            '../index.js',
             //'./helper.js',
             './**.spec.js'
         ],
@@ -45,13 +44,18 @@ module.exports = function (config) {
                 loaders: [
                     {
                         test: /\.js$/,
-                        loader: 'babel-fast-react',
+                        loader: 'babel',
                         query: {
                             stage: 0,
                             loose: ["es6.classes"]
                         }
                     }
                 ]
+            },
+            resolve: {
+                alias: {
+                    react: '../../fast-react'
+                }
             },
             //devtool: 'inline-source-map',
             devtool: 'inline-source-map'

@@ -1,4 +1,5 @@
-import {Test, Component} from './helper';
+import {Test} from './helper';
+import React,{Component} from 'react';
 var Constructor = 'constructor', Render = 'Render', WillMount = 'WillMount', didMount = 'didMount', willReceiveProps = 'willReceiveProps', willUpdate = 'willUpdate', didUpdate = 'didUpdate', willUnmount = 'willUnmount';
 var callstack = [];
 class TestComponent extends Component {

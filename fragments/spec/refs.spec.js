@@ -1,4 +1,5 @@
-import {Test, findDOMNode, Component} from './helper';
+import {Test} from './helper';
+import React,{Component, findDOMNode} from 'react';
 
 class Bar extends Component {
     render() {
@@ -17,6 +18,7 @@ describe("Refs", () => {
 
             componentDidUpdate() {
                 //expect(this.refs.bar1).toBeUndefined();
+                debugger;
                 expect(this.refs.bar2).toBeDefined();
                 expect(this.refs.bar2 instanceof Bar).toBeTruthy();
             }

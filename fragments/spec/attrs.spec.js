@@ -1,4 +1,5 @@
 import {Test} from './helper';
+import React,{findDOMNode, Component} from 'react';
 
 
 describe("Attrs", () => {
@@ -115,7 +116,7 @@ describe("Attrs", () => {
             `<div title="Title1" id="Id1"></div>`)
 
             .update(<div title={Title2} id={Id1} data-name="Name1"></div>,
-            `<div data-name="Name1" title="Title2" id="Id1"></div>`)
+            `<div title="Title2" id="Id1" data-name="Name1"></div>`)
     });
 
     //todo: style

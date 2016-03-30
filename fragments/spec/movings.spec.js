@@ -1,4 +1,5 @@
-import {Test, findDOMNode, Component} from './helper';
+import {Test} from './helper';
+import React,{findDOMNode, Component} from 'react';
 
 var realMountNodes = [];
 var expectMountNodes = [];

@@ -1,4 +1,6 @@
-import {Test, Component} from './helper';
+import {Test} from './helper';
+import React,{findDOMNode, Component} from 'react';
+
 class Foo extends Component {
     render() {
         return <Bar params={this.props}/>
