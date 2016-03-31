@@ -708,14 +708,12 @@
         if (callback) {
             dom._events[eventName] = callback;
             if (topEventsMap[eventName]++ === 0) {
-                console.log('set', eventName);
                 htmlElement.addEventListener(eventName, topEvent);
             }
         }
         else {
             dom._events[eventName] = null;
             if (--topEventsMap[eventName] === 0) {
-                console.log('unset', eventName);
                 htmlElement.removeEventListener(eventName, topEvent);
             }
         }
