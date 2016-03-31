@@ -1097,15 +1097,15 @@
     function render(vdom, rootNode) {
         isUpdating = true;
         if (typeof rootNode._vdom == 'undefined') {
-            rootNode._vdom = create(norm(vdom), rootNode, null, null);
+            vdom = rootNode._vdom = create(norm(vdom), rootNode, null, null);
         }
         else {
             var old = rootNode._vdom;
-            rootNode._vdom = update(old, norm(vdom), null);
+            vdom = rootNode._vdom = update(old, norm(vdom), null);
         }
         isUpdating = false;
         runQueue();
-        return rootNode._vdom;
+        return vdom[0/*type*/] == VComponent ? vdom[6/*instance*/] : vdom[1/*node*/];
     }
 
     var propType = function () {return propType};
