@@ -1098,7 +1098,7 @@
     ComponentProto.setState = function (state, callback) {
         if (state && this.state) {
             for (var key in this.state) {
-                if (!(state in key)) {
+                if (!(key in state)) {
                     state[key] = this.state[key];
                 }
             }
