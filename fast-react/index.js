@@ -9,9 +9,6 @@
         node.id = id++;
     }
 
-    var REF_RETURN_NODE = false;
-    var componentContext = null;
-    var prevContext = null;
     var currentComponent = null;
 
     // for performance purposes
@@ -343,7 +340,6 @@
         return vdom;
     }
 
-
     function updateComponent(old, vdom, parentComponent) {
         var Ctor = vdom[2/*Ctor*/];
         if (old[2/*Ctor*/] !== Ctor) {
@@ -497,6 +493,41 @@
         }
         return vdom;
     }
+
+    function setRef(vdom) {
+        var topComponent;
+        var ref;
+        var val;
+        if (vdom[0/*type*/] == VTag) {
+            topComponent = vdom[5/*ownerT*/];
+            ref = vdom[4/*refT*/];
+            val = vdom[1/*node*/];
+        }
+        else {
+            topComponent = vdom[5/*ownerC*/];
+            ref = vdom[4/*ref*/];
+            val = vdom[6/*instance*/];
+        }
+        if (typeof ref == 'function') {
+            ref(val);
+        }
+        else {
+            if (!topComponent.refs) {
+                topComponent.refs = {};
+            }
+            topComponent.refs[ref] = val;
+        }
+    }
+
+    function setDefaultProps(props, defaultProps) {
+        for (var prop in defaultProps) {
+            if (typeof props[prop] == 'undefined') {
+                props[prop] = defaultProps[prop];
+            }
+        }
+    }
+
+
 
 
     /**-------------------------------------**
@@ -840,31 +871,6 @@
         return vdom;
     }
 
-    function setRef(vdom) {
-        var topComponent;
-        var ref;
-        var val;
-        if (vdom[0/*type*/] == VTag) {
-            topComponent = vdom[5/*ownerT*/];
-            ref = vdom[4/*refT*/];
-            val = REF_RETURN_NODE ? vdom[1/*node*/] : vdom;
-        }
-        else {
-            topComponent = vdom[5/*ownerC*/];
-            ref = vdom[4/*ref*/];
-            val = vdom[6/*instance*/];
-        }
-        if (typeof ref == 'function') {
-            ref(val);
-        }
-        else {
-            if (!topComponent.refs) {
-                topComponent.refs = {};
-            }
-            topComponent.refs[ref] = val;
-        }
-    }
-
     function getKey(vdom) {
         if (vdom[0/*type*/] == VTag) {
             return vdom[3/*key*/];
@@ -938,14 +944,6 @@
         }
     }
 
-    function setDefaultProps(props, defaultProps) {
-        for (var prop in defaultProps) {
-            if (typeof props[prop] == 'undefined') {
-                props[prop] = defaultProps[prop];
-            }
-        }
-    }
-
     function isRendered(vdom) {
         var type = vdom[0/*type*/];
         if (type == VArray) {
@@ -961,19 +959,6 @@
             return vdom[1/*nodeText*/] != null;
         }
     }
-
-
-    /**-------------------------------------**
-     * Top Level
-     **-------------------------------------**/
-    //todo: remove
-    function findDOMNode(vdom) {
-        if (vdom[0/*type*/] == VComponent) {
-            return vdom[6/*instance*/];
-        }
-        return vdom[1/*node*/];
-    }
-
 
     /**-------------------------------------**
      * Component
@@ -1082,180 +1067,205 @@
         get: getContext
     });
 
-    function propType() {
-        return propType;
+    /**-------------------------------------**
+     * Top Level
+     **-------------------------------------**/
+    function createElement(tag, attrs, child) {
+        var argLen = arguments.length;
+        if (typeof tag == 'function') {
+            var children;
+            if (argLen > 2) {
+                children = new Array(argLen - 2);
+                for (var i = 2; i < argLen; i++) {
+                    children[i - 2] = arguments[i];
+                }
+            } else {
+                children = null;
+            }
+            return makeComponent(tag, attrs, children, currentComponent);
+        }
+        var vdom = makeTag(tag, attrs, null, 2, argLen, currentComponent);
+        if (argLen) {
+            var shift = vdom.length - argLen;
+            for (var i = 2; i < argLen; i++) {
+                vdom[shift + i] = arguments[i];
+            }
+        }
+        return vdom;
     }
 
+    function render(vdom, rootNode) {
+        isUpdating = true;
+        if (typeof rootNode._vdom == 'undefined') {
+            rootNode._vdom = create(norm(vdom), rootNode, null, null);
+        }
+        else {
+            var old = rootNode._vdom;
+            rootNode._vdom = update(old, norm(vdom), null);
+        }
+        isUpdating = false;
+        runQueue();
+        return rootNode._vdom;
+    }
+
+    var propType = function () {return propType};
     propType.isRequired = function () {}
-    //noinspection JSUnusedGlobalSymbols
+    const PropTypes = {
+        array: propType,
+        bool: propType,
+        func: propType,
+        number: propType,
+        object: propType,
+        string: propType,
+        any: propType,
+        arrayOf: propType,
+        element: propType,
+        instanceOf: propType,
+        node: propType,
+        objectOf: propType,
+        oneOf: propType,
+        oneOfType: propType,
+        shape: propType
+    };
+
+    function findDOMNode(vdom) {
+        return vdom;
+    }
+
+    function cloneElement(vdom, props) {
+        var vprops = getProps();
+        for (var i in props){
+            vprops[i] = props[i];
+        }
+        return makeComponent(getTag(vdom), vprops, getChildren(vdom));
+    }
+
+    function isValidElement(element) {
+        return element && typeof element == 'object' && (element[0/*type*/] == VTag || element[0/*type*/] == VComponent);
+    }
+
+    function createClass(specification) {
+        var defaultProps = specification.getDefaultProps ? specification.getDefaultProps() : null;
+        var componentProps = {};
+        for (var p in specification) {
+            if (p != 'getDefaultProps' && p != 'getInitialState' && p != 'statics'
+                && p != 'componentWillMount' && p != 'componentDidMount' && p != 'componentWillReceiveProps'
+                && p != 'shouldComponentUpdate' && p != 'componentWillUpdate' && p != 'componentDidUpdate'
+                && p != 'componentWillUnmount' && p != 'render' && p != 'propTypes' && p != 'displayName') {
+                componentProps[p] = specification[p];
+            }
+        }
+        if (!specification.getInitialState) {
+            specification.getInitialState = null;
+        }
+
+        function Comp(props) {
+            this.state = specification.getInitialState ? specification.getInitialState() : null;
+            this.props = props;
+            this.node = null;
+            for (var p in componentProps) {
+                var val = componentProps[p];
+                this[p] = typeof val == 'function' ? val.bind(this) : val;
+            }
+
+            this._internalContext = null;
+            this._internalParentComponent = null;
+        }
+
+        for (var method in ComponentProto) {
+            Comp.prototype[method] = ComponentProto[method];
+        }
+        Comp.prototype.componentWillMount = specification.componentWillMount;
+        Comp.prototype.componentDidMount = specification.componentDidMount;
+        Comp.prototype.componentWillReceiveProps = specification.componentWillReceiveProps;
+        Comp.prototype.shouldComponentUpdate = specification.shouldComponentUpdate;
+        Comp.prototype.componentWillUpdate = specification.componentWillUpdate;
+        Comp.prototype.componentDidUpdate = specification.componentDidUpdate;
+        Comp.prototype.componentWillUnmount = specification.componentWillUnmount;
+        Comp.prototype.render = specification.render;
+        Object.defineProperty(Comp.prototype, 'context', {get: getContext});
+        Comp.displayName = specification.displayName;
+        Comp.propTypes = specification.propTypes;
+        Comp.defaultProps = defaultProps;
+        if (specification.statics) {
+            for (var i in specification.statics) {
+                Comp[i] = specification.statics[i];
+            }
+        }
+        return Comp;
+    }
+
+    function unmountComponentAtNode(container) {
+        render(null, container);
+    }
+
+    function createFactory(type) {
+        return createElement.bind(null, type);
+    }
+
+    const Children = {
+        map: function (children, fn, thisArg) {
+            return Children.toArray(children).map(fn, thisArg);
+        },
+        forEach: function (children, fn, thisArg) {
+            return Children.toArray(children).forEach(fn, thisArg);
+        },
+        count: function (children) {
+            return Children.toArray(children).length;
+        },
+        toArray: function (children) {
+            if (children == null) {
+                return [];
+            }
+            var vdom = children;
+            var ret = [];
+            if (vdom && vdom.constructor == Array && (!vdom[0/*type*/] || vdom[0/*type*/][0] !== baseType)) {
+                for (var i = 0; i < vdom.length; i++) {
+                    ret = ret.concat(Children.toArray(vdom[i]));
+                }
+                return ret;
+            }
+            var type = vdom[0/*type*/];
+            if (type == VArray) {
+                var start = 4/*arrayFirstNode*/;
+                for (var i = start; i < vdom.length; i++) {
+                    ret = ret.concat(Children.toArray(vdom[i]));
+                }
+                return ret;
+            }
+            var tag = getTag(vdom);
+            var childs = getChildren(vdom);
+            var props = getProps(vdom);
+            props.children = childs;
+            var obj = vdom.slice();
+            obj.type = tag;
+            obj.key = getKey(vdom);
+            obj.ref = getRef(vdom);
+            obj.props = props;
+            return [obj];
+        },
+        only: function (children) {
+            if (!isValidElement(children)) {
+                throw new Error('onlyChild must be passed a children with exactly one child.');
+            }
+            return children;
+        }
+    };
+
     /**-------------------------------------**
      * Export
      **-------------------------------------**/
-    var _exports = {
+    module.exports = {
         Component: Component,
         findDOMNode: findDOMNode,
-        createElement: function (tag, attrs, child) {
-            var argLen = arguments.length;
-            if (typeof tag == 'function') {
-                var children;
-                if (argLen > 2) {
-                    children = new Array(argLen - 2);
-                    for (var i = 2; i < argLen; i++) {
-                        children[i - 2] = arguments[i];
-                    }
-                } else {
-                    children = null;
-                }
-                return makeComponent(tag, attrs, children, currentComponent);
-            }
-            var vdom = makeTag(tag, attrs, null, 2, argLen, currentComponent);
-            if (argLen) {
-                var shift = vdom.length - argLen;
-                for (var i = 2; i < argLen; i++) {
-                    vdom[shift + i] = arguments[i];
-                }
-            }
-            return vdom;
-        },
-        render: function (vdom, rootNode) {
-            isUpdating = true;
-            if (typeof rootNode._vdom == 'undefined') {
-                rootNode._vdom = create(norm(vdom), rootNode, null, null);
-            }
-            else {
-                var old = rootNode._vdom;
-                rootNode._vdom = update(old, norm(vdom), null);
-            }
-            isUpdating = false;
-            runQueue();
-            return rootNode._vdom;
-        },
-        PropTypes: {
-            array: propType,
-            bool: propType,
-            func: propType,
-            number: propType,
-            object: propType,
-            string: propType,
-            any: propType,
-            arrayOf: propType,
-            element: propType,
-            instanceOf: propType,
-            node: propType,
-            objectOf: propType,
-            oneOf: propType,
-            oneOfType: propType,
-            shape: propType
-        },
-        cloneElement: function (vdom, props) {
-            var vprops = getProps();
-            for (var i in props){
-                vprops[i] = props[i];
-            }
-            return makeComponent(getTag(vdom), vprops, getChildren(vdom));
-        },
-        isValidElement: function (element) {
-            return element && typeof element == 'object' && (element[0/*type*/] == VTag || element[0/*type*/] == VComponent);
-        },
-        createClass: function (specification) {
-            var defaultProps = specification.getDefaultProps ? specification.getDefaultProps() : null;
-
-            function Comp(props) {
-                if (specification.getInitialState) {
-                    this.state = specification.getInitialState();
-                }
-                this.props = props;
-                this.node = null;
-                for (var p in specification) {
-                    if (p != 'getDefaultProps' && p != 'getInitialState' && p != 'statics'
-                        && p != 'componentWillMount' && p != 'componentDidMount' && p != 'componentWillReceiveProps'
-                        && p != 'shouldComponentUpdate' && p != 'componentWillUpdate' && p != 'componentDidUpdate'
-                        && p != 'componentWillUnmount' && p != 'render' && p != 'propTypes' && p != 'displayName') {
-                        var val = specification[p];
-                        this[p] = typeof val == 'function' ? val.bind(this) : val;
-                    }
-                }
-
-                this._internalContext = null;
-                this._internalParentComponent = null;
-            }
-
-            for (var method in ComponentProto) {
-                Comp.prototype[method] = ComponentProto[method];
-            }
-            Comp.prototype.componentWillMount = specification.componentWillMount;
-            Comp.prototype.componentDidMount = specification.componentDidMount;
-            Comp.prototype.componentWillReceiveProps = specification.componentWillReceiveProps;
-            Comp.prototype.shouldComponentUpdate = specification.shouldComponentUpdate;
-            Comp.prototype.componentWillUpdate = specification.componentWillUpdate;
-            Comp.prototype.componentDidUpdate = specification.componentDidUpdate;
-            Comp.prototype.componentWillUnmount = specification.componentWillUnmount;
-            Comp.prototype.render = specification.render;
-            Object.defineProperty(Comp.prototype, 'context', {get: getContext});
-            Comp.displayName = specification.displayName;
-            Comp.propTypes = specification.propTypes;
-            Comp.defaultProps = defaultProps;
-            if (specification.statics) {
-                for (var i in specification.statics) {
-                    Comp[i] = specification.statics[i];
-                }
-            }
-            return Comp;
-        },
-        unmountComponentAtNode: function (container) {
-            _exports.render(null, container);
-        },
-        createFactory: function (type) {
-            return _exports.createElement.bind(null, type);
-        },
-        Children: {
-            map: function (children, fn, thisArg) {
-                return _exports.Children.toArray(children).map(fn, thisArg);
-            },
-            forEach: function (children, fn, thisArg) {
-                return _exports.Children.toArray(children).forEach(fn, thisArg);
-            },
-            count: function (children) {
-                return _exports.Children.toArray(children).length;
-            },
-            toArray: function (children) {
-                if (children == null) {
-                    return [];
-                }
-                var vdom = children;
-                var ret = [];
-                if (vdom && vdom.constructor == Array && (!vdom[0/*type*/] || vdom[0/*type*/][0] !== baseType)) {
-                    for (var i = 0; i < vdom.length; i++) {
-                        ret = ret.concat(_exports.Children.toArray(vdom[i]));
-                    }
-                    return ret;
-                }
-                var type = vdom[0/*type*/];
-                if (type == VArray) {
-                    var start = 4/*arrayFirstNode*/;
-                    for (var i = start; i < vdom.length; i++) {
-                        ret = ret.concat(_exports.Children.toArray(vdom[i]));
-                    }
-                    return ret;
-                }
-                var tag = getTag(vdom);
-                var childs = getChildren(vdom);
-                var props = getProps(vdom);
-                props.children = childs;
-                var obj = vdom.slice();
-                obj.type = tag;
-                obj.key = getKey(vdom);
-                obj.ref = getRef(vdom);
-                obj.props = props;
-                return [obj];
-            },
-            only: function (children) {
-                if (!_exports.isValidElement(children)) {
-                    throw new Error('onlyChild must be passed a children with exactly one child.');
-                }
-                return children;
-            }
-        }
+        createElement: createElement,
+        render: render,
+        PropTypes: PropTypes,
+        cloneElement: cloneElement,
+        isValidElement: isValidElement,
+        createClass: createClass,
+        unmountComponentAtNode: unmountComponentAtNode,
+        createFactory: createFactory,
+        Children: Children
     };
-    module.exports = _exports;
 }();
