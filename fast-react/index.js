@@ -4,6 +4,7 @@
      **-------------------------------------**/
     var DEBUG_MODE = false;
     var id = 1;
+    var htmlElement = document.documentElement;
 
     function debugVNode(node) {
         node.id = id++;
@@ -120,6 +121,23 @@
         onKeyPress: 'onkeypress',
         onKeyUp: 'onkeyup'
     };
+
+    var topEvents = {
+        onClick: 'click',
+        onDblClick: 'dblclick',
+
+        onMouseDown: 'mousedown',
+        onMouseUp: 'mouseup',
+        onMouseMove: 'mousemove',
+        onMouseEnter: 'mouseenter',
+        onMouseLeave: 'mouseleave',
+        onMouseOver: 'mouseover',
+        onMouseOut: 'mouseout'
+    };
+    var topEventsMap = {};
+    for (var i in topEvents)
+        topEventsMap[topEvents[i]] = 0;
+
 
     const svgNS = 'http://www.w3.org/2000/svg';
 
@@ -574,7 +592,13 @@
             node[normAttr] = val;
         }
         else if ((normAttr = constEvents[attr]) || (attr[0] == 'o' && attr[1] == 'n' && (normAttr = attr.toLowerCase()) && (normAttr in document && normAttr.substr(0, 2) == 'on'))) {
-            node[normAttr] = val;
+            var topEventName = topEvents[attr];
+            if (topEventName) {
+                setTopEvent(node, topEventName, val);
+            }
+            else {
+                node[normAttr] = val;
+            }
         }
         else if (attr === 'style') {
             setStyle(node, oldVal, val);
@@ -650,6 +674,53 @@
             }
         }
     }
+
+    function stopPropagation() {
+        this.propagationStopped = true;
+    }
+    
+    function stopImmediatePropagation() {
+        this.propagationStopped = true;
+    }
+    
+    function topEvent(event) {
+        var dom = event.target;
+        event.stopPropagation = stopPropagation;
+        event.stopImmediatePropagation = stopImmediatePropagation;
+        event.propagationStopped = false;
+        do {
+            if (event.propagationStopped) {
+                break;
+            }
+            if (dom._events) {
+                var callback = dom._events[event.type];
+                if (callback) {
+                    callback.call(dom, event);
+                }
+            }
+        } while (dom = dom.parentNode);
+    }
+
+    function setTopEvent(dom, eventName, callback) {
+        if (!dom._events) {
+            dom._events = {};
+        }
+        if (callback) {
+            dom._events[eventName] = callback;
+            if (topEventsMap[eventName]++ === 0) {
+                console.log('set', eventName);
+                htmlElement.addEventListener(eventName, topEvent);
+            }
+        }
+        else {
+            dom._events[eventName] = null;
+            if (--topEventsMap[eventName] === 0) {
+                console.log('unset', eventName);
+                htmlElement.removeEventListener(eventName, topEvent);
+            }
+        }
+    }
+
 
 
     /**-------------------------------------**
