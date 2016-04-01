@@ -5,6 +5,10 @@
     var DEBUG_MODE = false;
     var id = 1;
     var htmlElement = document.documentElement;
+    function ReactTag(){}
+    function ReactComponent(){}
+    function ReactArray(){}
+    function ReactText(){}
 
     function debugVNode(node) {
         node.id = id++;
@@ -13,11 +17,10 @@
     var currentComponent = null;
 
     // for performance purposes
-    var baseType = '¨';
-    var VTag = '¨T';
-    var VText = '¨#';
-    var VComponent = '¨C';
-    var VArray = '¨A';
+    var VTag = new ReactTag();
+    var VText = new ReactText()
+    var VComponent = new ReactComponent();
+    var VArray = new ReactArray();
 
     var allAttrs = "accept,accesskey,action,allowfullscreen,allowtransparency,alt,async,autocomplete,autoplay,capture,cellpadding,cellspacing,charset,challenge,checked,classid,cols,colspan,content,contenteditable,contextmenu,controls,coords,crossorigin,data,datetime,default,defer,dir,disabled,download,draggable,enctype,form,formaction,formenctype,formmethod,formnovalidate,formtarget,frameborder,headers,height,hidden,high,href,hreflang,icon,id,inputmode,integrity,is,keyparams,keytype,kind,label,lang,list,loop,low,manifest,marginheight,marginwidth,max,maxlength,media,mediagroup,method,min,minlength,multiple,muted,name,nonce,novalidate,open,optimum,pattern,placeholder,poster,preload,radiogroup,readonly,rel,required,reversed,role,rows,rowspan,sandbox,scope,scoped,scrolling,seamless,selected,shape,size,sizes,span,spellcheck,src,srcdoc,srclang,srcset,start,step,summary,tabindex,target,title,type,usemap,value,width,wmode,wrap,about,datatype,inlist,prefix,property,resource,typeof,vocab,autocapitalize,autocorrect,autosave,color,itemprop,itemscope,itemtype,itemid,itemref,results,security,unselectable,cx,cy,d,dx,dy,fill,fx,fy,gradientTransform,gradientUnits,offset,opacity,patternContentUnits,patternUnits,points,preserveAspectRatio,r,rx,ry,spreadMethod,stroke,transform,version,viewBox,x1,x2,x,y1,y2,y".split(',')
     var fastAttrs = {"acceptCharset":"accept-charset","className":"class","htmlFor":"for","httpEquiv":"http-equiv","clipPath":"clip-path","fillOpacity":"fill-opacity","fontFamily":"font-family","fontSize":"font-size","markerEnd":"marker-end","markerMid":"marker-mid","markerStart":"marker-start","stopColor":"stop-color","stopOpacity":"stop-opacity","strokeDasharray":"stroke-dasharray","strokeLinecap":"stroke-linecap","strokeOpacity":"stroke-opacity","strokeWidth":"stroke-width","textAnchor":"text-anchor"};
@@ -792,13 +795,13 @@
         if (typeof vdom != 'object' || vdom == null) {
             return makeText(vdom == null || typeof vdom == 'boolean' ? '' : vdom);
         }
-        if (typeof vdom[0] != 'string' || vdom[0][0] != baseType) {
+        var type = vdom[0/*type*/];
+        if (!type || (type !== VTag && type !== VText && type !== VComponent && type !== VArray)) {
             if (vdom.constructor == Array) {
                 return makeVArray(vdom);
             }
             return makeText('');
         }
-        var type = vdom[0/*type*/];
         if (type == VComponent) {
             //convertComponentToTag
             if (typeof vdom[2/*Ctor*/] == 'string') {
@@ -813,7 +816,8 @@
         if (typeof vdom != 'object' || vdom == null) {
             return [vdom];
         }
-        if (typeof vdom[0] == 'string' && vdom[0][0] == baseType) {
+        var type = vdom[0/*type*/];
+        if (type === VTag || type === VText || type === VComponent || type === VArray) {
             return [vdom];
         }
         if (vdom.constructor == Array) {
@@ -1286,14 +1290,8 @@
             if (children == null) {
                 return [];
             }
-            var vdom = children;
+            var vdom = norm(children);
             var ret = [];
-            if (vdom && vdom.constructor == Array && (!vdom[0/*type*/] || vdom[0/*type*/][0] !== baseType)) {
-                for (var i = 0; i < vdom.length; i++) {
-                    ret = ret.concat(Children.toArray(vdom[i]));
-                }
-                return ret;
-            }
             var type = vdom[0/*type*/];
             if (type == VArray) {
                 var start = 4/*arrayFirstNode*/;
@@ -1335,6 +1333,10 @@
         createClass: createClass,
         unmountComponentAtNode: unmountComponentAtNode,
         createFactory: createFactory,
-        Children: Children
+        Children: Children,
+        TagType: VTag,
+        ComponentType: VComponent,
+        ArrayType: VArray,
+        TextType: VText,
     };
 }();
