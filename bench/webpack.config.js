@@ -13,7 +13,7 @@ module.exports = {
                 loader: 'babel',
                 query: {
                     stage: 0,
-                    // plugins: ["babel-fast-react:after"],
+                    plugins: ["babel-fast-react:after"],
                     loose: ["all"],
                     optional: ['runtime']
                 }
@@ -25,7 +25,8 @@ module.exports = {
         extensions: ['', '.js', '.jsx'],
         alias: {
             react: '../fast-react',
-            'react-dom': '../fast-react'
+            'react-dom': '../fast-react',
+            'babel-fast-react': '../babel-fast-react'
         }
     },
     devtool: 'source-map'

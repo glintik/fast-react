@@ -1,6 +1,95 @@
 import React, {Component} from 'react';
 import ReactDOM from 'react-dom';
 
+class Test extends Component{
+
+}
+
+var name = "name";
+var value = "value";
+var k = "key";
+var r = "ref";
+var a1 = <Test/>
+var a1 = <Test key="k"/>
+var a1 = <Test ref="r"/>
+var a1 = <Test key="k" ref="r"/>
+var a1 = <Test name="wow"/>
+var a1 = <Test name="wow" key="k"/>
+var a1 = <Test name="wow" value="value" ref="r"/>
+var a1 = <Test name="wow" key="k" ref="r"/>
+var a1 = <Test key={k}/>
+var a1 = <Test ref={r}/>
+var a1 = <Test key={k} ref={r}/>
+var a1 = <Test name={name}/>
+var a1 = <Test name={name} key={k}/>
+var a1 = <Test name="wow" ref="r"/>
+var a1 = <Test name="wow" value={value} key={k} ref={r}/>
+
+var props = {a:1};
+var a1 = <Test {...props}/>
+var a1 = <Test {...props} key="k"/>
+var a1 = <Test {...props} name="wow" key={k}/>
+var a1 = <Test {...props} name={name} key={k}/>
+
+
+var a1 = <Test></Test>
+var a1 = <Test>1</Test>
+var a1 = <Test key="k">1 {2}</Test>
+var a1 = <Test name="wow" key={k}></Test>
+var a1 = <Test name={name} key={k}>{"abc"} cde</Test>
+var a1 = <Test name={name} key={k}>{null}</Test>
+var a1 = <Test name={name} children={{x: 1, y: 2}} key={k}/>
+var a1 = <Test name={name} children={{x: 1, y: 2}} key={k}></Test>
+var a1 = <Test name={name} children={{x: 1, y: 2}} key={k}>{1}2</Test>
+
+
+var a1 = <Test {...props}>1</Test>
+var a1 = <Test {...props} key="k">1 {2}</Test>
+var a1 = <Test {...props} name="wow" key={k}></Test>
+var a1 = <Test {...props} name={name} key={k}>{null}</Test>
+var a1 = <Test {...props} name={name} key={k}>{"yow"} wtf</Test>
+
+
+var a1 = <div/>
+var a1 = <div key="k"/>
+var a1 = <div ref="r"/>
+var a1 = <div key="k" ref="r"/>
+var a1 = <div name="wow"/>
+var a1 = <div name="wow" key="k"/>
+var a1 = <div name="wow" value="value" ref="r"/>
+var a1 = <div name="wow" key="k" ref="r"/>
+var a1 = <div key={k}/>
+var a1 = <div ref={r}/>
+var a1 = <div key={k} ref={r}/>
+var a1 = <div name={name}/>
+var a1 = <div name={name} key={k}/>
+var a1 = <div name="wow" ref="r"/>
+var a1 = <div name="wow" value={value} key={k} ref={r}/>
+
+var props = {a:1};
+var a1 = <div {...props}/>
+var a1 = <div {...props} key="k"/>
+var a1 = <div {...props} name="wow" key={k}/>
+var a1 = <div {...props} name={name} key={k}/>
+
+
+var a1 = <div></div>
+var a1 = <div>1</div>
+var a1 = <div key="k">1 {2}</div>
+var a1 = <div name="wow" key={k}></div>
+var a1 = <div name={name} key={k}>{"abc"} cde</div>
+var a1 = <div name={name} key={k}>{null}</div>
+var a1 = <div name={name} children={{x: 1, y: 2}} key={k}/>
+var a1 = <div name={name} children={{x: 1, y: 2}} key={k}></div>
+var a1 = <div name={name} children={{x: 1, y: 2}} key={k}>{1}2</div>
+
+
+var a1 = <div {...props}>1</div>
+var a1 = <div {...props} key="k">1 {2}</div>
+var a1 = <div {...props} name="wow" key={k}></div>
+var a1 = <div {...props} name={name} key={k}>{null}</div>
+var a1 = <div {...props} name={name} key={k}>{"yow"} wtf</div>
+
 function generate(count, fn) {
     var data = [];
     for (let i = 0; i < count; i++) {
