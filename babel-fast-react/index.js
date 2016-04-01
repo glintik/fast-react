@@ -24,10 +24,10 @@ function fastReact(obj) {
         var ref = null;
         var isComponent = t.isIdentifier(tag) || t.isMemberExpression(tag);
         var base = '¨';
-        var VT = { COMPONENT: base + 'C', TAG: base + 'T', TEXT: base + '#', COMPONENT_CHILDREN: base + 'F' };
+        var VT = { COMPONENT: t.Identifier('__FRC'), TAG: t.Identifier('__FRT') };
 
         // type
-        array.push(t.literal(isComponent ? VT.COMPONENT : VT.TAG));
+        array.push(isComponent ? VT.COMPONENT : VT.TAG);
         // node
         array.push(t.literal(null));
         // tag
@@ -60,6 +60,9 @@ function fastReact(obj) {
                     if (keyNode.name == 'ref') {
                         ref = valueNode;
                         continue;
+                    }
+                    if (children.length && keyNode.name == 'children') {
+                        return callExpr;
                     }
                     newProps.push(t.Property('init', keyNode, valueNode));
                 }

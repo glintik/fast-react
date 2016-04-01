@@ -1341,4 +1341,10 @@
         ArrayType: VArray,
         TextType: VText,
     };
+    if (typeof window == 'object') {
+        window.__FRC = VComponent;
+        window.__FRT = VTag;
+        window.__FRt = VText;
+        window.__FRA = VArray;
+    }
 }();
