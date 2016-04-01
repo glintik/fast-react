@@ -805,7 +805,8 @@
         if (type == VComponent) {
             //convertComponentToTag
             if (typeof vdom[2/*Ctor*/] == 'string') {
-                return makeTag(vdom[2/*Ctor*/], vdom[8/*props*/], normChildren(vdom[8/*props*/].children), 0, vdom[8/*props*/].children.length, vdom[5/*ownerC*/]);
+                var children = normChildren(vdom[8/*props*/].children);
+                return makeTag(vdom[2/*Ctor*/], vdom[8/*props*/], children, 0, children.length, vdom[5/*ownerC*/]);
             }
         }
         return vdom;
@@ -828,17 +829,12 @@
 
     var propsHashCounter = 1;
 
-    function makeAttrs(vdom, attrs, childrenLen, ownerComponent) {
+    function makeAttrs(vdom, attrs, ownerComponent) {
         var pCount = 0;
         var k = 9/*attrsStartPos*/;
         var key, ref;
         for (var p in attrs) {
             if (p === 'children') {
-                if (childrenLen == 0) {
-                    childrenArray = normChildren(attrs[p]);
-                    from = 0;
-                    to = childrenArray.length;
-                }
                 continue;
             }
             if (p === 'key') {
@@ -860,10 +856,16 @@
     }
 
     function makeTag(tag, attrs, childrenArray, from, to, ownerComponent) {
-        var pCount = 0;
         var childrenLen = to - from;
         if (childrenLen < 0) {
             childrenLen = 0;
+        }
+        if (childrenLen == 0) {
+            if (attrs && attrs.children) {
+                childrenArray = normChildren(attrs.children);
+                from = 0;
+                to = childrenArray.length;
+            }
         }
         // var newVdom = new Array(9/*attrsStartPos*/ + 2 + to - from); // min tag array len
         var vdom = [];
@@ -871,7 +873,7 @@
         vdom[0/*type*/] = VTag;
         vdom[1/*node*/] = null;
         vdom[2/*tag*/] = tag;
-        var pCount = attrs ? makeAttrs(vdom, attrs, childrenLen, ownerComponent) : 0;
+        var pCount = attrs ? makeAttrs(vdom, attrs, ownerComponent) : 0;
         var k = 9/*attrsStartPos*/ + pCount * 2;
         vdom[6/*attrsHash*/] = propsHashCounter++;
         vdom[7/*attrsLen*/] = pCount;
