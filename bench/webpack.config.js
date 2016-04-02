@@ -1,3 +1,6 @@
+"use strict";
+
+const webpack = require('webpack');
 module.exports = {
     entry: __dirname + '/index.js',
     output: {
@@ -12,10 +15,9 @@ module.exports = {
                 exclude: /(node_modules|bower_components)/,
                 loader: 'babel',
                 query: {
-                    stage: 0,
-                    plugins: ["babel-fast-react:after"],
-                    loose: ["all"],
-                    optional: ['runtime']
+                    presets: ['es2015', 'es2015-loose', 'react'],
+                    plugins: ["babel-fast-react"],
+                    // plugins: [/*"transform-react-inline-elements", */"transform-react-constant-elements"],
                 }
             }
 
@@ -29,5 +31,12 @@ module.exports = {
             'babel-fast-react': '../babel-fast-react'
         }
     },
+    plugins: [
+        new webpack.DefinePlugin({
+            'process.env': {
+                'NODE_ENV': JSON.stringify('production')
+            }
+        })
+    ],
     devtool: 'source-map'
 };
