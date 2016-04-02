@@ -200,14 +200,19 @@
     /**-------------------------------------**
      * Creating
      **-------------------------------------**/
-    function create(vdom, rootNode, before, parentComponent) {
+    function create(vdom, rootNode, before, parentComponent, renderToParent) {
         if (DEBUG_MODE) {
             debugVNode(vdom);
         }
 
         if (vdom[0/*type*/] == VText) {
-            vdom[1/*nodeText*/] = document.createTextNode(vdom[2/*text*/]);
-            rootNode.insertBefore(vdom[1/*nodeText*/], before);
+            if (renderToParent && vdom[2/*text*/]) {
+                rootNode.textContent = vdom[2/*text*/];
+                vdom[1/*nodeText*/] = rootNode.firstChild;
+            } else {
+                vdom[1/*nodeText*/] = document.createTextNode(vdom[2/*text*/]);
+                rootNode.insertBefore(vdom[1/*nodeText*/], before);
+            }
         }
         else if (vdom[0/*type*/] == VTag) {
             // isSvg
@@ -222,8 +227,11 @@
             for (var i = attrsStart; i < attrsEnd; i += 2) {
                 handleAttr(vdom[i], vdom[i + 1], null, node, vdom);
             }
-            for (var i = 9/*attrsStartPos*/ + vdom[7/*attrsLen*/] * 2; i < vdom.length; i++) {
-                vdom[i] = create(norm(vdom[i]), node, null, parentComponent);
+            var start = 9/*attrsStartPos*/ + vdom[7/*attrsLen*/] * 2;
+            var end = vdom.length;
+            var childRenderToParent = end - start == 1;
+            for (var i = start; i < end; i++) {
+                vdom[i] = create(norm(vdom[i]), node, null, parentComponent, childRenderToParent);
             }
 
             if (vdom[4/*refT*/]) {
@@ -742,9 +750,9 @@
             before = old[1/*node*/];
         }
         else if (type == VText) {
-            parentNode = old[1/*nodeText*/].parentNode;
-            before = old[1/*nodeText*/];
-        }
+                parentNode = old[1/*nodeText*/].parentNode;
+                before = old[1/*nodeText*/];
+            }
         vdom = create(vdom, parentNode, before, parentComponent);
         remove(parentNode, old, true);
         return vdom;
