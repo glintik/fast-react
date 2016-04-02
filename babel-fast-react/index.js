@@ -29,7 +29,7 @@ function fastReact(obj) {
         // type
         array.push(isComponent ? VT.COMPONENT : VT.TAG);
         // node
-        array.push(t.literal(null));
+        array.push(t.NullLiteral());
         // tag
         array.push(tag);
 
@@ -64,23 +64,23 @@ function fastReact(obj) {
                     if (children.length && keyNode.name == 'children') {
                         return callExpr;
                     }
-                    newProps.push(t.Property('init', keyNode, valueNode));
+                    newProps.push(t.ObjectProperty(keyNode, valueNode));
                 }
             }
             else {
                 return callExpr;
             }
-            array.push(key || t.literal(null));
-            array.push(ref || t.literal(null));
+            array.push(key || t.NullLiteral());
+            array.push(ref || t.NullLiteral());
             // owner
-            array.push(ref ? t.thisExpression() : t.literal(null));
+            array.push(ref ? t.thisExpression() : t.NullLiteral());
             // instance
-            array.push(t.literal(null));
+            array.push(t.NullLiteral());
             // children
-            array.push(t.literal(null));
+            array.push(t.NullLiteral());
 
             if (children.length > 0) {
-                newProps.push(t.Property('init', t.Identifier('children'), t.arrayExpression(children)));
+                newProps.push(t.ObjectProperty(t.Identifier('children'), t.arrayExpression(children)));
             }
             // props
             var newPropsExpr = t.objectExpression(newProps);
@@ -110,7 +110,7 @@ function fastReact(obj) {
                     if (keyNode.name == 'children') {
                         return callExpr;
                     }
-                    keyNode = t.isLiteral(keyNode) ? keyNode : t.literal(keyNode.name);
+                    keyNode = t.isLiteral(keyNode) ? keyNode : t.stringLiteral(keyNode.name);
 
                     if (t.isLiteral(valueNode)) {
                         constAttrs.push(keyNode);
@@ -126,16 +126,16 @@ function fastReact(obj) {
                 return callExpr;
             }
 
-            array.push(key || t.literal(null));
-            array.push(ref || t.literal(null));
+            array.push(key || t.NullLiteral());
+            array.push(ref || t.NullLiteral());
             // owner
-            array.push(ref ? t.thisExpression() : t.literal(null));
+            array.push(ref ? t.thisExpression() : t.NullLiteral());
             // hash
-            array.push(t.literal(hash.join()));
+            array.push(t.stringLiteral(hash.join()));
             // len
-            array.push(t.literal(varAttrs.length / 2 + constAttrs.length / 2));
+            array.push(t.NumericLiteral(varAttrs.length / 2 + constAttrs.length / 2));
             // const len
-            array.push(t.literal(constAttrs.length / 2));
+            array.push(t.NumericLiteral(constAttrs.length / 2));
             // const attrs
             array = array.concat(constAttrs);
             // var attrs
@@ -146,15 +146,17 @@ function fastReact(obj) {
         return t.arrayExpression(array);
     }
 
-    return new Plugin("babel-fast-react", {
+    return {
         visitor: {
             CallExpression: function (node, parent, scope, file) {
-                var name = getFullName(node.callee);
+                var name = getFullName(node.node.callee);
                 if (name == 'React.createElement' || name == '_react2.default.createElement') {
-                    return React(node);
+                    node.replaceWith(
+                        React(node.node)
+                    );
                 }
             }
         }
-    });
+    };
 }
 module.exports = fastReact;
