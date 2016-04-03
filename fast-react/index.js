@@ -420,6 +420,7 @@
                     }
                 } else {
                     vdom[7/*children*/] = old[7/*children*/];
+                    component.node = vdom;
                 }
                 currentComponent = prevComponent;
             }
