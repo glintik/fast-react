@@ -1217,7 +1217,7 @@
     }
 
     function cloneElement(vdom, props) {
-        var vprops = getProps();
+        var vprops = getProps(vdom);
         for (var i in props){
             vprops[i] = props[i];
         }
