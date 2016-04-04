@@ -1,10 +1,11 @@
 !function (global) {
+    var doc = document;
     /**-------------------------------------**
      * Globals
      **-------------------------------------**/
     var DEBUG_MODE = false;
     var id = 1;
-    var htmlElement = document.documentElement;
+    var htmlElement = doc.documentElement;
     function ReactTag(){}
     function ReactComponent(){}
     function ReactArray(){}
@@ -210,16 +211,16 @@
                 rootNode.textContent = vdom[2/*text*/];
                 vdom[1/*nodeText*/] = rootNode.firstChild;
             } else {
-                vdom[1/*nodeText*/] = document.createTextNode(vdom[2/*text*/]);
+                vdom[1/*nodeText*/] = doc.createTextNode(vdom[2/*text*/]);
                 rootNode.insertBefore(vdom[1/*nodeText*/], before);
             }
         }
         else if (vdom[0/*type*/] == VTag) {
             // isSvg
             if (typeof svgElements[vdom[2/*tag*/]] == 'string') {
-                var node = document.createElementNS(svgNS, vdom[2/*tag*/]);
+                var node = doc.createElementNS(svgNS, vdom[2/*tag*/]);
             } else {
-                var node = document.createElement(vdom[2/*tag*/]);
+                var node = doc.createElement(vdom[2/*tag*/]);
             }
             vdom[1/*node*/] = rootNode.insertBefore(node, before);
             var attrsStart = 9/*attrsStartPos*/;
@@ -603,7 +604,7 @@
         else if (normAttr = constProps[attr]) {
             node[normAttr] = val;
         }
-        else if ((normAttr = constEvents[attr]) || (attr[0] == 'o' && attr[1] == 'n' && (normAttr = attr.toLowerCase()) && (normAttr in document && normAttr.substr(0, 2) == 'on'))) {
+        else if ((normAttr = constEvents[attr]) || (attr[0] == 'o' && attr[1] == 'n' && (normAttr = attr.toLowerCase()) && (normAttr in doc && normAttr.substr(0, 2) == 'on'))) {
             var topEventName = topEvents[attr];
             if (topEventName) {
                 setTopEvent(node, topEventName, val);
@@ -690,11 +691,11 @@
     function stopPropagation() {
         this.propagationStopped = true;
     }
-    
+
     function stopImmediatePropagation() {
         this.propagationStopped = true;
     }
-    
+
     function topEvent(event) {
         var dom = event.target;
         event.stopPropagation = stopPropagation;
@@ -1192,6 +1193,22 @@
         return vdom[0/*type*/] == VComponent ? vdom[6/*instance*/] : vdom[1/*node*/];
     }
 
+    function renderDummy(vdom){
+        doc = dummyDoc;
+        var rootNode = dummyNode;
+        isUpdating = true;
+        if (typeof rootNode._vdom == 'undefined') {
+            vdom = rootNode._vdom = create(norm(vdom), rootNode, null, null);
+        }
+        else {
+            var old = rootNode._vdom;
+            vdom = rootNode._vdom = update(old, norm(vdom), null);
+        }
+        isUpdating = false;
+        runQueue();
+        return vdom[0/*type*/] == VComponent ? vdom[6/*instance*/] : vdom[1/*node*/];
+    }
+
     var propType = function () {return propType};
     propType.isRequired = function () {}
     const PropTypes = {
@@ -1338,6 +1355,7 @@
         findDOMNode: findDOMNode,
         createElement: createElement,
         render: render,
+        renderDummy: renderDummy,
         PropTypes: PropTypes,
         cloneElement: cloneElement,
         isValidElement: isValidElement,
@@ -1355,5 +1373,26 @@
         window.__FRT = VTag;
         window.__FRt = VText;
         window.__FRA = VArray;
+    }
+    function dummy(){return dummyNode;}
+    var dummyNode = {
+        firstChild: null,
+        parentNode: null,
+        textContent: '',
+        setAttribute: dummy,
+        addEventListener: dummy,
+        removeEventListener: dummy,
+        insertBefore: dummy,
+        removeChild: dummy
+    };
+    dummyNode.firstChild = dummyNode;
+    dummyNode.parentNode = dummyNode;
+    var dummyDoc = {
+        documentElement: dummyNode,
+        appendChild: dummy,
+        insertBefore: dummy,
+        createElement: dummy,
+        createElementNS: dummy,
+        createTextNode: dummy
     }
 }();
