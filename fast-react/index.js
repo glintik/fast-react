@@ -270,7 +270,7 @@
             vdom[7/*children*/] = create(children, vdom[1/*parentNode*/], before, parentComponent);
         }
         else {
-            if (typeof Constructor.defaultProps == 'object') {
+            if (Constructor.defaultProps) {
                 setDefaultProps(props, Constructor.defaultProps);
             } else {
                 Constructor.defaultProps = void 0;
@@ -284,7 +284,7 @@
                 component.componentWillMount();
             }
             var children = norm(component.render());
-            component._internalContext = typeof component.getChildContext == 'function' ? component.getChildContext() : null;
+            component._internalContext = component.getChildContext ? component.getChildContext() : null;
             vdom[7/*children*/] = create(children, vdom[1/*parentNode*/], before, component);
             if (component.componentDidMount) {
                 component.componentDidMount();
@@ -394,7 +394,7 @@
                     component._context = null;
                 }
                 var props = vdom[8/*props*/];
-                if (typeof Ctor.defaultProps == 'object') {
+                if (Ctor.defaultProps) {
                     setDefaultProps(props, Ctor.defaultProps);
                 }
                 if (component.componentWillReceiveProps) {
@@ -411,7 +411,7 @@
                     }
                     component.props = vdom[8/*props*/] = props;
                     var children = norm(component.render());
-                    component._internalContext = typeof component.getChildContext == 'function' ? component.getChildContext() : null;
+                    component._internalContext = component.getChildContext ? component.getChildContext() : null;
                     // because child component can still updates
                     vdom[7/*children*/] = update(component.node[7/*children*/], children, component);
                     // vdom[7/*children*/] = update(old[7/*children*/], children, component, component);
@@ -597,7 +597,7 @@
                     node.removeAttribute(normAttr);
                 }
             }
-            else if (typeof val !== 'object') {
+            else {
                 node.setAttribute(normAttr, val);
             }
         }
@@ -628,7 +628,7 @@
                     node.removeAttributeNS(ns, normAttr);
                 }
             }
-            else if (typeof val !== 'object') {
+            else {
                 node.setAttributeNS(ns, normAttr, val);
             }
         }
@@ -802,8 +802,11 @@
      * Utils
      **-------------------------------------**/
     function norm(vdom) {
-        if (typeof vdom != 'object' || vdom == null) {
-            return makeText(vdom == null || typeof vdom == 'boolean' ? '' : vdom);
+        if (typeof vdom == 'number' || typeof vdom == 'string') {
+            return makeText(vdom);
+        }
+        if (typeof vdom == 'boolean' || vdom == null) {
+            return makeText('');
         }
         var type = vdom[0/*type*/];
         if (!type || (type !== VTag && type !== VText && type !== VComponent && type !== VArray)) {
@@ -824,7 +827,7 @@
 
     // [], null, false, "223", undefined, {}, ["xT", ...],
     function normChildren(vdom) {
-        if (typeof vdom != 'object' || vdom == null) {
+        if (typeof vdom == 'number' || typeof vdom == 'string' || typeof vdom == 'boolean' || vdom == null) {
             return [vdom];
         }
         var type = vdom[0/*type*/];
