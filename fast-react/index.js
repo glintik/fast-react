@@ -47,7 +47,7 @@
         value: 'value'
     };
 
-    const svgElements = {
+    var svgElements = {
         circle: 'circle',
         clipPath: 'clipPath',
         defs: 'defs',
@@ -143,7 +143,7 @@
         topEventsMap[topEvents[i]] = 0;
 
 
-    const svgNS = 'http://www.w3.org/2000/svg';
+    var svgNS = 'http://www.w3.org/2000/svg';
 
     /**
      * VTagTuple[type, node, tag, key, attrsHash, attrsLen, constAttrsLen, ...attrs, ...children]
@@ -1211,7 +1211,7 @@
 
     var propType = function () {return propType};
     propType.isRequired = function () {}
-    const PropTypes = {
+    var PropTypes = {
         array: propType,
         bool: propType,
         func: propType,
@@ -1304,7 +1304,7 @@
         return createElement.bind(null, type);
     }
 
-    const Children = {
+    var Children = {
         map: function (children, fn, thisArg) {
             return Children.toArray(children).map(fn, thisArg);
         },
