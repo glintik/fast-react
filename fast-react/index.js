@@ -4,6 +4,7 @@
      * Globals
      **-------------------------------------**/
     var DEBUG_MODE = false;
+    var TRY_CATCH = false;
     var id = 1;
     var htmlElement = doc.documentElement;
     function ReactTag(){}
@@ -143,6 +144,10 @@
     for (var i in topEvents)
         topEventsMap[topEvents[i]] = 0;
 
+    function renderError(){
+        return makeTag('div', {className: 'react-render-error'}, ['Error occurred'], 0, 1, currentComponent);
+    }
+
 
     var svgNS = 'http://www.w3.org/2000/svg';
 
@@ -197,6 +202,24 @@
     // 7/*children*/
     // 8/*props*/
     // 9/*propsChildren*/
+
+    function tryCatch(fn, _this, arg1, arg2, catchReturn) {
+        try {
+            return fn.call(_this, arg1, arg2);
+        } catch (e) {
+            console.error(e);
+        }
+        return catchReturn;
+    }
+
+    function tryCatchNew(fn, arg1, arg2, catchReturn) {
+        try {
+            return new fn(arg1, arg2);
+        } catch (e) {
+            console.error(e);
+        }
+        return catchReturn;
+    }
 
 
     /**-------------------------------------**
@@ -267,7 +290,7 @@
         vdom[1/*parentNode*/] = rootNode;
         var props = vdom[8/*props*/];
         if (!Constructor.prototype || !Constructor.prototype.render) {
-            var children = norm(Constructor(props));
+            var children = norm(TRY_CATCH ? tryCatch(Constructor, null, props, null, renderError()) : Constructor(props));
             vdom[7/*children*/] = create(children, vdom[1/*parentNode*/], before, parentComponent);
         }
         else {
@@ -276,19 +299,22 @@
             } else {
                 Constructor.defaultProps = void 0;
             }
-            var component = vdom[6/*instance*/] = new Constructor(props);
+            var component = vdom[6/*instance*/] = TRY_CATCH ? tryCatchNew(Constructor, props, null, new Component) : new Constructor(props);
             var prevComponent = currentComponent;
             currentComponent = component;
             component.node = vdom;
             component._internalParentComponent = parentComponent;
             if (component.componentWillMount) {
-                component.componentWillMount();
+                TRY_CATCH ? tryCatch(component.componentWillMount, component) : component.componentWillMount();
             }
-            var children = norm(component.render());
-            component._internalContext = component.getChildContext ? component.getChildContext() : null;
+            var children = norm(TRY_CATCH ? tryCatch(component.render, component, null, null, renderError()) : component.render());
+            component._internalContext = component.getChildContext
+                ? (TRY_CATCH ? tryCatch(component.getChildContext, component, null, null, null) : component.getChildContext())
+                : null;
+
             vdom[7/*children*/] = create(children, vdom[1/*parentNode*/], before, component);
             if (component.componentDidMount) {
-                component.componentDidMount();
+                TRY_CATCH ? tryCatch(component.componentDidMount, component) : component.componentDidMount();
             }
             currentComponent = prevComponent;
         }
@@ -381,7 +407,7 @@
             var component = vdom[6/*instance*/] = old[6/*instance*/];
             if (!component) {
                 //noinspection JSDuplicatedDeclaration
-                var children = norm(Ctor());
+                var children = norm(TRY_CATCH ? tryCatch(Ctor, null, null, null, renderError()) : Ctor());
                 vdom[7/*children*/] = update(old[7/*children*/], children, parentComponent);
             }
             else {
@@ -399,26 +425,26 @@
                     setDefaultProps(props, Ctor.defaultProps);
                 }
                 if (component.componentWillReceiveProps) {
-                    component.componentWillReceiveProps(props);
+                    TRY_CATCH ? tryCatch(component.componentWillReceiveProps, component, props) : component.componentWillReceiveProps(props);
                 }
                 var shouldUpdate = true;
                 if (component.shouldComponentUpdate) {
-                    shouldUpdate = component.shouldComponentUpdate(props, component.state);
+                    shouldUpdate = TRY_CATCH ? tryCatch(component.shouldComponentUpdate, component, props, component.state, true) : component.shouldComponentUpdate(props, component.state);
                 }
 
                 if (shouldUpdate) {
                     if (component.componentWillUpdate) {
-                        component.componentWillUpdate(props, component.state);
+                        TRY_CATCH ? tryCatch(component.componentWillUpdate, component, props, component.state) : component.componentWillUpdate(props, component.state);
                     }
                     component.props = vdom[8/*props*/] = props;
-                    var children = norm(component.render());
-                    component._internalContext = component.getChildContext ? component.getChildContext() : null;
+                    var children = norm(TRY_CATCH ? tryCatch(component.render, component, null, null, renderError()) : component.render());
+                    component._internalContext = component.getChildContext ? (TRY_CATCH ? tryCatch(component.getChildContext, component, null, null, null) : component.getChildContext()) : null;
                     // because child component can still updates
                     vdom[7/*children*/] = update(component.node[7/*children*/], children, component);
                     // vdom[7/*children*/] = update(old[7/*children*/], children, component, component);
                     component.node = vdom;
                     if (component.componentDidUpdate) {
-                        component.componentDidUpdate(props, component.state);
+                        TRY_CATCH ? tryCatch(component.componentDidUpdate, component, props, component.state) : component.componentDidUpdate(props, component.state);
                     }
                 } else {
                     vdom[7/*children*/] = old[7/*children*/];
@@ -541,7 +567,7 @@
             val = vdom[6/*instance*/];
         }
         if (typeof ref == 'function') {
-            ref(val);
+            TRY_CATCH ? tryCatch(ref, null, val) : ref(val);
         }
         else {
             if (!topComponent.refs) {
@@ -1088,19 +1114,19 @@
 
                 var shouldUpdate = true;
                 if (!task.force && component.shouldComponentUpdate) {
-                    shouldUpdate = component.shouldComponentUpdate(nextProps, nextState);
+                    shouldUpdate = TRY_CATCH ? tryCatch(component.shouldComponentUpdate, component, nextProps, nextState, true) : component.shouldComponentUpdate(nextProps, nextState);
                 }
 
                 if (shouldUpdate) {
                     if (component.componentWillUpdate) {
-                        component.componentWillUpdate(nextProps, nextState);
+                        TRY_CATCH ? tryCatch(component.componentWillUpdate, component, nextProps, nextState) : component.componentWillUpdate(nextProps, nextState);
                     }
                     component.state = nextState;
-                    component._internalContext = typeof component.getChildContext == 'function' ? component.getChildContext() : null;
-                    var children = norm(component.render());
+                    component._internalContext = typeof component.getChildContext == 'function' ? (TRY_CATCH ? tryCatch(component.getChildContext, component, null, null, null) : component.getChildContext()) : null;
+                    var children = norm(TRY_CATCH ? tryCatch(component.render, component, null, null, renderError()) : component.render());
                     component.node[7/*children*/] = update(component.node[7/*children*/], children, component);
                     if (component.componentDidUpdate) {
-                        component.componentDidUpdate(nextProps, nextState);
+                        TRY_CATCH ? tryCatch(component.componentDidUpdate, component, nextProps, nextState) : component.componentDidUpdate(nextProps, nextState);
                     }
                 }
                 currentComponent = prevComponent;
@@ -1108,7 +1134,7 @@
             isUpdating = false;
             runQueue();
             if (task.callback) {
-                task.callback();
+                TRY_CATCH ? tryCatch(task.callback, task) : task.callback();
             }
         }
     }
@@ -1265,7 +1291,7 @@
         }
 
         function Comp(props) {
-            this.state = specification.getInitialState ? specification.getInitialState() : null;
+            this.state = specification.getInitialState ? (TRY_CATCH ? tryCatch(specification.getInitialState, specification, null, null, null) : specification.getInitialState()) : null;
             this.props = props;
             this.node = null;
             for (var p in componentProps) {
