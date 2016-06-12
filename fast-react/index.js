@@ -35,12 +35,12 @@
         srcDoc: 'srcdoc',
         value: 'value'
     };
-    var allAttrs = "accept,accesskey,action,allowfullscreen,allowtransparency,alt,async,autocomplete,autoplay,capture,cellpadding,cellspacing,charset,challenge,checked,classid,cols,colspan,content,contenteditable,contextmenu,controls,coords,crossorigin,data,datetime,default,defer,dir,disabled,download,draggable,enctype,form,formaction,formenctype,formmethod,formnovalidate,formtarget,frameborder,headers,height,hidden,high,href,hreflang,icon,id,inputmode,integrity,is,keyparams,keytype,kind,label,lang,list,loop,low,manifest,marginheight,marginwidth,max,maxlength,media,mediagroup,method,min,minlength,multiple,muted,name,nonce,novalidate,open,optimum,pattern,placeholder,poster,preload,radiogroup,readonly,rel,required,reversed,role,rows,rowspan,sandbox,scope,scoped,scrolling,seamless,selected,shape,size,sizes,span,spellcheck,src,srcdoc,srclang,srcset,start,step,summary,tabindex,target,title,type,usemap,value,width,wmode,wrap,about,datatype,inlist,prefix,property,resource,typeof,vocab,autocapitalize,autocorrect,autosave,color,itemprop,itemscope,itemtype,itemid,itemref,results,security,unselectable,cx,cy,d,dx,dy,fill,fx,fy,gradientTransform,gradientUnits,offset,opacity,patternContentUnits,patternUnits,points,preserveAspectRatio,r,rx,ry,spreadMethod,stroke,transform,version,viewBox,x1,x2,x,y1,y2,y".split(',')
+    var allAttrs = "accept,accessKey,action,allowFullScreen,allowTransparency,alt,async,autoComplete,autoPlay,capture,cellPadding,cellSpacing,charSet,challenge,checked,classID,cols,colSpan,content,contentEditable,contextMenu,controls,coords,crossOrigin,data,dateTime,default,defer,dir,disabled,download,draggable,encType,form,formAction,formEncType,formMethod,formNoValidate,formTarget,frameBorder,headers,height,hidden,high,href,hrefLang,icon,id,inputMode,integrity,is,keyParams,keyType,kind,label,lang,list,loop,low,manifest,marginHeight,marginWidth,max,maxLength,media,mediaGroup,method,min,minLength,multiple,muted,name,nonce,noValidate,open,optimum,pattern,placeholder,poster,preload,radioGroup,readOnly,rel,required,reversed,role,rows,rowSpan,sandbox,scope,scoped,scrolling,seamless,selected,shape,size,sizes,span,spellCheck,src,srcDoc,srcLang,srcSet,start,step,summary,tabIndex,target,title,type,useMap,value,width,wmode,wrap,about,datatype,inlist,prefix,property,resource,typeof,vocab,autoCapitalize,autoCorrect,autoSave,color,itemProp,itemScope,itemType,itemID,itemRef,results,security,unselectable,cx,cy,d,dx,dy,fill,fx,fy,gradientTransform,gradientUnits,offset,opacity,patternContentUnits,patternUnits,points,preserveAspectRatio,r,rx,ry,spreadMethod,stroke,transform,version,viewBox,x1,x2,x,y1,y2,y".split(',')
     var fastAttrs = {"acceptCharset":"accept-charset","className":"class","htmlFor":"for","httpEquiv":"http-equiv","clipPath":"clip-path","fillOpacity":"fill-opacity","fontFamily":"font-family","fontSize":"font-size","markerEnd":"marker-end","markerMid":"marker-mid","markerStart":"marker-start","stopColor":"stop-color","stopOpacity":"stop-opacity","strokeDasharray":"stroke-dasharray","strokeLinecap":"stroke-linecap","strokeOpacity":"stroke-opacity","strokeWidth":"stroke-width","textAnchor":"text-anchor"};
     for (var i = 0; i < allAttrs.length; i++)
         if (!constProps[allAttrs[i]])
             fastAttrs[allAttrs[i]] = allAttrs[i];
-    //var ss = []; var obj = {}; for (var i in DOMProperty.properties){ var attr = DOMProperty.properties[i].attributeName; if (i.toLowerCase() == attr.toLowerCase()) ss.push(attr); else obj[i] = attr } ss.join(',')
+    //var ss = []; var obj = {}; for (var i in DOMProperty.properties){ if (i == 'style') continue; var attr = DOMProperty.properties[i].attributeName; if (i.toLowerCase() == attr.toLowerCase()) ss.push(i); else obj[i] = attr } ss.join(',')
 
     var xLinkNS = 'http://www.w3.org/1999/xlink';
     var xLinkAttrs = {"xlinkActuate":"xlink:actuate","xlinkArcrole":"xlink:arcrole","xlinkHref":"xlink:href","xlinkRole":"xlink:role","xlinkShow":"xlink:show","xlinkTitle":"xlink:title","xlinkType":"xlink:type"};
@@ -1308,6 +1308,16 @@
         return createElement.bind(null, type);
     }
 
+    function spread(from) {
+        for (var i = 1, len = arguments.length; i < len; i++) {
+            var arg = arguments[i];
+            for (var prop in arg) {
+                from[prop] = arg[prop];
+            }
+        }
+        return from;
+    }
+
     var Children = {
         map: function (children, fn, thisArg) {
             return Children.toArray(children).map(fn, thisArg);
@@ -1371,6 +1381,7 @@
         ComponentType: VComponent,
         ArrayType: VArray,
         TextType: VText,
+        __spread: spread
     };
     if (typeof window == 'object') {
         window.__FRC = VComponent;
