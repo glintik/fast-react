@@ -23,17 +23,6 @@
     var VComponent = new ReactComponent();
     var VArray = new ReactArray();
 
-    var allAttrs = "accept,accesskey,action,allowfullscreen,allowtransparency,alt,async,autocomplete,autoplay,capture,cellpadding,cellspacing,charset,challenge,checked,classid,cols,colspan,content,contenteditable,contextmenu,controls,coords,crossorigin,data,datetime,default,defer,dir,disabled,download,draggable,enctype,form,formaction,formenctype,formmethod,formnovalidate,formtarget,frameborder,headers,height,hidden,high,href,hreflang,icon,id,inputmode,integrity,is,keyparams,keytype,kind,label,lang,list,loop,low,manifest,marginheight,marginwidth,max,maxlength,media,mediagroup,method,min,minlength,multiple,muted,name,nonce,novalidate,open,optimum,pattern,placeholder,poster,preload,radiogroup,readonly,rel,required,reversed,role,rows,rowspan,sandbox,scope,scoped,scrolling,seamless,selected,shape,size,sizes,span,spellcheck,src,srcdoc,srclang,srcset,start,step,summary,tabindex,target,title,type,usemap,value,width,wmode,wrap,about,datatype,inlist,prefix,property,resource,typeof,vocab,autocapitalize,autocorrect,autosave,color,itemprop,itemscope,itemtype,itemid,itemref,results,security,unselectable,cx,cy,d,dx,dy,fill,fx,fy,gradientTransform,gradientUnits,offset,opacity,patternContentUnits,patternUnits,points,preserveAspectRatio,r,rx,ry,spreadMethod,stroke,transform,version,viewBox,x1,x2,x,y1,y2,y".split(',')
-    var fastAttrs = {"acceptCharset":"accept-charset","className":"class","htmlFor":"for","httpEquiv":"http-equiv","clipPath":"clip-path","fillOpacity":"fill-opacity","fontFamily":"font-family","fontSize":"font-size","markerEnd":"marker-end","markerMid":"marker-mid","markerStart":"marker-start","stopColor":"stop-color","stopOpacity":"stop-opacity","strokeDasharray":"stroke-dasharray","strokeLinecap":"stroke-linecap","strokeOpacity":"stroke-opacity","strokeWidth":"stroke-width","textAnchor":"text-anchor"};
-    for (var i = 0; i < allAttrs.length; i++)
-        fastAttrs[allAttrs[i]] = allAttrs[i];
-    //var ss = []; var obj = {}; for (var i in DOMProperty.properties){ var attr = DOMProperty.properties[i].attributeName; if (i.toLowerCase() == attr.toLowerCase()) ss.push(attr); else obj[i] = attr } ss.join(',')
-
-    var xLinkNS = 'http://www.w3.org/1999/xlink';
-    var xLinkAttrs = {"xlinkActuate":"xlink:actuate","xlinkArcrole":"xlink:arcrole","xlinkHref":"xlink:href","xlinkRole":"xlink:role","xlinkShow":"xlink:show","xlinkTitle":"xlink:title","xlinkType":"xlink:type"};
-    var xmlNS = 'http://www.w3.org/XML/1998/namespace';
-    var xmlAttrs = {"xmlBase":"xml:base","xmlLang":"xml:lang","xmlSpace":"xml:space"};
-
     var constProps = {
         checked: 'checked',
         controls: 'controls',
@@ -46,6 +35,18 @@
         srcDoc: 'srcdoc',
         value: 'value'
     };
+    var allAttrs = "accept,accesskey,action,allowfullscreen,allowtransparency,alt,async,autocomplete,autoplay,capture,cellpadding,cellspacing,charset,challenge,checked,classid,cols,colspan,content,contenteditable,contextmenu,controls,coords,crossorigin,data,datetime,default,defer,dir,disabled,download,draggable,enctype,form,formaction,formenctype,formmethod,formnovalidate,formtarget,frameborder,headers,height,hidden,high,href,hreflang,icon,id,inputmode,integrity,is,keyparams,keytype,kind,label,lang,list,loop,low,manifest,marginheight,marginwidth,max,maxlength,media,mediagroup,method,min,minlength,multiple,muted,name,nonce,novalidate,open,optimum,pattern,placeholder,poster,preload,radiogroup,readonly,rel,required,reversed,role,rows,rowspan,sandbox,scope,scoped,scrolling,seamless,selected,shape,size,sizes,span,spellcheck,src,srcdoc,srclang,srcset,start,step,summary,tabindex,target,title,type,usemap,value,width,wmode,wrap,about,datatype,inlist,prefix,property,resource,typeof,vocab,autocapitalize,autocorrect,autosave,color,itemprop,itemscope,itemtype,itemid,itemref,results,security,unselectable,cx,cy,d,dx,dy,fill,fx,fy,gradientTransform,gradientUnits,offset,opacity,patternContentUnits,patternUnits,points,preserveAspectRatio,r,rx,ry,spreadMethod,stroke,transform,version,viewBox,x1,x2,x,y1,y2,y".split(',')
+    var fastAttrs = {"acceptCharset":"accept-charset","className":"class","htmlFor":"for","httpEquiv":"http-equiv","clipPath":"clip-path","fillOpacity":"fill-opacity","fontFamily":"font-family","fontSize":"font-size","markerEnd":"marker-end","markerMid":"marker-mid","markerStart":"marker-start","stopColor":"stop-color","stopOpacity":"stop-opacity","strokeDasharray":"stroke-dasharray","strokeLinecap":"stroke-linecap","strokeOpacity":"stroke-opacity","strokeWidth":"stroke-width","textAnchor":"text-anchor"};
+    for (var i = 0; i < allAttrs.length; i++)
+        if (!constProps[allAttrs[i]])
+            fastAttrs[allAttrs[i]] = allAttrs[i];
+    //var ss = []; var obj = {}; for (var i in DOMProperty.properties){ var attr = DOMProperty.properties[i].attributeName; if (i.toLowerCase() == attr.toLowerCase()) ss.push(attr); else obj[i] = attr } ss.join(',')
+
+    var xLinkNS = 'http://www.w3.org/1999/xlink';
+    var xLinkAttrs = {"xlinkActuate":"xlink:actuate","xlinkArcrole":"xlink:arcrole","xlinkHref":"xlink:href","xlinkRole":"xlink:role","xlinkShow":"xlink:show","xlinkTitle":"xlink:title","xlinkType":"xlink:type"};
+    var xmlNS = 'http://www.w3.org/XML/1998/namespace';
+    var xmlAttrs = {"xmlBase":"xml:base","xmlLang":"xml:lang","xmlSpace":"xml:space"};
+
 
     var svgElements = {
         circle: 'circle',
