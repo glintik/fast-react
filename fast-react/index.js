@@ -487,18 +487,24 @@
 
             if (fitPos != null) {
                 oldChild = old[fitPos];
-                if (!oldChild) {
-                    throw new Error('duplicate key: ' + newKey);
-                }
-                fitCount++;
-                vdom[i] = update(oldChild, newChild, parentComponent);
-                if (fitPos !== i) {
-                    if (inserts == null) {
-                        inserts = [];
+                if (oldChild) {
+                    fitCount++;
+                    vdom[i] = update(oldChild, newChild, parentComponent);
+                    if (fitPos !== i) {
+                        if (inserts == null) {
+                            inserts = [];
+                        }
+                        inserts.push(i);
                     }
-                    inserts.push(i);
+                    old[fitPos] = null;
+                } else {
+                    var error = new Error('duplicate key: ' + newKey);
+                    if (TRY_CATCH) {
+                        console.error(error)
+                    } else {
+                        throw error;
+                    }
                 }
-                old[fitPos] = null;
             }
             else {
                 if (inserts == null) {
@@ -1381,7 +1387,13 @@
         },
         only: function (children) {
             if (!isValidElement(children)) {
-                throw new Error('onlyChild must be passed a children with exactly one child.');
+                var error = new Error('onlyChild must be passed a children with exactly one child.');
+                if (TRY_CATCH) {
+                    console.error(error);
+                    return null;
+                } else {
+                    throw error;
+                }
             }
             return children;
         }
