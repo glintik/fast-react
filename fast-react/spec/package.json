@@ -1,0 +1,17 @@
+{
+  "name": "fast-react-spec",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "author": "cevek",
+  "license": "ISC",
+  "devDependencies": {
+    "babel-preset-es2015": "^6.9.0",
+    "babel-preset-react": "^6.5.0",
+    "karma-sourcemap-loader": "^0.3.7",
+    "karma-webpack": "^1.7.0",
+    "babel": "^6.5.2",
+    "babel-core": "^6.9.1",
+    "babel-loader": "^6.2.4"
+  }
+}

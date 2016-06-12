@@ -13,6 +13,7 @@ module.exports = function (config) {
         frameworks: ['jasmine'],
 
 
+
         // list of files / patterns to load in the browser
         files: [
             //'../dist/fast-react.js',
@@ -30,7 +31,6 @@ module.exports = function (config) {
         preprocessors: {
             '*.js': ['webpack', 'sourcemap']
         },
-
         /* plugins: [
          'karma-jasmine',
          'karma-chrome-launcher',
@@ -46,8 +46,7 @@ module.exports = function (config) {
                         test: /\.js$/,
                         loader: 'babel',
                         query: {
-                            stage: 0,
-                            loose: ["es6.classes"]
+                            presets: ['es2015', 'react']
                         }
                     }
                 ]
