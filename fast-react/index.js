@@ -785,9 +785,9 @@
             before = old[1/*node*/];
         }
         else if (type == VText) {
-                parentNode = old[1/*nodeText*/].parentNode;
-                before = old[1/*nodeText*/];
-            }
+            parentNode = old[1/*nodeText*/].parentNode;
+            before = old[1/*nodeText*/];
+        }
         vdom = create(vdom, parentNode, before, parentComponent);
         remove(parentNode, old, true);
         return vdom;
@@ -1266,7 +1266,19 @@
     };
 
     function findDOMNode(vdom) {
-        return vdom;
+        if (vdom instanceof Component) {
+            vdom = vdom.node;
+        }
+        if (vdom instanceof Node) {
+            return vdom;
+        }
+        if (isValidElement(vdom)) {
+            var node = getChildNode(vdom);
+            if (node instanceof Text) {
+                return null;
+            }
+        }
+        return node;
     }
 
     function cloneElement(vdom, props) {
@@ -1308,6 +1320,8 @@
             this._internalContext = null;
             this._internalParentComponent = null;
         }
+
+        Comp.prototype = new Component(null);
 
         for (var method in ComponentProto) {
             Comp.prototype[method] = ComponentProto[method];
