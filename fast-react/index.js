@@ -612,7 +612,7 @@
         }
         if (oldStyles) {
             for (var prop in oldStyles) {
-                if (typeof newStyles[prop] === 'undefined') {
+                if (!newStyles || typeof newStyles[prop] === 'undefined') {
                     styleNode[prop] = null;
                 }
             }
