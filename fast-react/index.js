@@ -248,7 +248,6 @@
             }
             if (isComponentTopNode && process.env.NODE_ENV !== "production") {
                 node.setAttribute(":", parentComponent.constructor.displayName || parentComponent.constructor.name || 'unknown');
-                node.$props = parentComponent.props;
                 node.$component = parentComponent;
             }
             vdom[1/*node*/] = rootNode.insertBefore(node, before);
