@@ -225,7 +225,7 @@
     /**-------------------------------------**
      * Creating
      **-------------------------------------**/
-    function create(vdom, rootNode, before, parentComponent, renderToParent) {
+    function create(vdom, rootNode, before, parentComponent, renderToParent, isComponentTopNode) {
         if (DEBUG_MODE) {
             debugVNode(vdom);
         }
@@ -245,6 +245,11 @@
                 var node = doc.createElementNS(svgNS, vdom[2/*tag*/]);
             } else {
                 var node = doc.createElement(vdom[2/*tag*/]);
+            }
+            if (isComponentTopNode && process.env.NODE_ENV !== "production") {
+                node.setAttribute(":", parentComponent.constructor.displayName || parentComponent.constructor.name || 'unknown');
+                node.$props = parentComponent.props;
+                node.$component = parentComponent;
             }
             vdom[1/*node*/] = rootNode.insertBefore(node, before);
             var attrsStart = 9/*attrsStartPos*/;
@@ -291,7 +296,7 @@
         var props = vdom[8/*props*/];
         if (!Constructor.prototype || !Constructor.prototype.render) {
             var children = norm(TRY_CATCH ? tryCatch(Constructor, null, props, null, renderError()) : Constructor(props));
-            vdom[7/*children*/] = create(children, vdom[1/*parentNode*/], before, parentComponent);
+            vdom[7/*children*/] = create(children, vdom[1/*parentNode*/], before, parentComponent, false, true);
         }
         else {
             if (Constructor.defaultProps) {
@@ -312,7 +317,7 @@
                 ? (TRY_CATCH ? tryCatch(component.getChildContext, component, null, null, null) : component.getChildContext())
                 : null;
 
-            vdom[7/*children*/] = create(children, vdom[1/*parentNode*/], before, component);
+            vdom[7/*children*/] = create(children, vdom[1/*parentNode*/], before, component, false, true);
             if (component.componentDidMount) {
                 TRY_CATCH ? tryCatch(component.componentDidMount, component) : component.componentDidMount();
             }
