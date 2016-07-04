@@ -27,7 +27,6 @@
     var constProps = {
         checked: 'checked',
         controls: 'controls',
-        id: 'id',
         loop: 'loop',
         multiple: 'multiple',
         muted: 'muted',
