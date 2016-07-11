@@ -4,7 +4,7 @@
      * Globals
      **-------------------------------------**/
     var DEBUG_MODE = false;
-    var TRY_CATCH = false;
+    var TRY_CATCH = (process.env.NODE_ENV === "production" && sessionStorage.getItem("SkipFastReactCatchErrorMode") === null) || sessionStorage.getItem("FastReactCatchErrorMode");
     var id = 1;
     var htmlElement = doc.documentElement;
     function ReactTag(){}
