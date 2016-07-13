@@ -208,7 +208,7 @@
         try {
             return fn.call(_this, arg1, arg2);
         } catch (e) {
-            console.error(e);
+            throwInNextTick(e);
         }
         return catchReturn;
     }
@@ -217,9 +217,15 @@
         try {
             return new fn(arg1, arg2);
         } catch (e) {
-            console.error(e);
+            throwInNextTick(e);
         }
         return catchReturn;
+    }
+
+    function throwInNextTick(err){
+        setTimeout(function() {
+            throw err;
+        });
     }
 
 
@@ -588,7 +594,7 @@
                 } else {
                     var error = new Error('duplicate key: ' + newKey);
                     if (TRY_CATCH) {
-                        console.error(error)
+                        throwInNextTick(error);
                     } else {
                         throw error;
                     }
@@ -1460,7 +1466,7 @@
             if (!isValidElement(children)) {
                 var error = new Error('onlyChild must be passed a children with exactly one child.');
                 if (TRY_CATCH) {
-                    console.error(error);
+                    throwInNextTick(error);
                     return null;
                 } else {
                     throw error;
