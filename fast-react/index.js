@@ -208,7 +208,7 @@
         try {
             return fn.call(_this, arg1, arg2);
         } catch (e) {
-            throwInNextTick(e);
+            Throw(e);
         }
         return catchReturn;
     }
@@ -217,15 +217,19 @@
         try {
             return new fn(arg1, arg2);
         } catch (e) {
-            throwInNextTick(e);
+            Throw(e);
         }
         return catchReturn;
     }
 
-    function throwInNextTick(err){
-        setTimeout(function() {
+    function Throw(err){
+        if (TRY_CATCH) {
+            setTimeout(function() {
+                throw err;
+            });
+        } else {
             throw err;
-        });
+        }
     }
 
 
@@ -247,6 +251,9 @@
             }
         }
         else if (vdom[0/*type*/] == VTag) {
+            if (typeof vdom[2/*tag*/] !== 'string') {
+                Throw(new Error('Incorrect tag name: ' + vdom[2/*tag*/]));
+            }
             // isSvg
             if (typeof svgElements[vdom[2/*tag*/]] == 'string') {
                 var node = doc.createElementNS(svgNS, vdom[2/*tag*/]);
@@ -592,12 +599,7 @@
                     }
                     old[fitPos] = null;
                 } else {
-                    var error = new Error('duplicate key: ' + newKey);
-                    if (TRY_CATCH) {
-                        throwInNextTick(error);
-                    } else {
-                        throw error;
-                    }
+                    Throw(new Error('duplicate key: ' + newKey));
                 }
             }
             else {
@@ -1464,13 +1466,7 @@
         },
         only: function (children) {
             if (!isValidElement(children)) {
-                var error = new Error('onlyChild must be passed a children with exactly one child.');
-                if (TRY_CATCH) {
-                    throwInNextTick(error);
-                    return null;
-                } else {
-                    throw error;
-                }
+                Throw(new Error('onlyChild must be passed a children with exactly one child.'));
             }
             return children;
         }
