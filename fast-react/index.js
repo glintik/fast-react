@@ -442,6 +442,10 @@
 
             vdom[1/*parentNode*/] = old[1/*parentNode*/];
             var component = vdom[6/*instance*/] = old[6/*instance*/];
+            var props = vdom[8/*props*/];
+            if (Ctor.defaultProps) {
+                setDefaultProps(props, Ctor.defaultProps);
+            }
             if (!component) {
                 var children = norm(TRY_CATCH
                     ? tryCatch(Ctor, null, nextProps, nextContext, renderError())
