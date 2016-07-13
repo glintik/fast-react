@@ -143,7 +143,7 @@
     for (var i in topEvents)
         topEventsMap[topEvents[i]] = 0;
 
-    function renderError(){
+    function renderError() {
         return makeTag('div', {className: 'react-render-error'}, ['Error occurred'], 0, 1, currentComponent);
     }
 
@@ -253,6 +253,7 @@
         else if (vdom[0/*type*/] == VTag) {
             if (typeof vdom[2/*tag*/] !== 'string') {
                 Throw(new Error('Incorrect tag name: ' + vdom[2/*tag*/]));
+                return create(renderError(), rootNode, before, parentComponent, renderToParent); // return empty text
             }
             // isSvg
             if (typeof svgElements[vdom[2/*tag*/]] == 'string') {
@@ -306,6 +307,10 @@
 
     function createComponent(vdom, rootNode, before, parentComponent) {
         var Constructor = vdom[2/*Ctor*/];
+        if (typeof Constructor !== 'function') {
+            Throw(new Error('Incorrect function as Component: ' + Constructor));
+            return create(renderError(), rootNode, before, parentComponent, false); // return empty text
+        }
         vdom[1/*parentNode*/] = rootNode;
         var props = vdom[8/*props*/];
         if (Constructor.defaultProps) {
