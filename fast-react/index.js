@@ -605,6 +605,10 @@
                     old[fitPos] = null;
                 } else {
                     Throw(new Error('duplicate key: ' + newKey));
+                    if (inserts == null) {
+                        inserts = [];
+                    }
+                    inserts.push(i);
                 }
             }
             else {
@@ -614,6 +618,7 @@
                 inserts.push(i);
             }
             if (newKey != null) {
+                // todo: this is incorrect because if we have duplicate keys, we take from old incorrect element in next iteration
                 keyMap[newKey] = i;
             }
         }
