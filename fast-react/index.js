@@ -410,50 +410,38 @@
             vdom[1/*parentNode*/] = old[1/*parentNode*/];
             var component = vdom[6/*instance*/] = old[6/*instance*/];
             if (!component) {
-                //noinspection JSDuplicatedDeclaration
-                var children = norm(TRY_CATCH ? tryCatch(Ctor, null, null, null, renderError()) : Ctor());
+                // todo context?
+                var context = null;
+                var children = norm(TRY_CATCH
+                    ? tryCatch(Ctor, null, props, context, renderError())
+                    : Ctor(props, context));
                 vdom[7/*children*/] = update(old[7/*children*/], children, parentComponent, true);
             }
             else {
                 var prevComponent = currentComponent;
                 currentComponent = component;
 
+                var nextContext = component.contextTypes ? getContext(component) : null;
+                var nextState = component.state;
+
+                // todo why?
                 if (component._internalParentComponent !== parentComponent) {
                     component._internalParentComponent = parentComponent;
                 }
-                if (component._context) {
-                    component._context = null;
-                }
-                var props = vdom[8/*props*/];
-                if (Ctor.defaultProps) {
-                    setDefaultProps(props, Ctor.defaultProps);
-                }
-                if (component.componentWillReceiveProps) {
-                    TRY_CATCH ? tryCatch(component.componentWillReceiveProps, component, props) : component.componentWillReceiveProps(props);
-                }
-                var shouldUpdate = true;
-                if (component.shouldComponentUpdate) {
-                    shouldUpdate = TRY_CATCH ? tryCatch(component.shouldComponentUpdate, component, props, component.state, true) : component.shouldComponentUpdate(props, component.state);
-                }
 
-                if (shouldUpdate) {
-                    if (component.componentWillUpdate) {
-                        TRY_CATCH ? tryCatch(component.componentWillUpdate, component, props, component.state) : component.componentWillUpdate(props, component.state);
-                    }
-                    component.props = vdom[8/*props*/] = props;
-                    var children = norm(TRY_CATCH ? tryCatch(component.render, component, null, null, renderError()) : component.render());
-                    component._internalContext = component.getChildContext ? (TRY_CATCH ? tryCatch(component.getChildContext, component, null, null, null) : component.getChildContext()) : null;
-                    // because child component can still updates
-                    vdom[7/*children*/] = update(component.node[7/*children*/], children, component, true);
-                    // vdom[7/*children*/] = update(old[7/*children*/], children, component, component);
-                    component.node = vdom;
-                    if (component.componentDidUpdate) {
-                        TRY_CATCH ? tryCatch(component.componentDidUpdate, component, props, component.state) : component.componentDidUpdate(props, component.state);
-                    }
-                } else {
-                    vdom[7/*children*/] = old[7/*children*/];
-                    component.node = vdom;
+                var nextProps = vdom[8/*props*/];
+                if (Ctor.defaultProps) {
+                    setDefaultProps(nextProps, Ctor.defaultProps);
                 }
+                vdom[8/*props*/] = nextProps; //todo why?
+                if (component.componentWillReceiveProps) {
+                    TRY_CATCH
+                        ? tryCatch(component.componentWillReceiveProps, component, nextProps) // todo context
+                        : component.componentWillReceiveProps(nextProps, nextContext);
+                }
+                vdom[7/*children*/] = _updateComponent(component, nextProps, nextState, nextContext, false) || old[7/*children*/];
+                component.node = vdom;
+
                 currentComponent = prevComponent;
             }
             if (old[4/*ref*/] != vdom[4/*ref*/] || old[5/*ownerC*/] != vdom[5/*ownerC*/]) {
@@ -461,6 +449,58 @@
             }
         }
         return vdom;
+    }
+
+    function _updateComponent(component, nextProps, nextState, nextContext, skipShouldUpdate){
+        var shouldUpdate = true;
+        if (!skipShouldUpdate && component.shouldComponentUpdate) {
+            shouldUpdate = TRY_CATCH
+                ? tryCatch(component.shouldComponentUpdate, component, nextProps, nextState, true) // todo  context
+                : component.shouldComponentUpdate(nextProps, nextState, nextContext);
+        }
+
+        if (shouldUpdate) {
+            if (component.componentWillUpdate) {
+                TRY_CATCH
+                    ? tryCatch(component.componentWillUpdate, component, nextProps, nextState) // todo context
+                    : component.componentWillUpdate(nextProps, nextState, nextContext);
+            }
+            component.context = nextContext;
+            component.props = nextProps;
+            component.state = nextState;
+            var children = norm(TRY_CATCH
+                ? tryCatch(component.render, component, null, null, renderError())
+                : component.render());
+            component._internalContext = component.getChildContext ?
+                (TRY_CATCH
+                    ? tryCatch(component.getChildContext, component, null, null, null)
+                    : component.getChildContext())
+                : null;
+            var newChildren = update(component.node[7/*children*/], children, component, true);
+            if (component.componentDidUpdate) {
+                TRY_CATCH
+                    ? tryCatch(component.componentDidUpdate, component, nextProps, nextState) //todo context
+                    : component.componentDidUpdate(nextProps, nextState, nextContext);
+            }
+            return newChildren;
+        }
+        return null;
+    }
+
+    function getContext(component) {
+        var parentComponent = component;
+        var nextContext = {};
+        var parents = [];
+        while (parentComponent = parentComponent._internalParentComponent) {
+            parents.push(parentComponent._internalContext);
+        }
+        for (var i = 0; i < parents.length; i++) {
+            parentComponent = parents[i];
+            for (var prop in parentComponent) {
+                nextContext[prop] = parentComponent[prop];
+            }
+        }
+        return nextContext;
     }
 
     function updateArray(old, vdom, parentComponent) {
@@ -1110,6 +1150,7 @@
     ComponentProto.componentWillUnmount = null;
     ComponentProto.shouldComponentUpdate = null;
     ComponentProto.getChildContext = null;
+    ComponentProto.contextTypes = null;
 
     var queue = [];
     var isUpdating = false;
@@ -1122,32 +1163,18 @@
                 var component = task.component;
                 var prevComponent = currentComponent;
                 currentComponent = component;
-                var nextProps = component.props;
-                var nextState = task.nextState;
-
-                var shouldUpdate = true;
-                if (!task.force && component.shouldComponentUpdate) {
-                    shouldUpdate = TRY_CATCH ? tryCatch(component.shouldComponentUpdate, component, nextProps, nextState, true) : component.shouldComponentUpdate(nextProps, nextState);
-                }
-
-                if (shouldUpdate) {
-                    if (component.componentWillUpdate) {
-                        TRY_CATCH ? tryCatch(component.componentWillUpdate, component, nextProps, nextState) : component.componentWillUpdate(nextProps, nextState);
-                    }
-                    component.state = nextState;
-                    component._internalContext = typeof component.getChildContext == 'function' ? (TRY_CATCH ? tryCatch(component.getChildContext, component, null, null, null) : component.getChildContext()) : null;
-                    var children = norm(TRY_CATCH ? tryCatch(component.render, component, null, null, renderError()) : component.render());
-                    component.node[7/*children*/] = update(component.node[7/*children*/], children, component, true);
-                    if (component.componentDidUpdate) {
-                        TRY_CATCH ? tryCatch(component.componentDidUpdate, component, nextProps, nextState) : component.componentDidUpdate(nextProps, nextState);
-                    }
+                var nextChildren = _updateComponent(component, component.props, task.nextState, component.context, task.force);
+                if (nextChildren) {
+                    component.node[7/*children*/] = nextChildren;
                 }
                 currentComponent = prevComponent;
             }
             isUpdating = false;
             runQueue();
             if (task.callback) {
-                TRY_CATCH ? tryCatch(task.callback, task) : task.callback();
+                TRY_CATCH
+                    ? tryCatch(task.callback, task)
+                    : task.callback();
             }
         }
     }
@@ -1172,28 +1199,6 @@
         runQueue();
     };
 
-    function getContext() {
-        if (!this._context) {
-            var parentComponent = this;
-            var context = {};
-            var parents = [];
-            while (parentComponent = parentComponent._internalParentComponent) {
-                parents.push(parentComponent._internalContext);
-            }
-            for (var i = 0; i < parents.length; i++) {
-                parentComponent = parents[i];
-                for (var prop in parentComponent) {
-                    context[prop] = parentComponent[prop];
-                }
-            }
-            this._context = context;
-        }
-        return this._context;
-    }
-
-    Object.defineProperty(ComponentProto, 'context', {
-        get: getContext
-    });
 
     /**-------------------------------------**
      * Top Level
@@ -1341,7 +1346,6 @@
         Comp.prototype.componentDidUpdate = specification.componentDidUpdate;
         Comp.prototype.componentWillUnmount = specification.componentWillUnmount;
         Comp.prototype.render = specification.render;
-        Object.defineProperty(Comp.prototype, 'context', {get: getContext});
         Comp.displayName = specification.displayName;
         Comp.propTypes = specification.propTypes;
         Comp.defaultProps = defaultProps;
