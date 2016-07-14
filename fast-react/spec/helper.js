@@ -11,7 +11,13 @@ export class Test {
         return this;
     }
 
+    prepareHTML(html){
+        return html.replace(/\s+/g, ' ').replace(/ :=".*?"/g, '')
+    }
+
     checkMount(expectMountNodes, realMountNodes){
+        expectMountNodes = expectMountNodes.map(node => this.prepareHTML(node));
+        realMountNodes = realMountNodes.map(node => this.prepareHTML(node));
         for (var i = 0; i < expectMountNodes.length; i++) {
             var eNode = expectMountNodes[i];
             var found = realMountNodes.indexOf(eNode) > -1;
@@ -39,8 +45,8 @@ export class Test {
     }
 
     toBe(html, props) {
-        var realHTML = this.div.innerHTML.replace(/\s+/, ' ');
-        var expectedHTML = html.replace(/\s+/, ' ');
+        var realHTML = this.prepareHTML(this.div.innerHTML);
+        var expectedHTML = this.prepareHTML(html);
         expect(realHTML).toBe(expectedHTML);
         var dom = findDOMNode(this.node);
         for (var prop in props){
