@@ -150,6 +150,8 @@
 
     var svgNS = 'http://www.w3.org/2000/svg';
 
+    var defaultContext = {};
+
     /**
      * VTagTuple[type, node, tag, key, attrsHash, attrsLen, constAttrsLen, ...attrs, ...children]
      **/
@@ -293,17 +295,30 @@
         var Constructor = vdom[2/*Ctor*/];
         vdom[1/*parentNode*/] = rootNode;
         var props = vdom[8/*props*/];
+        if (Constructor.defaultProps) {
+            setDefaultProps(props, Constructor.defaultProps);
+        } else {
+            Constructor.defaultProps = void 0;
+        }
+
+        if (Constructor.contextTypes) {
+            var nextContext = getContext(parentComponent, Constructor.contextTypes);
+        } else {
+            Constructor.contextTypes = null;
+            nextContext = defaultContext;
+        }
+
+
         if (!Constructor.prototype || !Constructor.prototype.render) {
-            var children = norm(TRY_CATCH ? tryCatch(Constructor, null, props, null, renderError()) : Constructor(props));
+            var children = norm(TRY_CATCH
+                ? tryCatch(Constructor, null, props, nextContext, renderError())
+                : Constructor(props, nextContext));
             vdom[7/*children*/] = create(children, vdom[1/*parentNode*/], before, parentComponent, false, true);
         }
         else {
-            if (Constructor.defaultProps) {
-                setDefaultProps(props, Constructor.defaultProps);
-            } else {
-                Constructor.defaultProps = void 0;
-            }
-            var component = vdom[6/*instance*/] = TRY_CATCH ? tryCatchNew(Constructor, props, null, new Component) : new Constructor(props);
+            var component = vdom[6/*instance*/] = TRY_CATCH
+                ? tryCatchNew(Constructor, props, nextContext, new Component)
+                : new Constructor(props, nextContext);
             var prevComponent = currentComponent;
             currentComponent = component;
             component.node = vdom;
@@ -311,9 +326,18 @@
             if (component.componentWillMount) {
                 TRY_CATCH ? tryCatch(component.componentWillMount, component) : component.componentWillMount();
             }
-            var children = norm(TRY_CATCH ? tryCatch(component.render, component, null, null, renderError()) : component.render());
+
+            if (nextContext) {
+                component.context = nextContext;
+            }
+
+            var children = norm(TRY_CATCH
+                ? tryCatch(component.render, component, null, null, renderError())
+                : component.render());
             component._internalContext = component.getChildContext
-                ? (TRY_CATCH ? tryCatch(component.getChildContext, component, null, null, null) : component.getChildContext())
+                ? (TRY_CATCH
+                    ? tryCatch(component.getChildContext, component, null, null, null)
+                    : component.getChildContext())
                 : null;
 
             vdom[7/*children*/] = create(children, vdom[1/*parentNode*/], before, component, false, true);
@@ -407,33 +431,35 @@
             vdom = replace(old, vdom, parentComponent, false);
         }
         else {
+
+            var nextContext = Ctor.contextTypes ? getContext(parentComponent, Ctor.contextTypes) : defaultContext;
+            var nextProps = vdom[8/*props*/];
+            if (Ctor.defaultProps) {
+                setDefaultProps(nextProps, Ctor.defaultProps);
+            }
+            vdom[8/*props*/] = nextProps; //todo why?
+
+
             vdom[1/*parentNode*/] = old[1/*parentNode*/];
             var component = vdom[6/*instance*/] = old[6/*instance*/];
             if (!component) {
-                // todo context?
-                var context = null;
                 var children = norm(TRY_CATCH
-                    ? tryCatch(Ctor, null, props, context, renderError())
-                    : Ctor(props, context));
+                    ? tryCatch(Ctor, null, nextProps, nextContext, renderError())
+                    : Ctor(nextProps, nextContext));
                 vdom[7/*children*/] = update(old[7/*children*/], children, parentComponent, true);
             }
             else {
                 var prevComponent = currentComponent;
                 currentComponent = component;
 
-                var nextContext = component.contextTypes ? getContext(component) : null;
                 var nextState = component.state;
 
                 // todo why?
                 if (component._internalParentComponent !== parentComponent) {
                     component._internalParentComponent = parentComponent;
+                    throw new Error('Something wrong');
                 }
 
-                var nextProps = vdom[8/*props*/];
-                if (Ctor.defaultProps) {
-                    setDefaultProps(nextProps, Ctor.defaultProps);
-                }
-                vdom[8/*props*/] = nextProps; //todo why?
                 if (component.componentWillReceiveProps) {
                     TRY_CATCH
                         ? tryCatch(component.componentWillReceiveProps, component, nextProps) // todo context
@@ -465,6 +491,9 @@
                     ? tryCatch(component.componentWillUpdate, component, nextProps, nextState) // todo context
                     : component.componentWillUpdate(nextProps, nextState, nextContext);
             }
+            var currentContext = component.context;
+            var currentProps = component.props;
+            var currentState = component.state;
             component.context = nextContext;
             component.props = nextProps;
             component.state = nextState;
@@ -479,25 +508,36 @@
             var newChildren = update(component.node[7/*children*/], children, component, true);
             if (component.componentDidUpdate) {
                 TRY_CATCH
-                    ? tryCatch(component.componentDidUpdate, component, nextProps, nextState) //todo context
-                    : component.componentDidUpdate(nextProps, nextState, nextContext);
+                    ? tryCatch(component.componentDidUpdate, component, currentProps, currentState) //todo context
+                    : component.componentDidUpdate(currentProps, currentState, currentContext);
             }
             return newChildren;
         }
         return null;
     }
 
-    function getContext(component) {
+    function getContext(component, contextTypes) {
         var parentComponent = component;
         var nextContext = {};
-        var parents = [];
-        while (parentComponent = parentComponent._internalParentComponent) {
-            parents.push(parentComponent._internalContext);
+        for (var prop in contextTypes) {
+            nextContext[prop] = void 0;
         }
-        for (var i = 0; i < parents.length; i++) {
+
+        var parents = [];
+        do {
+            if (parentComponent._internalContext) {
+                parents.push(parentComponent._internalContext);
+            }
+        }
+        while (parentComponent = parentComponent._internalParentComponent);
+        for (var i = parents.length - 1; i >= 0; i--) {
             parentComponent = parents[i];
-            for (var prop in parentComponent) {
-                nextContext[prop] = parentComponent[prop];
+            // todo: make array to more faster iterate
+            for (var prop in contextTypes) {
+                var val = parentComponent[prop];
+                if (val !== void 0) {
+                    nextContext[prop] = val;
+                }
             }
         }
         return nextContext;
@@ -846,7 +886,7 @@
                 }
             }
             else if (type == VComponent) {
-                if (vdom[6/*instance*/].componentWillUnmount) {
+                if (vdom[6/*instance*/] && vdom[6/*instance*/].componentWillUnmount) {
                     vdom[6/*instance*/].componentWillUnmount();
                 }
                 remove(vdom[1/*parentNode*/], vdom[7/*children*/], removeFromDom);
@@ -1136,8 +1176,7 @@
         this.node = null;
         this.state = null;
 
-        this._context = null;
-        this._internalContext = null;
+        this._internalContext = defaultContext;
         this._internalParentComponent = null;
     }
 
@@ -1227,7 +1266,7 @@
         return vdom;
     }
 
-    function render(vdom, rootNode) {
+    function render(vdom, rootNode, callback) {
         isUpdating = true;
         if (typeof rootNode._vdom == 'undefined') {
             vdom = rootNode._vdom = create(norm(vdom), rootNode, null, null, false, false);
@@ -1238,6 +1277,9 @@
         }
         isUpdating = false;
         runQueue();
+        if (callback) {
+            callback();
+        }
         return vdom[0/*type*/] == VComponent ? vdom[6/*instance*/] : vdom[1/*node*/];
     }
 
