@@ -1,5 +1,6 @@
 import {Test} from './helper';
-import React,{findDOMNode, Component} from 'react';
+import React,{Component} from 'react';
+import {findDOMNode} from 'react-dom';
 
 
 describe("Attrs", () => {

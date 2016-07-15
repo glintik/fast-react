@@ -16,9 +16,7 @@ module.exports = function (config) {
 
         // list of files / patterns to load in the browser
         files: [
-            //'../dist/fast-react.js',
-            //'./helper.js',
-            './**.spec.js'
+            './index.spec.js'
         ],
 
 
@@ -46,14 +44,15 @@ module.exports = function (config) {
                         test: /\.js$/,
                         loader: 'babel',
                         query: {
-                            presets: ['es2015', 'react']
+                            presets: ['es2015', "stage-0", 'react']
                         }
                     }
                 ]
             },
             resolve: {
                 alias: {
-                    react: '../../fast-react'
+                    react: 'fast-react',
+                    'react-dom': 'fast-react'
                 }
             },
             //devtool: 'inline-source-map',
@@ -87,7 +86,7 @@ module.exports = function (config) {
 
         // start these browsers
         // available browser launchers: https://npmjs.org/browse/keyword/karma-launcher
-        browsers: ['Chrome'],
+        browsers: [],
 
 
         // Continuous Integration mode

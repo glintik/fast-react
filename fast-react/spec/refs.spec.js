@@ -1,5 +1,7 @@
 import {Test} from './helper';
-import React,{Component, findDOMNode} from 'react';
+import React,{Component} from 'react';
+import {findDOMNode} from 'react-dom';
+
 
 class Bar extends Component {
     render() {

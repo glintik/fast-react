@@ -1,5 +1,6 @@
 import {Test} from './helper';
-import React,{findDOMNode, Component} from 'react';
+import React,{Component} from 'react';
+import {findDOMNode} from 'react-dom';
 
 var realMountNodes = [];
 var expectMountNodes = [];
@@ -16,7 +17,9 @@ function RD(value) {
 }
 
 function onMount(vdom) {
-    realMountNodes.push(findDOMNode(vdom).outerHTML);
+    if (vdom) {
+        realMountNodes.push(vdom.outerHTML);
+    }
 }
 
 function d(value) {

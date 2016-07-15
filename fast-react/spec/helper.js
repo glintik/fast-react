@@ -1,4 +1,5 @@
-import {Component, findDOMNode, render} from 'react';
+import {Component} from 'react';
+import {render, findDOMNode} from 'react-dom';
 export class Test {
     constructor(vdom) {}
 
@@ -12,7 +13,7 @@ export class Test {
     }
 
     prepareHTML(html){
-        return html.replace(/\s+/g, ' ').replace(/ :=".*?"/g, '')
+        return html.replace(/ :=".*?"/g, '').replace(/ data-reactroot=""/g, '').replace(/<!-(.*?)->/g, '').replace(/\s+/g, ' ')
     }
 
     checkMount(expectMountNodes, realMountNodes){
