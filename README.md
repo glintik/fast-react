@@ -28,26 +28,27 @@ You don't need change existen code base. Just add settings to your webpack.confi
 
 webpack.config.js
 ```js
-module.exports = {
-	modules: {
-		loaders: [
-			pattern: '\.jsx?$',
-			loader: 'babel',
-			query: [
-            	plugins: [
-	                'babel-fast-react'
-                ]
-				
-			]
-		]
-	}
-	...
-	resolve: {
-		'react': 'fast-react',
-		'react-dom': 'fast-react'
-	}
-	...
-}
+    module: {
+        loaders: [
+            {
+                test: /\.jsx?$/,
+                exclude: /(node_modules|bower_components)/,
+                loader: 'babel',
+                query: {
+                    presets: ['es2015', 'react'],
+                    plugins: ["babel-fast-react"]
+                }
+            }
+
+        ]
+    },
+    resolve: {
+        extensions: ['', '.js', '.jsx'],
+        alias: {
+            react: 'fast-react',
+            'react-dom': 'fast-react'
+        }
+    },
 ```
 
 
