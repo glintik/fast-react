@@ -1,4 +1,4 @@
-!function (global) {
+(function () {
     var doc = document;
     /**-------------------------------------**
      * Globals
@@ -291,7 +291,7 @@
             for (i = 0; i < sourceArray.length; i++) {
                 var vdomPos = i + 4/*arrayFirstNode*/;
                 var child = norm(sourceArray[i]);
-                vdom[vdomPos] = create(child, rootNode, before, parentComponent);
+                vdom[vdomPos] = create(child, rootNode, before, parentComponent, false);
                 var key = getKey(child);
                 if (key != null) {
                     keyMap[key] = vdomPos;
@@ -331,7 +331,7 @@
             var children = norm(TRY_CATCH
                 ? tryCatch(Constructor, null, props, nextContext, renderError())
                 : Constructor(props, nextContext));
-            vdom[7/*children*/] = create(children, vdom[1/*parentNode*/], before, parentComponent, false, true);
+            vdom[7/*children*/] = create(children, vdom[1/*parentNode*/], before, parentComponent, false);
         }
         else {
             var component = vdom[6/*instance*/] = TRY_CATCH
@@ -468,7 +468,7 @@
                 var children = norm(TRY_CATCH
                     ? tryCatch(Ctor, null, nextProps, nextContext, renderError())
                     : Ctor(nextProps, nextContext));
-                vdom[7/*children*/] = update(old[7/*children*/], children, parentComponent, true);
+                vdom[7/*children*/] = update(old[7/*children*/], children, parentComponent);
             }
             else {
                 var prevComponent = currentComponent;
@@ -493,7 +493,7 @@
                 currentComponent = prevComponent;
             }
             if (old[4/*ref*/] != vdom[4/*ref*/] || old[5/*ownerC*/] != vdom[5/*ownerC*/]) {
-                setRef(vdom, old);
+                setRef(vdom);
             }
         }
         return vdom;
@@ -527,7 +527,7 @@
                     ? tryCatch(component.getChildContext, component, null, null, null)
                     : component.getChildContext())
                 : null;
-            var newChildren = update(component.node[7/*children*/], children, component, true);
+            var newChildren = update(component.node[7/*children*/], children, component);
             if (component.componentDidUpdate) {
                 TRY_CATCH
                     ? tryCatch(component.componentDidUpdate, component, currentProps, currentState) //todo context
@@ -657,7 +657,7 @@
                     move(rootNode, child, beforeChild);
                 }
                 else {
-                    child = vdom[pos] = create(child, rootNode, beforeChild, parentComponent);
+                    child = vdom[pos] = create(child, rootNode, beforeChild, parentComponent, false);
                 }
             }
         }
@@ -894,7 +894,7 @@
             parentNode = old[1/*nodeText*/].parentNode;
             before = old[1/*nodeText*/];
         }
-        vdom = create(vdom, parentNode, before, parentComponent);
+        vdom = create(vdom, parentNode, before, parentComponent, false);
         remove(parentNode, old, true);
         return vdom;
     }
@@ -1291,7 +1291,7 @@
     function render(vdom, rootNode, callback) {
         isUpdating = true;
         if (typeof rootNode._vdom == 'undefined') {
-            vdom = rootNode._vdom = create(norm(vdom), rootNode, null, null);
+            vdom = rootNode._vdom = create(norm(vdom), rootNode, null, null, false);
         }
         else {
             var old = rootNode._vdom;
@@ -1310,7 +1310,7 @@
         var rootNode = dummyNode;
         isUpdating = true;
         if (typeof rootNode._vdom == 'undefined') {
-            vdom = rootNode._vdom = create(norm(vdom), rootNode, null, null);
+            vdom = rootNode._vdom = create(norm(vdom), rootNode, null, null, false);
         }
         else {
             var old = rootNode._vdom;
@@ -1349,7 +1349,7 @@
             return vdom;
         }
         if (isValidElement(vdom)) {
-            var node = getChildNode(vdom);
+            var node = getChildNode(vdom, false);
             if (node instanceof Text) {
                 return null;
             }
@@ -1362,7 +1362,7 @@
         for (var i in props){
             vprops[i] = props[i];
         }
-        return makeComponent(getTag(vdom), vprops, getChildren(vdom));
+        return makeComponent(getTag(vdom), vprops, getChildren(vdom), null);
     }
 
     function isValidElement(element) {
@@ -1422,7 +1422,7 @@
     }
 
     function unmountComponentAtNode(container) {
-        render(null, container);
+        render(null, container, null);
     }
 
     function createFactory(type) {
@@ -1531,4 +1531,4 @@
         createElementNS: dummy,
         createTextNode: dummy
     }
-}();
+})();
