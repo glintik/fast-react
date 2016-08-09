@@ -261,11 +261,6 @@
             } else {
                 var node = doc.createElement(vdom[2/*tag*/]);
             }
-            if (process.env.NODE_ENV !== "production") {
-                var cmp = vdom[5/*ownerT*/];
-                node.setAttribute(":", cmp && cmp.constructor && (cmp.constructor.displayName || cmp.constructor.name) || 'unknown');
-                node.$component = cmp;
-            }
             vdom[1/*node*/] = rootNode.insertBefore(node, before);
             var attrsStart = 9/*attrsStartPos*/;
             var attrsEnd = 9/*attrsStartPos*/ + vdom[7/*attrsLen*/] * 2;
